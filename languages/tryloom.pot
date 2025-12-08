@@ -1,0 +1,675 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: TryLoom 1.0.4\n"
+"POT-Creation-Date: 2025-11-13 12:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Custom Script\n"
+
+#: includes/frontend/class-tryloom-frontend.php:386 templates/account-try-on.php:90
+msgid "Actions"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:641
+msgid "Add custom CSS for the account page try-on tab."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:626
+msgid "Add custom CSS for the try-on button."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:608
+msgid "Add custom CSS for the try-on popup modal."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:272
+msgid "Admin Access Roles"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:87
+msgid "Advanced Settings"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:749
+msgid "All try-on history has been cleared successfully."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:141
+msgid "Allowed Categories"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:239
+msgid "Allowed User Roles"
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:491
+msgid "An error occurred. Please try again."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:803
+msgid "Another plugin is hooking into Try On AJAX actions. This may cause functionality issues."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:73
+msgid "Appearance Settings"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:667
+msgid "Are you sure you want to clear all try-on history? This will permanently delete all generated images from the server."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:149
+msgid "Button Placement"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:609 includes/admin/class-tryloom-admin.php:627 includes/admin/class-tryloom-admin.php:642
+msgid "CSS Classes:"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:787
+msgid "CSS/JS optimization plugin detected. If Try On features don't work properly, try clearing cache or excluding Try On files from optimization."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:451
+msgid "Choose the primary color for the Try On button and interface elements."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:440
+msgid "Choose the theme color for the Try On popup."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:518
+msgid "Choose the time period for the generation limit."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:421
+msgid "Choose where to place the Try On button."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:491
+msgid "Choose whether to save user photos on the server."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:669
+msgid "Clear All History"
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:495 templates/try-on-popup.php:67
+msgid "Click or drag to upload"
+msgstr ""
+
+#: templates/try-on-popup.php:138
+msgid "Close"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:360
+msgid "Configure advanced settings for the Try On feature."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:346
+msgid "Configure appearance settings for the Try On feature."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:339
+msgid "Configure general settings for the Try On feature."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:1034
+msgid "Configure the Try On feature for your WooCommerce store."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:353
+msgid "Configure user settings for the Try On feature."
+msgstr ""
+
+#: includes/api/class-tryloom-api.php:160
+msgid "Could not fetch image from URL (HTTP Error)."
+msgstr ""
+
+#: includes/api/class-tryloom-api.php:154
+msgid "Could not fetch image from URL."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:1025
+msgid "Current usage out of your limit"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:198
+msgid "Custom Account Page CSS"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:190
+msgid "Custom Button CSS"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:797
+msgid "Custom CSS targeting Try On elements detected in theme customizer. This may affect plugin styling."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:182
+msgid "Custom Popup CSS"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:438
+msgid "Dark"
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:383 templates/account-try-on.php:87
+msgid "Date"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:514
+msgid "Day"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:417
+msgid "Default WooCommerce Product Page"
+msgstr ""
+
+#: templates/account-try-on.php:123
+msgid "Delete"
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:376 templates/account-try-on.php:80
+msgid "Delete All History"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:231
+msgid "Delete Photos After"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:529
+msgid "Delete user photos if the user has not logged in for the specified number of days."
+msgstr ""
+
+#: templates/account-try-on.php:117 templates/try-on-popup.php:120
+msgid "Download"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:264
+msgid "Enable Logging"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:125
+msgid "Enable Try On"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:247
+msgid "Enable Try On History"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:255
+msgid "Enable Try On Tab in My Account"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:563
+msgid "Enable or disable logging for the Try On feature."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:373
+msgid "Enable or disable the Try On feature."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:687
+msgid "Enable or disable the Try On tab in My Account page."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:660
+msgid "Enable or disable try-on history tracking."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:384
+msgid "Enter your platform key for the Try On API."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:872
+msgid "Failed to decode generated image."
+msgstr ""
+
+#: includes/api/class-tryloom-api.php:292
+msgid "Failed to get try-on image from API."
+msgstr ""
+
+#: includes/api/class-tryloom-api.php:254
+msgid "Free Trial Ended"
+msgstr ""
+
+#: includes/api/class-tryloom-api.php:268
+msgid "Free Trial activation failed."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:66
+msgid "General Settings"
+msgstr ""
+
+#: templates/try-on-popup.php:98
+msgid "Generate Try On"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:215
+msgid "Generation Limit"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:541
+msgid "Guest (Not Logged In)"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:513
+msgid "Hour"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:815
+msgid "If you experience issues, try deactivating other plugins one by one to identify the conflict, or contact support."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:385 templates/account-try-on.php:89
+msgid "Image"
+msgstr ""
+
+#: includes/api/class-tryloom-api.php:166
+msgid "Image data is empty."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:568
+msgid "Image not found."
+msgstr ""
+
+#: includes/api/class-tryloom-api.php:398
+msgid "Invalid API endpoint."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:865
+msgid "Invalid API response or missing image data."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:549
+msgid "Invalid image request."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:591 includes/frontend/class-tryloom-frontend.php:731 includes/frontend/class-tryloom-frontend.php:1002 includes/frontend/class-tryloom-frontend.php:1099 includes/frontend/class-tryloom-frontend.php:1171 includes/frontend/class-tryloom-frontend.php:1213 includes/frontend/class-tryloom-frontend.php:1286 includes/frontend/class-tryloom-frontend.php:1412 includes/frontend/class-tryloom-frontend.php:1457 tryloom.php:540
+msgid "Invalid nonce."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:753
+msgid "Invalid product."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:761
+msgid "Invalid variation."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:1006
+msgid "Last 30 Days Active Users"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:1010
+msgid "Last 30 Days Try-On Uses"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:489
+msgid "Let User Decide"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:437
+msgid "Light"
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:497 templates/try-on-popup.php:87
+msgid "Loading variations..."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:1181
+msgid "Missing history ID."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:744
+msgid "Missing image file."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:1012 includes/frontend/class-tryloom-frontend.php:1109
+msgid "Missing photo ID."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:736 includes/frontend/class-tryloom-frontend.php:1417
+msgid "Missing product ID."
+msgstr ""
+
+#: tryloom.php:547
+msgid "Missing product or try-on date."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:516
+msgid "Month"
+msgstr ""
+
+#: templates/account-try-on.php:151
+msgid "Next"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:371 includes/admin/class-tryloom-admin.php:463 includes/admin/class-tryloom-admin.php:488 includes/admin/class-tryloom-admin.php:561 includes/admin/class-tryloom-admin.php:594 includes/admin/class-tryloom-admin.php:657 includes/admin/class-tryloom-admin.php:684
+msgid "No"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:933
+msgid "No data available yet."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:821
+msgid "No default photo found."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:596 includes/frontend/class-tryloom-frontend.php:1296
+msgid "No image file uploaded."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:1030
+msgid "Photo not found or you do not have permission to delete it."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:1127
+msgid "Photo not found or you do not have permission to set it as default."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:133
+msgid "Platform Key"
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:493
+msgid "Please select a product variant."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:492
+msgid "Please upload an image first."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:777
+msgid "Popup/Modal library detected that may conflict with Try On popup functionality."
+msgstr ""
+
+#: templates/account-try-on.php:138
+msgid "Previous"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:166
+msgid "Primary Button Color"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:1057
+msgid "Privacy Policy"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:1063
+msgid "Privacy Policy page"
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:384 templates/account-try-on.php:88
+msgid "Product"
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:1462
+msgid "Product ID is required."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:1469
+msgid "Product not found."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:496
+msgid "Remove image"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:207
+msgid "Save User Photos"
+msgstr ""
+
+#: templates/try-on-popup.php:78
+msgid "Save photo for later use"
+msgstr ""
+
+#: templates/try-on-popup.php:85
+msgid "Select Product Variation"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:406
+msgid "Select product categories where the Try On feature will be available. Leave empty to enable for all categories."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:582
+msgid "Select user roles that can access the Try On settings."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:549
+msgid "Select user roles that can use the Try On feature. Select \"Guest\" to allow non-logged in users."
+msgstr ""
+
+#: includes/api/class-tryloom-api.php:276
+msgid "Service temporarily unavailable. Please try again."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:502
+msgid "Set the maximum number of generations per user in the specified time period."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:700
+msgid "Settings"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:418
+msgid "Shortcode Only"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:280
+msgid "Show Browser Popup Errors"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:596
+msgid "Show JavaScript browser popup errors in the frontend (like missing platform key, can't reach errors). Only show them as popup if this toggle is turned on."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:174
+msgid "Show Retry Button"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:465
+msgid "Show or hide the retry button for users."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:1038
+msgid "Subscription Options"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:1068
+msgid "Suggested privacy policy text:"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:1062
+msgid "The Try On feature may collect user photos for virtual try-on purposes. Please add appropriate privacy statements to your %s."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:158
+msgid "Theme Color"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:477
+msgid "This feature has been removed."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:223
+msgid "Time Period"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:995
+msgid "Today's Active Users"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:999
+msgid "Today's Try-On Uses"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:924
+msgid "Top Products"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:919
+msgid "Total Try-Ons"
+msgstr ""
+
+#: templates/account-try-on.php:120 templates/try-on-popup.php:124
+msgid "Try Again"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:50 includes/frontend/class-tryloom-frontend.php:112
+msgid "Try On"
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:369 templates/account-try-on.php:74
+msgid "Try On History"
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:406 templates/account-try-on.php:113 templates/try-on-popup.php:110
+msgid "Try On Result"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:49 includes/admin/class-tryloom-admin.php:940
+msgid "Try On Settings"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:871
+msgid "Try On Statistics"
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:899
+msgid "Try On for %s"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:911
+msgid "Try-Ons in the Last Day"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:907
+msgid "Try-Ons in the Last Hour"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:915
+msgid "Try-Ons in the Last Week"
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:586 includes/frontend/class-tryloom-frontend.php:726 includes/frontend/class-tryloom-frontend.php:997 includes/frontend/class-tryloom-frontend.php:1094 includes/frontend/class-tryloom-frontend.php:1166 includes/frontend/class-tryloom-frontend.php:1208 includes/frontend/class-tryloom-frontend.php:1281 includes/frontend/class-tryloom-frontend.php:1407 includes/frontend/class-tryloom-frontend.php:1452
+msgid "Try-on feature is disabled."
+msgstr ""
+
+#: templates/try-on-popup.php:148
+msgid "Trying it on..."
+msgstr ""
+
+#: templates/account-try-on.php:108
+msgid "Unknown Product"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:1023
+msgid "Usage Counter"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:424
+msgid "Use shortcode: "
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:80
+msgid "User Settings"
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:164 includes/frontend/class-tryloom-frontend.php:245 templates/try-on-popup.php:49
+msgid "Virtual Try On"
+msgstr ""
+
+#: templates/try-on-popup.php:113
+msgid "Watermark"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:515
+msgid "Week"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:661
+msgid "When disabled: No history will be shown in My Account page and generated images will be automatically deleted after 5 minutes."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:688
+msgid "When disabled: The Try On tab will not be shown in the My Account page."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:1072
+msgid "When you use our virtual try-on feature, we may collect and process images you upload for the purpose of showing how products may look when worn. These images may be stored on our server based on your preferences and our settings. You can manage your saved images in your account settings."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:809
+msgid "WooCommerce Try On - Potential Conflicts Detected:"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:990
+msgid "WooCommerce Try On Settings"
+msgstr ""
+
+#: tryloom.php:109
+msgid "WooCommerce Try On requires WooCommerce to be installed and active."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:755 includes/admin/class-tryloom-admin.php:763
+msgid "WooCommerce Try On:"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:370 includes/admin/class-tryloom-admin.php:462 includes/admin/class-tryloom-admin.php:487 includes/admin/class-tryloom-admin.php:560 includes/admin/class-tryloom-admin.php:593 includes/admin/class-tryloom-admin.php:656 includes/admin/class-tryloom-admin.php:683
+msgid "Yes"
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:560
+msgid "You do not have permission to view this image."
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:711
+msgid "You do not have sufficient permissions to access this page."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:425
+msgid "You have no try-on history."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:802
+msgid "You have reached your generation limit. Please try again later."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:494 templates/account-try-on.php:158
+msgid "You haven't tried on any products yet."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:1176 includes/frontend/class-tryloom-frontend.php:1218
+msgid "You must be logged in to delete history."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:1007
+msgid "You must be logged in to delete photos."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:1104
+msgid "You must be logged in to set default photo."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:544
+msgid "You must be logged in to view this image."
+msgstr ""
+
+#: includes/frontend/class-tryloom-frontend.php:1291 tryloom.php:537
+msgid "You must be logged in."
+msgstr ""
+
+#: templates/try-on-popup.php:57 templates/try-on-popup.php:62
+msgid "Your Photo"
+msgstr ""
+
+#: includes/admin/class-tryloom-admin.php:755 includes/frontend/class-tryloom-frontend.php:832 includes/frontend/class-tryloom-frontend.php:858
+msgid "Your free trial ended. Please buy a subscription to continue use this feature."
+msgstr ""

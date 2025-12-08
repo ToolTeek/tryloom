@@ -1,0 +1,150 @@
+/**
+ * WooCommerce Try On Admin CSS.
+ *
+ * @package WooCommerce_Try_On
+ */
+
+/* Minimal custom styles - using WordPress defaults */
+
+/* Daily Stats - Simple boxes */
+.tryloom-daily-stats {
+    margin: 20px 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+}
+
+.tryloom-stat-box {
+    background: #fff;
+    padding: 15px 20px;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    text-align: center;
+}
+
+.tryloom-stat-box h3 {
+    margin: 0 0 8px;
+    font-size: 12px;
+    color: #646970;
+    font-weight: 600;
+}
+
+.tryloom-stat-box .stat-number {
+    font-size: 28px;
+    font-weight: 400;
+    margin: 0;
+    color: #1d2327;
+}
+
+.tryloom-header {
+    display: flex;
+    align-items: center; 
+    gap: 12px; 
+    border-radius: 6px;
+
+}
+
+.tryloom-header-info p {
+    margin: 0;
+    font-size: 14px;
+    color: #333;
+    line-height: 1.4;
+}
+
+.tryloom-header-actions .button-primary {
+    background: linear-gradient(135deg, #552FBC 0%, #6E4DDC 100%);
+    border: none;
+    padding: 6px 16px; 
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px; 
+    box-shadow: 0 3px 10px rgba(85, 47, 188, 0.3);
+    transition: all 0.3s ease;
+    color: white;
+    text-shadow: none;
+    text-decoration: none;
+}
+
+.tryloom-header-actions .button-primary:hover {
+    background: linear-gradient(135deg, #6E4DDC 0%, #552FBC 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(85, 47, 188, 0.4);
+    color: white;
+}
+
+
+
+/* Dashboard Widget Stats */
+.tryloom-stats {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -10px;
+}
+
+.tryloom-stats-item {
+    flex: 1 0 45%;
+    margin: 10px;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    text-align: center;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.tryloom-stats-item h4 {
+    color: #646970;
+    font-size: 13px;
+    margin: 0;
+    font-weight: 400;
+}
+
+.tryloom-stats-number {
+    font-size: 28px;
+    font-weight: 400;
+    color: #1d2327;
+    margin: 10px 0 0;
+}
+
+.tryloom-top-products {
+    margin-top: 15px;
+}
+
+.tryloom-top-products li {
+    padding: 8px 0;
+    border-bottom: 1px solid #dcdcde;
+}
+
+.tryloom-top-products li:last-child {
+    border-bottom: none;
+}
+
+/* Fixed Save Button */
+.tryloom-settings .submit {
+    position: sticky;
+    bottom: 0px;
+    z-index: 999;
+    background: white;
+    padding: 15px 20px;
+    margin: 20px -20px -20px;
+    border-top: 1px solid #dcdcde;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Selected option highlight */
+select[multiple] option:checked {
+    background: #552FBC linear-gradient(0deg, #552FBC 0%, #552FBC 100%);
+    color: white;
+}
+
+select[multiple] option {
+    padding: 4px 8px;
+}
+
+/* Responsive */
+@media screen and (max-width: 782px) {
+    .tryloom-stats-item {
+        flex: 1 0 100%;
+    }
+}

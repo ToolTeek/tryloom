@@ -1,0 +1,1757 @@
+<?php
+/**
+ * WooCommerce Try On Frontend.
+ *
+ * @package WooCommerce_Try_On
+ */
+
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Tryloom_Frontend Class.
+ */
+class Tryloom_Frontend {
+
+	/**
+	 * Constructor.
+	 */
+	public function __construct() {
+		// Add try-on button to product page.
+		$button_placement = get_option( 'tryloom_button_placement', 'default' );
+		if ( 'default' === $button_placement ) {
+			add_action( 'woocommerce_after_add_to_cart_button', array( $this, 'add_try_on_button' ) );
+		}
+
+		// Register shortcode.
+		add_shortcode( 'tryloom', array( $this, 'try_on_shortcode' ) );
+		add_shortcode( 'tryloom_popup', array( $this, 'try_on_popup_shortcode' ) );
+
+		// Enqueue frontend scripts and styles.
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+
+		// Add try-on popup to footer.
+		add_action( 'wp_footer', array( $this, 'add_try_on_popup' ) );
+
+		// Add try-on tab to user account.
+		add_filter( 'woocommerce_account_menu_items', array( $this, 'add_try_on_account_menu_item' ) );
+		add_action( 'woocommerce_account_try-on_endpoint', array( $this, 'try_on_account_content' ) );
+		add_action( 'init', array( $this, 'add_try_on_endpoint' ) );
+		// Make sure the endpoint works with query vars
+		add_filter( 'query_vars', array( $this, 'add_try_on_query_vars' ) );
+
+		// Handle AJAX requests.
+		add_action( 'wp_ajax_tryloom_upload_photo', array( $this, 'ajax_upload_photo' ) );
+		add_action( 'wp_ajax_nopriv_tryloom_upload_photo', array( $this, 'ajax_upload_photo' ) );
+		add_action( 'wp_ajax_tryloom_generate', array( $this, 'ajax_generate_try_on' ) );
+		add_action( 'wp_ajax_nopriv_tryloom_generate', array( $this, 'ajax_generate_try_on' ) );
+		add_action( 'wp_ajax_tryloom_delete_photo', array( $this, 'ajax_delete_photo' ) );
+		add_action( 'wp_ajax_tryloom_set_default_photo', array( $this, 'ajax_set_default_photo' ) );
+		add_action( 'wp_ajax_tryloom_delete_history', array( $this, 'ajax_delete_history' ) );
+		add_action( 'wp_ajax_tryloom_delete_all_history', array( $this, 'ajax_delete_all_history' ) );
+		add_action( 'wp_ajax_tryloom_upload_account_photo', array( $this, 'ajax_upload_account_photo' ) );
+		add_action( 'wp_ajax_tryloom_get_variations', array( $this, 'ajax_get_variations' ) );
+		add_action( 'wp_ajax_nopriv_tryloom_get_variations', array( $this, 'ajax_get_variations' ) );
+		add_action( 'wp_ajax_tryloom_get_product', array( $this, 'ajax_get_product' ) );
+		add_action( 'wp_ajax_nopriv_tryloom_get_product', array( $this, 'ajax_get_product' ) );
+
+		// Handle image access protection
+		add_action( 'init', array( $this, 'protect_try_on_images' ) );
+
+		// Handle scheduled image deletion.
+		add_action( 'tryloom_delete_generated_image', array( $this, 'delete_generated_image' ), 10, 2 );
+
+		// Add filter to prevent try-on images from appearing in media library.
+		add_filter( 'ajax_query_attachments_args', array( $this, 'exclude_try_on_images_from_media_library' ) );
+		add_filter( 'pre_get_posts', array( $this, 'exclude_try_on_images_from_media_library_query' ) );
+	}
+
+	/**
+	 * Add try-on endpoint.
+	 */
+	public function add_try_on_endpoint() {
+		add_rewrite_endpoint( 'try-on', EP_ROOT | EP_PAGES );
+	}
+
+	/**
+	 * Add try-on query vars.
+	 *
+	 * @param array $vars Query variables.
+	 * @return array
+	 */
+	public function add_try_on_query_vars( $vars ) {
+		$vars[] = 'try-on';
+		return $vars;
+	}
+
+	/**
+	 * Add try-on account menu item.
+	 *
+	 * @param array $items Menu items.
+	 * @return array
+	 */
+	public function add_try_on_account_menu_item( $items ) {
+		// Check if try-on is enabled.
+		if ( 'yes' !== get_option( 'tryloom_enabled', 'yes' ) ) {
+			return $items;
+		}
+		
+		// Check if try-on account tab is enabled
+		if ( 'yes' !== get_option( 'tryloom_enable_account_tab', 'yes' ) ) {
+			return $items;
+		}
+
+		// Add try-on tab as the third menu item.
+		// First, extract the first two items
+		$first_items = array_slice( $items, 0, 2, true );
+		// Then get the rest of the items
+		$remaining_items = array_slice( $items, 2, null, true );
+		// Insert the try-on item between them
+		$items = array_merge( $first_items, array( 'try-on' => __( 'Try On', 'tryloom' ) ), $remaining_items );
+		
+		return $items;
+	}
+
+	/**
+	 * Add try-on button to product page.
+	 */
+	public function add_try_on_button() {
+		// Check if try-on is enabled.
+		if ( 'yes' !== get_option( 'tryloom_enabled', 'yes' ) ) {
+			return;
+		}
+		
+		// Check if free trial ended
+		$free_trial_ended = get_option( 'tryloom_free_trial_ended', 'no' );
+		if ( 'yes' === $free_trial_ended ) {
+			return;
+		}
+		
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+		global $product;
+
+		// Check if product exists.
+		if ( ! $product ) {
+			return;
+		}
+
+		// Check if product is in allowed categories.
+		$allowed_categories = get_option( 'tryloom_allowed_categories', array() );
+		if ( ! empty( $allowed_categories ) ) {
+			$product_categories = wp_get_post_terms( $product->get_id(), 'product_cat', array( 'fields' => 'ids' ) );
+			$intersection = array_intersect( $allowed_categories, $product_categories );
+			if ( empty( $intersection ) ) {
+				return;
+			}
+		}
+
+		// Check if user role is allowed.
+		$allowed_user_roles = get_option( 'tryloom_allowed_user_roles', array( 'customer' ) );
+		$current_user_roles = wp_get_current_user()->roles;
+
+		// If guest is allowed or user has an allowed role.
+		if ( in_array( 'guest', $allowed_user_roles, true ) || ( is_user_logged_in() && array_intersect( $current_user_roles, $allowed_user_roles ) ) ) {
+			// Get settings.
+			$primary_color = get_option( 'tryloom_primary_color', '#552FBC' );
+
+		// Get Add to Cart button classes.
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+		// Use your own prefix
+        $button_classes = apply_filters( 'tryloom_product_single_add_to_cart_button_classes', 'button alt' );
+
+			// Output button.
+			?>
+			<button type="button" class="<?php echo esc_attr( $button_classes ); ?> tryloom-button" data-product-id="<?php echo esc_attr( $product->get_id() ); ?>" style="background-color: <?php echo esc_attr( $primary_color ); ?>; color: #fff;">
+				<?php esc_html_e( 'Virtual Try On', 'tryloom' ); ?>
+			</button>
+			<?php
+		}
+	}
+
+	/**
+	 * Try-on shortcode.
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string
+	 */
+	public function try_on_shortcode( $atts ) {
+		// Check if try-on is enabled.
+		if ( 'yes' !== get_option( 'tryloom_enabled', 'yes' ) ) {
+			return '';
+		}
+		
+		// Check if free trial ended
+		$free_trial_ended = get_option( 'tryloom_free_trial_ended', 'no' );
+		if ( 'yes' === $free_trial_ended ) {
+			return '';
+		}
+		
+		$atts = shortcode_atts(
+			array(
+				'product_id' => 0,
+			),
+			$atts,
+			'tryloom'
+		);
+
+		// Get product ID.
+		$product_id = absint( $atts['product_id'] );
+		if ( ! $product_id ) {
+			global $product;
+			// Check if $product is a valid WooCommerce product object.
+			if ( $product && is_a( $product, 'WC_Product' ) ) {
+				$product_id = $product->get_id();
+			} elseif ( is_product() ) {
+				// Try to get product ID from the current post if on a product page.
+				$product_id = get_the_ID();
+			}
+		}
+
+		// Check if product ID is valid.
+		if ( ! $product_id ) {
+			return '';
+		}
+
+		// Get product.
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+		$product = wc_get_product( $product_id );
+		if ( ! $product || ! $product->is_in_stock() ) {
+			return '';
+		}
+
+		// Check if product is in allowed categories.
+		$allowed_categories = get_option( 'tryloom_allowed_categories', array() );
+		if ( ! empty( $allowed_categories ) ) {
+			$product_categories = wp_get_post_terms( $product_id, 'product_cat', array( 'fields' => 'ids' ) );
+			$intersection = array_intersect( $allowed_categories, $product_categories );
+			if ( empty( $intersection ) ) {
+				return '';
+			}
+		}
+
+		// Check if user role is allowed.
+		$allowed_user_roles = get_option( 'tryloom_allowed_user_roles', array( 'customer' ) );
+		$current_user_roles = wp_get_current_user()->roles;
+
+		// If guest is allowed or user has an allowed role.
+		if ( ! in_array( 'guest', $allowed_user_roles, true ) && is_user_logged_in() && ! array_intersect( $current_user_roles, $allowed_user_roles ) ) {
+			return '';
+		}
+
+		// Get settings.
+		$primary_color = get_option( 'tryloom_primary_color', '#552FBC' );
+
+		// Get Add to Cart button classes.
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+		$button_classes = apply_filters( 'tryloom_product_single_add_to_cart_button_classes', 'button alt' );
+
+		// Output button.
+		ob_start();
+		?>
+		<button type="button" class="<?php echo esc_attr( $button_classes ); ?> tryloom-button" data-product-id="<?php echo esc_attr( $product_id ); ?>" style="background-color: <?php echo esc_attr( $primary_color ); ?>; color: #fff;">
+			<?php esc_html_e( 'Virtual Try On', 'tryloom' ); ?>
+		</button>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
+	 * Add try-on popup to footer.
+	 */
+	public function add_try_on_popup() {
+		// Check if try-on is enabled.
+		if ( 'yes' !== get_option( 'tryloom_enabled', 'yes' ) ) {
+			return;
+		}
+		
+		// Check if free trial ended
+		$free_trial_ended = get_option( 'tryloom_free_trial_ended', 'no' );
+		if ( 'yes' === $free_trial_ended ) {
+			return;
+		}
+		
+		// Check if user role is allowed.
+		$allowed_user_roles = get_option( 'tryloom_allowed_user_roles', array( 'customer' ) );
+		$current_user_roles = wp_get_current_user()->roles;
+
+		// If guest is allowed or user has an allowed role.
+		if ( ! in_array( 'guest', $allowed_user_roles, true ) && is_user_logged_in() && ! array_intersect( $current_user_roles, $allowed_user_roles ) ) {
+			return;
+		}
+
+		// Get settings.
+		$settings = get_option( 'tryloom_settings', array() );
+		$theme_color = isset( $settings['theme_color'] ) ? $settings['theme_color'] : 'light';
+		$primary_color = get_option( 'tryloom_primary_color', '#552FBC' );
+		$save_photos = get_option( 'tryloom_save_photos', 'let_user_decide' );
+		$watermark = get_option( 'tryloom_brand_watermark', '' );
+
+		// Check if user has a default photo.
+		$default_photo_url = '';
+		if ( is_user_logged_in() ) {
+			$user_id = get_current_user_id();
+			global $wpdb;
+			$table_name = $wpdb->prefix . 'tryloom_user_photos';
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+			$default_photo = $wpdb->get_row(
+				$wpdb->prepare(
+					'SELECT * FROM ' . esc_sql( $table_name ) . ' WHERE user_id = %d AND is_default = 1 ORDER BY manually_set_default DESC, created_at DESC LIMIT 1',
+					$user_id
+				)
+			);
+
+			if ( $default_photo ) {
+				$default_photo_url = $default_photo->image_url;
+			}
+		}
+
+		// Include popup template.
+		include TRYLOOM_PLUGIN_DIR . 'templates/try-on-popup.php';
+	}
+
+	/**
+	 * Try-on popup shortcode.
+	 *
+	 * @return string
+	 */
+	public function try_on_popup_shortcode() {
+		// Check if try-on is enabled.
+		if ( 'yes' !== get_option( 'tryloom_enabled', 'yes' ) ) {
+			return '';
+		}
+		
+		// Ensure scripts are enqueued.
+		if ( ! wp_script_is( 'tryloom-frontend', 'enqueued' ) ) {
+			$this->enqueue_scripts();
+		}
+
+		ob_start();
+		include TRYLOOM_PLUGIN_DIR . 'templates/try-on-popup.php';
+		return ob_get_clean();
+	}
+
+	/**
+	 * Display try-on account content.
+	 */
+	public function try_on_account_content() {
+		// Check if try-on is enabled.
+		if ( 'yes' !== get_option( 'tryloom_enabled', 'yes' ) ) {
+			return;
+		}
+		
+		// Check if user is logged in.
+		if ( ! is_user_logged_in() ) {
+			return;
+		}
+
+		$user_id = get_current_user_id();
+
+		// Get user photos.
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'tryloom_user_photos';
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+		$user_photos = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT * FROM ' . esc_sql( $table_name ) . ' WHERE user_id = %d ORDER BY is_default DESC, created_at DESC',
+				$user_id
+			)
+		);
+
+		// Get try-on history (only if history is enabled).
+		$try_on_history = array();
+		$enable_history = get_option( 'tryloom_enable_history', 'yes' );
+		
+		if ( 'yes' === $enable_history ) {
+			$table_name = $wpdb->prefix . 'tryloom_history';
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+			$try_on_history = $wpdb->get_results(
+				$wpdb->prepare(
+					'SELECT * FROM ' . esc_sql( $table_name ) . ' WHERE user_id = %d ORDER BY created_at DESC LIMIT 20',
+					$user_id
+				)
+			);
+		}
+
+		// Display content.
+		?>
+		<div class="tryloom-account">
+			<?php if ( 'yes' === $enable_history ) : ?>
+				<h2><?php esc_html_e( 'Try On History', 'tryloom' ); ?></h2>
+
+				<div class="tryloom-account-history">
+					<?php if ( ! empty( $try_on_history ) ) : ?>
+						<div class="tryloom-history-actions">
+							<button class="button tryloom-delete-all-history">
+								<i class="fas fa-trash"></i>
+								<?php esc_html_e( 'Delete All History', 'tryloom' ); ?>
+							</button>
+						</div>
+						
+						<table class="tryloom-history-table">
+							<thead>
+								<tr>
+									<th><?php esc_html_e( 'Date', 'tryloom' ); ?></th>
+									<th><?php esc_html_e( 'Product', 'tryloom' ); ?></th>
+									<th><?php esc_html_e( 'Image', 'tryloom' ); ?></th>
+									<th><?php esc_html_e( 'Actions', 'tryloom' ); ?></th>
+								</tr>
+							</thead>
+							<tbody>
+								<?php foreach ( $try_on_history as $history ) : ?>
+									<?php
+									$product = wc_get_product( $history->product_id );
+									if ( ! $product ) {
+										continue;
+									}
+									?>
+									<tr>
+										<td><?php echo esc_html( date_i18n( get_option( 'date_format' ), strtotime( $history->created_at ) ) ); ?></td>
+										<td>
+											<a href="<?php echo esc_url( get_permalink( $history->product_id ) ); ?>">
+												<?php echo esc_html( $product->get_name() ); ?>
+											</a>
+										</td>
+										<td>
+											<?php
+											$image_url_with_nonce = $this->add_nonce_to_image_url( $history->generated_image_url );
+											?>
+											<a href="<?php echo esc_url( $image_url_with_nonce ); ?>" target="_blank">
+												<img src="<?php echo esc_url( $image_url_with_nonce ); ?>" alt="<?php esc_attr_e( 'Try On Result', 'tryloom' ); ?>" width="50" height="50" />
+											</a>
+										</td>
+										<td>
+											<a href="<?php echo esc_url( $image_url_with_nonce ); ?>" download class="button">
+												<i class="fas fa-download"></i>
+											</a>
+											<a href="<?php echo esc_url( get_permalink( $history->product_id ) ); ?>" class="button">
+												<i class="fas fa-redo"></i>
+											</a>
+											<button class="button tryloom-delete-history" data-id="<?php echo esc_attr( $history->id ); ?>">
+												<i class="fas fa-trash"></i>
+											</button>
+										</td>
+									</tr>
+								<?php endforeach; ?>
+							</tbody>
+						</table>
+					<?php else : ?>
+						<p><?php esc_html_e( 'You have no try-on history.', 'tryloom' ); ?></p>
+					<?php endif; ?>
+				</div>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Enqueue frontend scripts and styles.
+	 */
+	public function enqueue_scripts() {
+		// Check if try-on is enabled.
+		if ( 'yes' !== get_option( 'tryloom_enabled', 'yes' ) ) {
+			return;
+		}
+		
+		// Only enqueue on product pages or account pages.
+		if ( ! is_product() && ! is_account_page() ) {
+			return;
+		}
+
+		// Enqueue Font Awesome.
+		// Note: Font Awesome is bundled locally for WordPress.org compliance.
+		wp_enqueue_style(
+			'font-awesome',
+			TRYLOOM_PLUGIN_URL . 'assets/css/font-awesome.min.css',
+			array(),
+			'6.4.0'
+		);
+
+		// Enqueue styles.
+		wp_enqueue_style(
+			'tryloom-frontend',
+			TRYLOOM_PLUGIN_URL . 'assets/css/frontend.css',
+			array(),
+			TRYLOOM_VERSION
+		);
+
+		// Add custom CSS.
+		$custom_popup_css = get_option( 'tryloom_custom_popup_css', '' );
+		$custom_button_css = get_option( 'tryloom_custom_button_css', '' );
+		$custom_account_css = get_option( 'tryloom_custom_account_css', '' );
+		// Build CSS string
+		$raw_css = $custom_popup_css . "\n" . $custom_button_css . "\n" . $custom_account_css;
+
+		if ( ! empty( trim( $raw_css ) ) ) {
+			// Escaping LATE: wp_strip_all_tags called directly inside the output function
+			wp_add_inline_style( 'tryloom-frontend', wp_strip_all_tags( $raw_css ) );
+		}
+
+		// Enqueue scripts.
+		wp_enqueue_script(
+			'tryloom-frontend',
+			TRYLOOM_PLUGIN_URL . 'assets/js/frontend.js',
+			array( 'jquery' ),
+			TRYLOOM_VERSION,
+			true
+		);
+
+		// Localize script.
+		wp_localize_script(
+			'tryloom-frontend',
+			'tryloom_params',
+			array(
+				'ajax_url' => admin_url( 'admin-ajax.php' ),
+				'nonce'    => wp_create_nonce( 'tryloom' ),
+				'show_popup_errors' => get_option( 'tryloom_show_popup_errors', 'no' ) === 'yes',
+				'i18n'     => array(
+					'error'              => __( 'An error occurred. Please try again.', 'tryloom' ),
+					'upload_image'       => __( 'Please upload an image first.', 'tryloom' ),
+					'select_variant'     => __( 'Please select a product variant.', 'tryloom' ),
+					'no_history'         => __( 'You haven\'t tried on any products yet.', 'tryloom' ),
+					'click_or_drag'      => __( 'Click or drag to upload', 'tryloom' ),
+					'remove_image'       => __( 'Remove image', 'tryloom' ),
+					'loading_variations' => __( 'Loading variations...', 'tryloom' ),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Add nonce to tryloom image URL if missing.
+	 *
+	 * @param string $image_url The image URL.
+	 * @return string URL with nonce added.
+	 */
+	private function add_nonce_to_image_url( $image_url ) {
+		if ( strpos( $image_url, '?tryloom_image=' ) !== false ) {
+			// Check if nonce already exists
+			if ( strpos( $image_url, '_wpnonce=' ) === false ) {
+				$image_nonce = wp_create_nonce( 'tryloom_image_access' );
+				$separator = ( strpos( $image_url, '?' ) !== false ) ? '&' : '?';
+				$image_url = $image_url . $separator . '_wpnonce=' . urlencode( $image_nonce );
+			}
+		}
+		return $image_url;
+	}
+
+	/**
+	 * Get file path from URL using WordPress upload directory.
+	 *
+	 * @param string $image_url The URL of the image.
+	 * @return string|false File path on success, false on failure.
+	 */
+	private function get_file_path_from_url( $image_url ) {
+		if ( empty( $image_url ) ) {
+			return false;
+		}
+
+		// If the URL is a protected URL, extract the filename and get path from custom directory
+		if ( strpos( $image_url, '?tryloom_image=' ) !== false ) {
+			$parsed_url = wp_parse_url( $image_url );
+			if ( isset( $parsed_url['query'] ) ) {
+				parse_str( $parsed_url['query'], $query_params );
+				if ( isset( $query_params['tryloom_image'] ) ) {
+					$image_name = sanitize_file_name( $query_params['tryloom_image'] );
+					$upload_dir = wp_upload_dir();
+					$protected_image_path = $upload_dir['basedir'] . '/tryloom/' . $image_name;
+					if ( file_exists( $protected_image_path ) ) {
+						return $protected_image_path;
+					}
+				}
+			}
+		}
+
+		// Try to get attachment ID and file path
+		$attachment_id = attachment_url_to_postid( $image_url );
+		if ( $attachment_id ) {
+			$file_path = get_attached_file( $attachment_id );
+			if ( $file_path && file_exists( $file_path ) ) {
+				return $file_path;
+			}
+		}
+
+		// Try to extract path from uploads directory URL
+		$upload_dir = wp_upload_dir();
+		$upload_base_url = $upload_dir['baseurl'];
+		$upload_base_dir = $upload_dir['basedir'];
+
+		// Check if URL is within uploads directory
+		if ( strpos( $image_url, $upload_base_url ) === 0 ) {
+			$relative_path = str_replace( $upload_base_url, '', $image_url );
+			// Remove query string if present
+			$relative_path = strtok( $relative_path, '?' );
+			$file_path = $upload_base_dir . $relative_path;
+			if ( file_exists( $file_path ) ) {
+				return $file_path;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Create custom directory for try-on images.
+	 *
+	 * @return string Path to custom directory.
+	 */
+	private function create_custom_directory() {
+		$upload_dir = wp_upload_dir();
+		$custom_dir = $upload_dir['basedir'] . '/tryloom';
+		
+		// Create directory if it doesn't exist
+		if ( ! file_exists( $custom_dir ) ) {
+			wp_mkdir_p( $custom_dir );
+		}
+		
+		// Create .htaccess file to prevent direct access
+		$htaccess_file = $custom_dir . '/.htaccess';
+		if ( ! file_exists( $htaccess_file ) ) {
+			$htaccess_content = "Order Deny,Allow\nDeny from all";
+			file_put_contents( $htaccess_file, $htaccess_content );
+		}
+		
+		// Create index.php to prevent directory listing
+		$index_file = $custom_dir . '/index.php';
+		if ( ! file_exists( $index_file ) ) {
+			file_put_contents( $index_file, "<?php\n// Silence is golden.");
+		}
+		
+		return $custom_dir;
+	}
+
+	/**
+	 * Protect try-on images from direct access.
+	 */
+	public function protect_try_on_images() {
+		// Check if we're requesting a try-on image
+		// Verify nonce for image protection GET request
+		if ( isset( $_GET['tryloom_image'] ) ) {
+			// Verify nonce for image access
+			if ( ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'tryloom_image_access' ) ) {
+				status_header( 403 );
+				wp_die( esc_html__( 'Invalid security token. Please refresh the page and try again.', 'tryloom' ), esc_html__( 'Access Denied', 'tryloom' ), array( 'response' => 403 ) );
+			}
+			
+			$image_name = sanitize_file_name( wp_unslash( $_GET['tryloom_image'] ) );
+			$user_id = get_current_user_id();
+			
+			// Validate user is logged in
+			if ( ! is_user_logged_in() ) {
+				if ( 'yes' === get_option( 'tryloom_enable_logging', 'no' ) ) {
+					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+					error_log( '[WooCommerce Try On] Image access denied: User not logged in for image: ' . $image_name );
+				}
+				status_header( 403 );
+				wp_die( esc_html__( 'You must be logged in to view this image.', 'tryloom' ), esc_html__( 'Access Denied', 'tryloom' ), array( 'response' => 403 ) );
+			}
+			
+			// Validate image name
+			if ( ! $image_name || ! preg_match( '/^tryloom-\d+-.*\.png$/', $image_name ) ) {
+				if ( 'yes' === get_option( 'tryloom_enable_logging', 'no' ) ) {
+					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+					error_log( '[WooCommerce Try On] Invalid image name format: ' . $image_name );
+				}
+				status_header( 404 );
+				wp_die( esc_html__( 'Invalid image request.', 'tryloom' ), esc_html__( 'Not Found', 'tryloom' ), array( 'response' => 404 ) );
+			}
+			
+			// Extract user ID from image name
+			$image_user_id = 0;
+			if ( preg_match( '/^tryloom-(\d+)-/', $image_name, $matches ) ) {
+				$image_user_id = (int) $matches[1];
+			}
+			
+			// Check if user has permission to view this image
+			if ( $user_id !== $image_user_id && ! current_user_can( 'manage_options' ) ) {
+				if ( 'yes' === get_option( 'tryloom_enable_logging', 'no' ) ) {
+					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+					error_log( '[WooCommerce Try On] Image access denied: User ' . $user_id . ' does not have permission for image: ' . $image_name . ' (owner: ' . $image_user_id . ')' );
+				}
+				status_header( 403 );
+				wp_die( esc_html__( 'You do not have permission to view this image.', 'tryloom' ), esc_html__( 'Access Denied', 'tryloom' ), array( 'response' => 403 ) );
+			}
+			
+			// Check if image exists
+			$upload_dir = wp_upload_dir();
+			$image_path = $upload_dir['basedir'] . '/tryloom/' . $image_name;
+			
+			if ( ! file_exists( $image_path ) ) {
+				if ( 'yes' === get_option( 'tryloom_enable_logging', 'no' ) ) {
+					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+					error_log( '[WooCommerce Try On] Image file not found: ' . $image_path );
+				}
+				status_header( 404 );
+				wp_die( esc_html__( 'Image not found.', 'tryloom' ), esc_html__( 'Not Found', 'tryloom' ), array( 'response' => 404 ) );
+			}
+			
+			// Serve the image
+			global $wp_filesystem;
+			if ( empty( $wp_filesystem ) ) {
+				require_once ABSPATH . '/wp-admin/includes/file.php';
+				WP_Filesystem();
+			}
+			
+			// Clear any output that might have been sent
+			if ( ! headers_sent() ) {
+				header( 'Content-Type: image/png' );
+				header( 'Content-Length: ' . filesize( $image_path ) );
+				header( 'Cache-Control: private, max-age=3600' );
+			}
+			
+			// Use readfile to output binary data directly (standard method for serving images)
+			if ( file_exists( $image_path ) ) {
+				readfile( $image_path );
+				exit;
+			}
+			
+			if ( 'yes' === get_option( 'tryloom_enable_logging', 'no' ) ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( '[WooCommerce Try On] Failed to read image file: ' . $image_path );
+			}
+			status_header( 500 );
+			wp_die( esc_html__( 'Failed to read image file.', 'tryloom' ), esc_html__( 'Server Error', 'tryloom' ), array( 'response' => 500 ) );
+		}
+		// If not requesting a try-on image, continue with normal WordPress operation
+	}
+
+	/**
+	 * Handle AJAX request to upload photo.
+	 */
+	public function ajax_upload_photo() {
+		// Check if try-on is enabled.
+		if ( 'yes' !== get_option( 'tryloom_enabled', 'yes' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Try-on feature is disabled.', 'tryloom' ) ) );
+		}
+		
+		// Check nonce.
+		if ( ! check_ajax_referer( 'tryloom', 'nonce', false ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid nonce.', 'tryloom' ) ) );
+		}
+
+		// Check if file is uploaded.
+		if ( ! isset( $_FILES['image'] ) ) {
+			wp_send_json_error( array( 'message' => __( 'No image file uploaded.', 'tryloom' ) ) );
+		}
+
+		$save_photo = isset( $_POST['save_photo'] ) ? sanitize_text_field( wp_unslash( $_POST['save_photo'] ) ) : 'no';
+		$user_id = get_current_user_id();
+
+		// Handle file upload.
+		if ( ! function_exists( 'wp_handle_upload' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+
+		$upload_overrides = array( 'test_form' => false );
+		$file = wp_handle_upload( $_FILES['image'], $upload_overrides );
+
+		if ( isset( $file['error'] ) ) {
+			wp_send_json_error( array( 'message' => $file['error'] ) );
+		}
+
+		$file_url = $file['url'];
+
+		// Save to media library.
+		$attachment = array(
+			'post_mime_type' => $file['type'],
+			'post_title'     => isset( $_FILES['image']['name'] ) ? sanitize_file_name( $_FILES['image']['name'] ) : '',
+			'post_content'   => '',
+			'post_status'    => 'inherit',
+		);
+
+		$attachment_id = wp_insert_attachment( $attachment, $file['file'] );
+
+		if ( ! is_wp_error( $attachment_id ) ) {
+			// Mark this as a try-on image
+			update_post_meta( $attachment_id, '_tryloom_image', 'yes' );
+			
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+			$attachment_data = wp_generate_attachment_metadata( $attachment_id, $file['file'] );
+			wp_update_attachment_metadata( $attachment_id, $attachment_data );
+		}
+
+		// Save photo to user photos if needed.
+		$save_photos_setting = get_option( 'tryloom_save_photos', 'let_user_decide' );
+		$old_attachment_id = null;
+
+		if ( $user_id ) {
+			global $wpdb;
+			$table_name = $wpdb->prefix . 'tryloom_user_photos';
+
+			// Check if user has a permanent default photo (manually_set_default = 1).
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+			$permanent_default = $wpdb->get_row(
+				$wpdb->prepare(
+					'SELECT * FROM ' . esc_sql( $table_name ) . ' WHERE user_id = %d AND is_default = 1 AND manually_set_default = 1 LIMIT 1',
+					$user_id
+				)
+			);
+
+			if ( 'yes' === $save_photos_setting || ( 'let_user_decide' === $save_photos_setting && 'yes' === $save_photo ) ) {
+				// User explicitly wants to save this photo.
+				// If no permanent default exists, set as temp default.
+				// If permanent default exists, just use this photo for current generation (don't save).
+
+				if ( ! $permanent_default ) {
+					// No permanent default - set as temp default.
+					// First, delete any existing temp default.
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+					$old_temp_default = $wpdb->get_row(
+						$wpdb->prepare(
+							'SELECT * FROM ' . esc_sql( $table_name ) . ' WHERE user_id = %d AND is_default = 1 AND manually_set_default = 0 LIMIT 1',
+							$user_id
+						)
+					);
+
+					if ( $old_temp_default ) {
+						$old_attachment_id = $old_temp_default->attachment_id;
+						// Delete old temp default photo from database.
+						// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Using $wpdb->delete() with prepared format strings
+						$wpdb->delete(
+							$table_name,
+							array( 'id' => $old_temp_default->id ),
+							array( '%d' )
+						);
+					}
+
+					// Unset all non-permanent defaults.
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Using $wpdb->update() with prepared format strings
+					$wpdb->update(
+						$table_name,
+						array( 'is_default' => 0 ),
+						array(
+							'user_id' => $user_id,
+							'manually_set_default' => 0,
+						),
+						array( '%d' ),
+						array( '%d', '%d' )
+					);
+
+					// Insert new photo as temp default.
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Using $wpdb->insert() with prepared format strings
+					$wpdb->insert(
+						$table_name,
+						array(
+							'user_id'              => $user_id,
+							'attachment_id'        => $attachment_id,
+							'image_url'            => $file_url,
+							'is_default'           => 1,
+							'manually_set_default' => 0,
+							'created_at'           => current_time( 'mysql' ),
+							'last_used'            => current_time( 'mysql' ),
+						),
+						array( '%d', '%d', '%s', '%d', '%d', '%s', '%s' )
+					);
+
+					// Delete old attachment from media library.
+					if ( $old_attachment_id ) {
+						wp_delete_attachment( $old_attachment_id, true );
+					}
+				}
+				// If permanent default exists, don't save - just use for this generation.
+			}
+		}
+
+		wp_send_json_success(
+			array(
+				'file_url'      => $file_url,
+				'attachment_id' => $attachment_id,
+			)
+		);
+	}
+
+	/**
+	 * Handle AJAX request to generate try-on image.
+	 */
+	public function ajax_generate_try_on() {
+		// Check if try-on is enabled.
+		if ( 'yes' !== get_option( 'tryloom_enabled', 'yes' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Try-on feature is disabled.', 'tryloom' ) ) );
+		}
+		
+		// Check nonce.
+		if ( ! check_ajax_referer( 'tryloom', 'nonce', false ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid nonce.', 'tryloom' ) ) );
+		}
+
+		// Check if required parameters are set.
+		if ( ! isset( $_POST['product_id'] ) ) {
+			wp_send_json_error( array( 'message' => __( 'Missing product ID.', 'tryloom' ) ) );
+		}
+		
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
+		$using_default_photo = isset( $_POST['using_default_photo'] ) && 'yes' === sanitize_text_field( wp_unslash( $_POST['using_default_photo'] ) );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
+		$uploaded_file_url = isset( $_POST['uploaded_file_url'] ) ? sanitize_text_field( wp_unslash( $_POST['uploaded_file_url'] ) ) : '';
+		$using_uploaded_file = ! empty( $uploaded_file_url );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
+		$save_photo = isset( $_POST['save_photo'] ) ? sanitize_text_field( wp_unslash( $_POST['save_photo'] ) ) : 'no';
+		
+		if ( ! $using_default_photo && ! $using_uploaded_file ) {
+			wp_send_json_error( array( 'message' => __( 'Missing image file.', 'tryloom' ) ) );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
+		$product_id = isset( $_POST['product_id'] ) ? intval( $_POST['product_id'] ) : 0;
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
+		$variation_id = isset( $_POST['variation_id'] ) ? intval( $_POST['variation_id'] ) : 0;
+
+		// Check if product exists.
+		$product = wc_get_product( $product_id );
+		if ( ! $product ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid product.', 'tryloom' ) ) );
+		}
+
+		// Check if variation exists if provided.
+		$variation = null;
+		if ( $variation_id > 0 ) {
+			$variation = wc_get_product( $variation_id );
+			if ( ! $variation || $variation->get_parent_id() !== $product_id ) {
+				wp_send_json_error( array( 'message' => __( 'Invalid variation.', 'tryloom' ) ) );
+			}
+		}
+
+		// Check if user has reached generation limit.
+		$user_id = get_current_user_id();
+		$generation_limit = absint( get_option( 'tryloom_generation_limit', 10 ) );
+		$time_period = get_option( 'tryloom_time_period', 'hour' );
+
+		if ( $generation_limit > 0 ) {
+			global $wpdb;
+			$table_name = $wpdb->prefix . 'tryloom_history';
+
+			// Calculate time period.
+			switch ( $time_period ) {
+				case 'hour':
+					$time_ago = gmdate( 'Y-m-d H:i:s', strtotime( '-1 hour' ) );
+					break;
+				case 'day':
+					$time_ago = gmdate( 'Y-m-d H:i:s', strtotime( '-1 day' ) );
+					break;
+				case 'week':
+					$time_ago = gmdate( 'Y-m-d H:i:s', strtotime( '-1 week' ) );
+					break;
+				case 'month':
+					$time_ago = gmdate( 'Y-m-d H:i:s', strtotime( '-1 month' ) );
+					break;
+				default:
+					$time_ago = gmdate( 'Y-m-d H:i:s', strtotime( '-1 hour' ) );
+			}
+
+			// Count generations in the time period.
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+			$count = $wpdb->get_var(
+				$wpdb->prepare(
+					'SELECT COUNT(*) FROM ' . esc_sql( $table_name ) . ' WHERE user_id = %d AND created_at > %s',
+					$user_id,
+					$time_ago
+				)
+			);
+
+			if ( $count >= $generation_limit ) {
+				wp_send_json_error( array( 'message' => __( 'You have reached your generation limit. Please try again later.', 'tryloom' ) ) );
+			}
+		}
+
+		// Check if using default photo.
+		$user_photo_url = '';
+
+		if ( $using_default_photo ) {
+			// Get default photo URL.
+			global $wpdb;
+			$table_name = $wpdb->prefix . 'tryloom_user_photos';
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+			$default_photo = $wpdb->get_row(
+				$wpdb->prepare(
+					'SELECT * FROM ' . esc_sql( $table_name ) . ' WHERE user_id = %d AND is_default = 1 LIMIT 1',
+					$user_id
+				)
+			);
+
+			if ( ! $default_photo ) {
+				wp_send_json_error( array( 'message' => __( 'No default photo found.', 'tryloom' ) ) );
+			}
+
+			$user_photo_url = $default_photo->image_url;
+		} elseif ( $using_uploaded_file ) {
+			$user_photo_url = esc_url_raw( $uploaded_file_url );
+		}
+
+		// Check if free trial ended
+		$free_trial_ended = get_option( 'tryloom_free_trial_ended', 'no' );
+		if ( 'yes' === $free_trial_ended ) {
+			wp_send_json_error( array( 'message' => __( 'Your free trial ended. Please buy a subscription to continue use this feature.', 'tryloom' ) ) );
+		}
+
+		// Prepare API request.
+		$api = new Tryloom_API();
+		$request_data = array(
+			'product_id'   => $product_id,
+			'variation_id' => $variation_id,
+			'user_photo'   => $user_photo_url,
+		);
+
+		// Send request to API.
+		$api_response = $api->send_request( 'generate', $request_data );
+
+		if ( is_wp_error( $api_response ) ) {
+			$error_code = $api_response->get_error_code();
+			
+			// Handle specific error codes
+			if ( 'free_trial_ended' === $error_code ) {
+				wp_send_json_error( array( 'message' => __( 'Your free trial ended. Please buy a subscription to continue use this feature.', 'tryloom' ) ) );
+			}
+			
+			wp_send_json_error( array( 'message' => $api_response->get_error_message() ) );
+		}
+
+		if ( ! isset( $api_response['success'] ) || ! $api_response['success'] || ! isset( $api_response['data']['image_base64'] ) || empty( $api_response['data']['image_base64'] ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid API response or missing image data.', 'tryloom' ) ) );
+		}
+
+		$image_base64 = $api_response['data']['image_base64'];
+		$image_data   = base64_decode( $image_base64 );
+
+		if ( false === $image_data ) {
+			wp_send_json_error( array( 'message' => __( 'Failed to decode generated image.', 'tryloom' ) ) );
+		}
+
+		// Create a unique filename.
+		$product_name_slug = sanitize_title( $product->get_name() );
+		$filename          = 'tryloom-' . $user_id . '-' . $product_name_slug . '-' . time() . '.png';
+
+		// Create custom directory for try-on images
+		$custom_dir = $this->create_custom_directory();
+		$custom_dir_url = wp_upload_dir()['baseurl'] . '/tryloom';
+		
+		// Initialize filesystem API if needed.
+		global $wp_filesystem;
+		if ( empty( $wp_filesystem ) ) {
+			require_once ABSPATH . '/wp-admin/includes/file.php';
+			WP_Filesystem();
+		}
+
+		if ( empty( $wp_filesystem ) ) {
+			wp_send_json_error( array( 'message' => __( 'Failed to initialize filesystem.', 'tryloom' ) ) );
+		}
+
+		// Save the image to custom directory via WP_Filesystem.
+		$file_path   = $custom_dir . '/' . $filename;
+		$file_saved  = $wp_filesystem->put_contents( $file_path, $image_data, defined( 'FS_CHMOD_FILE' ) ? FS_CHMOD_FILE : 0644 );
+		
+		// Verify the file was saved successfully
+		if ( false === $file_saved || ! file_exists( $file_path ) ) {
+			wp_send_json_error( array( 'message' => __( 'Failed to save generated image.', 'tryloom' ) ) );
+		}
+		
+		// Verify file is readable
+		if ( ! is_readable( $file_path ) ) {
+			wp_send_json_error( array( 'message' => __( 'Generated image file is not readable.', 'tryloom' ) ) );
+		}
+		
+		// Get the URL for the custom directory file (protected URL with nonce)
+		$image_nonce = wp_create_nonce( 'tryloom_image_access' );
+		$generated_image_url = home_url( '?tryloom_image=' . urlencode( $filename ) . '&_wpnonce=' . urlencode( $image_nonce ) );
+
+		// Save try-on history and create attachment based on history setting.
+		$enable_history = get_option( 'tryloom_enable_history', 'yes' );
+		$attachment_id = 0;
+
+		if ( 'yes' === $enable_history ) {
+			// Create an attachment for the media library only if history is enabled.
+			$attachment = array(
+				'guid'           => $generated_image_url,
+				'post_mime_type' => 'image/png',
+				// translators: %s: Product name.
+				'post_title'     => sprintf( __( 'Try On for %s', 'tryloom' ), $product->get_name() ),
+				'post_content'   => '',
+				'post_status'    => 'inherit',
+			);
+
+			$attachment_id = wp_insert_attachment( $attachment, $file_path, 0, true );
+			if ( ! is_wp_error( $attachment_id ) ) {
+				// Mark this as a try-on image
+				update_post_meta( $attachment_id, '_tryloom_image', 'yes' );
+				
+				require_once ABSPATH . 'wp-admin/includes/image.php';
+				$attachment_data = wp_generate_attachment_metadata( $attachment_id, $file_path );
+				wp_update_attachment_metadata( $attachment_id, $attachment_data );
+			}
+
+			// Save to history.
+			global $wpdb;
+			$table_name = $wpdb->prefix . 'tryloom_history';
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Using $wpdb->insert() with prepared format strings
+			$wpdb->insert(
+				$table_name,
+				array(
+					'user_id'              => $user_id,
+					'product_id'           => $product_id,
+					'variation_id'         => $variation_id,
+					'user_image_url'       => $user_photo_url,
+					'generated_image_url'  => $generated_image_url,
+					'created_at'           => current_time( 'mysql' ),
+				),
+				array(
+					'%d',
+					'%d',
+					'%d',
+					'%s',
+					'%s',
+					'%s',
+				)
+			);
+		} else {
+			// If history is disabled, schedule deletion of generated image after 5 minutes.
+			// The file exists but no attachment is created in media library.
+			wp_schedule_single_event( time() + ( 5 * 60 ), 'tryloom_delete_generated_image', array( $generated_image_url, $attachment_id ) );
+		}
+
+		// Check if we should delete the user photo.
+		if ( ! $using_default_photo ) {
+			$save_photos_setting = get_option( 'tryloom_save_photos', 'let_user_decide' );
+
+			if ( 'no' === $save_photos_setting || ( 'let_user_decide' === $save_photos_setting && 'no' === $save_photo ) ) {
+				// Delete the file using WordPress upload directory.
+				$file_path = $this->get_file_path_from_url( $user_photo_url );
+				if ( $file_path && file_exists( $file_path ) ) {
+					wp_delete_file( $file_path );
+				}
+
+				// Delete the attachment.
+				$attachment_id = attachment_url_to_postid( $user_photo_url );
+				if ( $attachment_id ) {
+					wp_delete_attachment( $attachment_id, true );
+				}
+			}
+		}
+
+		// Log if enabled.
+		if ( 'yes' === get_option( 'tryloom_enable_logging', 'no' ) ) {
+			$log_message = sprintf(
+				'Try-on generated for user %d, product %d, variation %d. Generated image: %s',
+				$user_id,
+				$product_id,
+				$variation_id,
+				$generated_image_url
+			);
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( '[WooCommerce Try On] ' . $log_message );
+		}
+
+		// Generate custom filename.
+		$store_name = sanitize_title( get_bloginfo( 'name' ) );
+		$user = wp_get_current_user();
+		$username = $user->user_login ? sanitize_title( $user->user_login ) : 'guest';
+		$unique_number = time() . '-' . wp_rand( 1000, 9999 );
+		$filename = $store_name . '-try-on-by-toolteek-for-' . $username . '-' . $unique_number . '.png';
+
+		// Return success response.
+		wp_send_json_success(
+			array(
+				'image_url'    => $generated_image_url,
+				'filename'     => $filename,
+				'product_id'   => $product_id,
+				'variation_id' => $variation_id,
+			)
+		);
+	}
+
+	/**
+	 * Handle AJAX request to delete user photo.
+	 */
+	public function ajax_delete_photo() {
+		// Check if try-on is enabled.
+		if ( 'yes' !== get_option( 'tryloom_enabled', 'yes' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Try-on feature is disabled.', 'tryloom' ) ) );
+		}
+		
+		// Check nonce.
+		if ( ! check_ajax_referer( 'tryloom', 'nonce', false ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid nonce.', 'tryloom' ) ) );
+		}
+
+		// Check if user is logged in.
+		if ( ! is_user_logged_in() ) {
+			wp_send_json_error( array( 'message' => __( 'You must be logged in to delete photos.', 'tryloom' ) ) );
+		}
+
+		// Check if photo ID is set.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
+		if ( ! isset( $_POST['photo_id'] ) ) {
+			wp_send_json_error( array( 'message' => __( 'Missing photo ID.', 'tryloom' ) ) );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
+		$photo_id = isset( $_POST['photo_id'] ) ? intval( $_POST['photo_id'] ) : 0;
+		if ( ! $photo_id ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid photo ID.', 'tryloom' ) ) );
+		}
+		$user_id = get_current_user_id();
+
+		// Get photo.
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'tryloom_user_photos';
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+		$photo = $wpdb->get_row(
+			$wpdb->prepare(
+				'SELECT * FROM ' . esc_sql( $table_name ) . ' WHERE id = %d AND user_id = %d',
+				$photo_id,
+				$user_id
+			)
+		);
+
+		if ( ! $photo ) {
+			wp_send_json_error( array( 'message' => __( 'Photo not found or you do not have permission to delete it.', 'tryloom' ) ) );
+		}
+
+		// Delete photo from database.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Using $wpdb->delete() with prepared format strings
+		$wpdb->delete(
+			$table_name,
+			array(
+				'id' => $photo_id,
+			),
+			array(
+				'%d',
+			)
+		);
+
+		// Delete the file using WordPress upload directory.
+		$file_path = $this->get_file_path_from_url( $photo->image_url );
+		if ( $file_path && file_exists( $file_path ) ) {
+			wp_delete_file( $file_path );
+		}
+
+		// Delete the attachment.
+		$attachment_id = attachment_url_to_postid( $photo->image_url );
+		if ( $attachment_id ) {
+			wp_delete_attachment( $attachment_id, true );
+		}
+
+		// If this was the default photo, set another photo as default if available.
+		if ( $photo->is_default ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+			$new_default = $wpdb->get_row(
+				$wpdb->prepare(
+					'SELECT * FROM ' . esc_sql( $table_name ) . ' WHERE user_id = %d ORDER BY created_at DESC LIMIT 1',
+					$user_id
+				)
+			);
+
+			if ( $new_default ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Using $wpdb->update() with prepared format strings
+				$wpdb->update(
+					$table_name,
+					array(
+						'is_default' => 1,
+					),
+					array(
+						'id' => $new_default->id,
+					),
+					array(
+						'%d',
+					),
+					array(
+						'%d',
+					)
+				);
+			}
+		}
+
+		// Return success response.
+		wp_send_json_success();
+	}
+
+	/**
+	 * Handle AJAX request to set default photo.
+	 */
+	public function ajax_set_default_photo() {
+		// Check if try-on is enabled.
+		if ( 'yes' !== get_option( 'tryloom_enabled', 'yes' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Try-on feature is disabled.', 'tryloom' ) ) );
+		}
+		
+		// Check nonce.
+		if ( ! check_ajax_referer( 'tryloom', 'nonce', false ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid nonce.', 'tryloom' ) ) );
+		}
+
+		// Check if user is logged in.
+		if ( ! is_user_logged_in() ) {
+			wp_send_json_error( array( 'message' => __( 'You must be logged in to set default photo.', 'tryloom' ) ) );
+		}
+
+		// Check if photo ID is set.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
+		if ( ! isset( $_POST['photo_id'] ) ) {
+			wp_send_json_error( array( 'message' => __( 'Missing photo ID.', 'tryloom' ) ) );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
+		$photo_id = isset( $_POST['photo_id'] ) ? intval( $_POST['photo_id'] ) : 0;
+		if ( ! $photo_id ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid photo ID.', 'tryloom' ) ) );
+		}
+		$user_id = get_current_user_id();
+
+		// Get photo.
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'tryloom_user_photos';
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+		$photo = $wpdb->get_row(
+			$wpdb->prepare(
+				'SELECT * FROM ' . esc_sql( $table_name ) . ' WHERE id = %d AND user_id = %d',
+				$photo_id,
+				$user_id
+			)
+		);
+
+		if ( ! $photo ) {
+			wp_send_json_error( array( 'message' => __( 'Photo not found or you do not have permission to set it as default.', 'tryloom' ) ) );
+		}
+
+		// Reset all photos to non-default.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Using $wpdb->update() with prepared format strings
+		$wpdb->update(
+			$table_name,
+			array(
+				'is_default'          => 0,
+				'manually_set_default' => 0,
+			),
+			array( 'user_id' => $user_id ),
+			array( '%d', '%d' ),
+			array( '%d' )
+		);
+
+		// Set the selected photo as default and mark as manually set.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Using $wpdb->update() with prepared format strings
+		$wpdb->update(
+			$table_name,
+			array(
+				'is_default'          => 1,
+				'manually_set_default' => 1,
+			),
+			array(
+				'id' => $photo_id,
+			),
+			array( '%d', '%d' ),
+			array( '%d' )
+		);
+
+		// Return success response.
+		wp_send_json_success();
+	}
+
+	/**
+	 * Handle AJAX request to delete history item.
+	 */
+	public function ajax_delete_history() {
+		// Check if try-on is enabled.
+		if ( 'yes' !== get_option( 'tryloom_enabled', 'yes' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Try-on feature is disabled.', 'tryloom' ) ) );
+		}
+		
+		// Check nonce.
+		if ( ! check_ajax_referer( 'tryloom', 'nonce', false ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid nonce.', 'tryloom' ) ) );
+		}
+
+		// Check if user is logged in.
+		if ( ! is_user_logged_in() ) {
+			wp_send_json_error( array( 'message' => __( 'You must be logged in to delete history.', 'tryloom' ) ) );
+		}
+
+		// Check if history ID is set.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
+		if ( ! isset( $_POST['history_id'] ) ) {
+			wp_send_json_error( array( 'message' => __( 'Missing history ID.', 'tryloom' ) ) );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
+		$history_id = isset( $_POST['history_id'] ) ? intval( $_POST['history_id'] ) : 0;
+		$user_id = get_current_user_id();
+
+		// Delete from database.
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'tryloom_history';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Using $wpdb->delete() with prepared format strings
+		$wpdb->delete(
+			$table_name,
+			array(
+				'id'      => $history_id,
+				'user_id' => $user_id,
+			),
+			array( '%d', '%d' )
+		);
+
+		wp_send_json_success();
+	}
+
+	/**
+	 * Handle AJAX request to delete all history.
+	 */
+	public function ajax_delete_all_history() {
+		// Check if try-on is enabled.
+		if ( 'yes' !== get_option( 'tryloom_enabled', 'yes' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Try-on feature is disabled.', 'tryloom' ) ) );
+		}
+		
+		// Check nonce.
+		if ( ! check_ajax_referer( 'tryloom', 'nonce', false ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid nonce.', 'tryloom' ) ) );
+		}
+
+		// Check if user is logged in.
+		if ( ! is_user_logged_in() ) {
+			wp_send_json_error( array( 'message' => __( 'You must be logged in to delete history.', 'tryloom' ) ) );
+		}
+
+		$user_id = get_current_user_id();
+
+		// Get all user's history to delete associated images.
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'tryloom_history';
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+		$history_records = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT * FROM ' . esc_sql( $table_name ) . ' WHERE user_id = %d',
+				$user_id
+			)
+		);
+
+		// Delete each generated image from media library.
+		foreach ( $history_records as $record ) {
+			if ( ! empty( $record->generated_image_url ) ) {
+				$attachment_id = attachment_url_to_postid( $record->generated_image_url );
+				if ( $attachment_id ) {
+					wp_delete_attachment( $attachment_id, true );
+				}
+				
+				// Delete from filesystem using WordPress upload directory
+				$file_path = $this->get_file_path_from_url( $record->generated_image_url );
+				if ( $file_path && file_exists( $file_path ) ) {
+					wp_delete_file( $file_path );
+				}
+			}
+		}
+
+		// Delete all user's history from database.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Using $wpdb->delete() with prepared format strings
+		$wpdb->delete(
+			$table_name,
+			array( 'user_id' => $user_id ),
+			array( '%d' )
+		);
+
+		wp_send_json_success();
+	}
+
+	/**
+	 * Handle AJAX request to upload account photo.
+	 */
+	public function ajax_upload_account_photo() {
+		// Check if try-on is enabled.
+		if ( 'yes' !== get_option( 'tryloom_enabled', 'yes' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Try-on feature is disabled.', 'tryloom' ) ) );
+		}
+		
+		// Check nonce.
+		if ( ! check_ajax_referer( 'tryloom', 'nonce', false ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid nonce.', 'tryloom' ) ) );
+		}
+
+		// Check if user is logged in.
+		if ( ! is_user_logged_in() ) {
+			wp_send_json_error( array( 'message' => __( 'You must be logged in.', 'tryloom' ) ) );
+		}
+
+		// Check if file is uploaded.
+		if ( ! isset( $_FILES['image'] ) ) {
+			wp_send_json_error( array( 'message' => __( 'No image file uploaded.', 'tryloom' ) ) );
+		}
+
+		$set_as_default = isset( $_POST['set_as_default'] ) && 'yes' === $_POST['set_as_default'];
+		$user_id = get_current_user_id();
+
+		// Handle file upload.
+		if ( ! function_exists( 'wp_handle_upload' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+
+		$upload_overrides = array( 'test_form' => false );
+		$file = wp_handle_upload( $_FILES['image'], $upload_overrides );
+
+		if ( isset( $file['error'] ) ) {
+			wp_send_json_error( array( 'message' => $file['error'] ) );
+		}
+
+		$file_url = $file['url'];
+
+		// Save to media library.
+		$attachment = array(
+			'post_mime_type' => $file['type'],
+			'post_title'     => isset( $_FILES['image']['name'] ) ? sanitize_file_name( $_FILES['image']['name'] ) : '',
+			'post_content'   => '',
+			'post_status'    => 'inherit',
+		);
+
+		$attachment_id = wp_insert_attachment( $attachment, $file['file'] );
+
+		if ( ! is_wp_error( $attachment_id ) ) {
+			// Mark this as a try-on image
+			update_post_meta( $attachment_id, '_tryloom_image', 'yes' );
+			
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+			$attachment_data = wp_generate_attachment_metadata( $attachment_id, $file['file'] );
+			wp_update_attachment_metadata( $attachment_id, $attachment_data );
+		}
+
+		// Save to database.
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'tryloom_user_photos';
+		$old_attachment_id = null;
+
+		// If setting as default, delete old permanent default and unset all defaults.
+		if ( $set_as_default ) {
+			// Get old permanent default to delete it.
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+			$old_permanent_default = $wpdb->get_row(
+				$wpdb->prepare(
+					'SELECT * FROM ' . esc_sql( $table_name ) . ' WHERE user_id = %d AND is_default = 1 AND manually_set_default = 1 LIMIT 1',
+					$user_id
+				)
+			);
+
+			if ( $old_permanent_default ) {
+				$old_attachment_id = $old_permanent_default->attachment_id;
+				// Delete old permanent default from database.
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Using $wpdb->delete() with prepared format strings
+				$wpdb->delete(
+					$table_name,
+					array( 'id' => $old_permanent_default->id ),
+					array( '%d' )
+				);
+			}
+
+			// Unset all defaults.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Using $wpdb->update() with prepared format strings
+			$wpdb->update(
+				$table_name,
+				array(
+					'is_default'           => 0,
+					'manually_set_default' => 0,
+				),
+				array( 'user_id' => $user_id ),
+				array( '%d', '%d' ),
+				array( '%d' )
+			);
+
+			// Delete old attachment from media library.
+			if ( $old_attachment_id ) {
+				wp_delete_attachment( $old_attachment_id, true );
+			}
+		}
+
+		// Insert photo.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Using $wpdb->insert() with prepared format strings
+		$wpdb->insert(
+			$table_name,
+			array(
+				'user_id'              => $user_id,
+				'attachment_id'        => $attachment_id,
+				'image_url'            => $file_url,
+				'is_default'           => $set_as_default ? 1 : 0,
+				'manually_set_default' => $set_as_default ? 1 : 0,
+				'created_at'           => current_time( 'mysql' ),
+				'last_used'            => current_time( 'mysql' ),
+			),
+			array( '%d', '%d', '%s', '%d', '%d', '%s', '%s' )
+		);
+
+		wp_send_json_success(
+			array(
+				'photo_id'  => $wpdb->insert_id,
+				'image_url' => $file_url,
+			)
+		);
+	}
+
+	/**
+	 * Handle AJAX request to get product variations.
+	 */
+	public function ajax_get_variations() {
+		// Check if try-on is enabled.
+		if ( 'yes' !== get_option( 'tryloom_enabled', 'yes' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Try-on feature is disabled.', 'tryloom' ) ) );
+		}
+		
+		// Check nonce.
+		if ( ! check_ajax_referer( 'tryloom', 'nonce', false ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid nonce.', 'tryloom' ) ) );
+		}
+
+		// Check if product ID is set.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
+		if ( ! isset( $_POST['product_id'] ) ) {
+			wp_send_json_error( array( 'message' => __( 'Missing product ID.', 'tryloom' ) ) );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
+		$product_id = isset( $_POST['product_id'] ) ? intval( $_POST['product_id'] ) : 0;
+		$product = wc_get_product( $product_id );
+
+		if ( ! $product || ! $product->is_type( 'variable' ) ) {
+			wp_send_json_success( array( 'variations' => array() ) );
+		}
+
+		$variations = array();
+		foreach ( $product->get_available_variations() as $variation_data ) {
+			$variation = wc_get_product( $variation_data['variation_id'] );
+			if ( ! $variation ) {
+				continue;
+			}
+
+			$variations[] = array(
+				'variation_id'         => $variation_data['variation_id'],
+				'variation_description' => wc_get_formatted_variation( $variation, true, true, false ),
+				'image'                => $variation_data['image'],
+				'price_html'           => $variation->get_price_html(),
+				'attributes'           => $variation_data['attributes'],
+			);
+		}
+
+		wp_send_json_success( array( 'variations' => $variations ) );
+	}
+
+	/**
+	 * Handle AJAX request to get product.
+	 */
+	public function ajax_get_product() {
+		// Check if try-on is enabled.
+		if ( 'yes' !== get_option( 'tryloom_enabled', 'yes' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Try-on feature is disabled.', 'tryloom' ) ) );
+		}
+		
+		// Nonce check (added for security)
+		if ( ! check_ajax_referer( 'tryloom', 'nonce', false ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid nonce.', 'tryloom' ) ) );
+		}
+
+		// Check product ID.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
+		if ( ! isset( $_POST['product_id'] ) ) {
+			wp_send_json_error( array( 'message' => __( 'Product ID is required.', 'tryloom' ) ) );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
+		$product_id = isset( $_POST['product_id'] ) ? intval( $_POST['product_id'] ) : 0;
+		$product = wc_get_product( $product_id );
+
+		if ( ! $product ) {
+			wp_send_json_error( array( 'message' => __( 'Product not found.', 'tryloom' ) ) );
+		}
+
+		$product_data = array(
+			'id'        => $product->get_id(),
+			'name'      => $product->get_name(),
+			'price'     => $product->get_price(),
+			'price_html' => $product->get_price_html(),
+			'image'     => wp_get_attachment_image_url( $product->get_image_id(), 'thumbnail' ) ?: wc_placeholder_img_src( 'thumbnail' ),
+		);
+
+		wp_send_json_success( $product_data );
+	}
+
+	/**
+	 * Delete generated image file.
+	 * Called by scheduled event when history is disabled.
+	 *
+	 * @param string $image_url Image URL to delete.
+	 * @param int    $attachment_id Attachment ID (0 if not created).
+	 */
+	public function delete_generated_image( $image_url, $attachment_id = 0 ) {
+		// Delete the file using WordPress upload directory.
+		$file_path = $this->get_file_path_from_url( $image_url );
+		if ( $file_path && file_exists( $file_path ) ) {
+			wp_delete_file( $file_path );
+		}
+
+		// Delete attachment from media library if it exists.
+		if ( $attachment_id > 0 ) {
+			wp_delete_attachment( $attachment_id, true );
+		}
+	}
+
+	/**
+	 * Exclude try-on images from media library AJAX queries.
+	 *
+	 * @param array $query Query arguments.
+	 * @return array
+	 */
+	public function exclude_try_on_images_from_media_library( $query ) {
+		// Only affect media library queries
+		if ( ! is_admin() || ! function_exists( 'get_current_screen' ) ) {
+			return $query;
+		}
+
+		$screen = get_current_screen();
+		if ( ! $screen || 'upload' !== $screen->id ) {
+			return $query;
+		}
+
+		// Exclude attachments with meta key indicating they are try-on images (meta exists and is 'yes')
+		$query['meta_query'][] = array(
+			'relation' => 'OR',
+			array(
+				'key'     => '_tryloom_image',
+				'compare' => 'NOT EXISTS',
+			),
+			array(
+				'key'     => '_tryloom_image',
+				'value'   => 'yes',
+				'compare' => '!=',
+			),
+		);
+		return $query;
+	}
+
+	/**
+	 * Exclude try-on images from media library queries.
+	 *
+	 * @param WP_Query $query Query object.
+	 * @return WP_Query
+	 */
+	public function exclude_try_on_images_from_media_library_query( $query ) {
+		// Only affect admin media library queries
+		if ( ! is_admin() || ! $query->is_main_query() ) {
+			return $query;
+		}
+
+		global $pagenow;
+		if ( 'upload.php' !== $pagenow ) {
+			return $query;
+		}
+
+		// Exclude attachments with meta key indicating they are try-on images
+		$meta_query = $query->get( 'meta_query' );
+		if ( ! is_array( $meta_query ) ) {
+			$meta_query = array();
+		}
+		$meta_query[] = array(
+			'relation' => 'OR',
+			array(
+				'key'     => '_tryloom_image',
+				'compare' => 'NOT EXISTS',
+			),
+			array(
+				'key'     => '_tryloom_image',
+				'value'   => 'yes',
+				'compare' => '!=',
+			),
+		);
+		$query->set( 'meta_query', $meta_query );
+		return $query;
+	}
+}

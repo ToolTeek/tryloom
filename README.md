@@ -1,0 +1,184 @@
+=== TryLoom - Virtual Try On for WooCommerce ===
+Contributors: ToolTeek, dinethchamuditha
+Tags: woocommerce, virtual try-on, product visualization, e-commerce, fashion
+Requires at least: 5.6
+Tested up to: 6.9
+Stable tag: 1.0.5
+Requires PHP: 7.2
+WC requires at least: 5.0
+WC tested up to: 10.3
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+
+TryLoom lets customers virtually try on clothing, shoes, hats, and eyewear in WooCommerce.
+
+== Description ==
+
+**TryLoom – Virtual Try On for WooCommerce** by ToolTeek adds powerful virtual try-on functionality to your WooCommerce store.  
+Customers can upload their photos and virtually try on products like clothing, shoes, hats, or eyewear directly on product pages.  
+This enhances the shopping experience, reduces returns, and boosts conversions.
+
+**Important: SaaS Connection Required**
+This plugin acts as a connector to the TryLoom Cloud Platform. All image processing and AI generation are performed securely on our external cloud servers to ensure high-quality results without slowing down your website hosting. A valid API connection (free or paid) is required for the plugin to function.
+
+= Key Features =
+
+* **Cloud-Powered AI:** Offloads complex image processing to our specialized cloud infrastructure.
+* **Easy Integration:** Seamlessly adds a “Try On” button to WooCommerce product pages.
+* **User Photo Upload:** Customers can upload photos with options to save for future use (configurable).
+* **Product Variation Support:** Select and try on different product variations.
+* **Secure Image Handling:** Images are stored securely with privacy protections; scheduled deletions.
+* **Account Integration:** Users can manage saved photos and view try-on history in their WooCommerce account page.
+* **Admin Controls:** Enable/disable features, set generation limits, customize appearance, and monitor usage stats.
+* **Customizable:** Theme support (light/dark), primary color, button placement, and custom CSS options.
+* **Analytics:** Dashboard widget and stats for try-on usage.
+
+This plugin requires WooCommerce to function.  
+It uses a cloud-based API for image processing, ensuring high-quality results without taxing your server.  
+
+For more details, visit the [plugin documentation](https://tryloom.toolteek.com/docs)
+
+== Installation ==
+
+1. Upload the `tryloom` folder to the `/wp-content/plugins/` directory.
+2. Activate the plugin through the **Plugins** menu in WordPress.
+3. Go to **Admin Menu → TryLoom** to configure the plugin.
+4. Ensure WooCommerce is installed and active.
+5. For full functionality, enter your platform key (a free trial activates automatically).
+
+= Manual Installation =
+
+1. Download the plugin ZIP file.
+2. In your WordPress dashboard, go to **Plugins → Add New → Upload Plugin**.
+3. Upload the ZIP file and activate.
+
+After activation, the plugin will automatically set up a free trial key if no paid key is provided.
+
+== Frequently Asked Questions ==
+
+= Does this plugin require WooCommerce? =
+Yes. TryLoom is an extension for WooCommerce and requires it to be installed and active.
+
+= How do I get a platform key? =
+Upon activation, a free trial key is automatically fetched. For unlimited usage, subscribe at [TryLoom Official Website](https://tryloom.toolteek.com/).
+
+= Where are user images stored? =
+Images are stored securely in a protected directory on your server (`wp-content/uploads/tryloom/`).  
+They are not publicly accessible without authentication. and you can desable the ‘Enable Try On History’ option at any time in the dashboard.
+
+= Can I limit try-on generations? =
+Yes. Set limits per user in the plugin settings (e.g., 5 generations per day).
+
+= Does it support variable products? =
+Yes. Customers can select variations before generating the try-on.
+
+= How do I add the Try On button? =
+By default, it’s added after the “Add to Cart” button.  
+You can change placement or use the shortcode `[tryloom]`.
+
+= Is there a privacy policy suggestion? =
+Yes. The plugin includes suggested text in the admin settings. Add it to your site’s privacy policy.
+
+= What happens to images after use? =
+You can configure image retention: delete after a set period (default 30 days) or keep if saved by user.
+
+= Can I customize the popup? =
+Yes. Theme color, primary color, and custom CSS options are available in settings.
+
+== Screenshots ==
+
+1. **Product Page with Try-On Button** – “Try On” button on a WooCommerce product page.  
+2. **Try-On Popup** – User uploads photo and selects variation.  
+3. **Generated Result** – Virtual try-on image with download and retry options.  
+4. **Account Tab** – User manages saved photos and history.  
+5. **Admin Settings** – Configuration options in the WordPress dashboard.  
+6. **Dashboard Widget** – Usage statistics overview.
+
+== Changelog ==
+
+= 1.0.5 =
+* Fix: Updated external service documentation to match specific API domain.
+* Fix: Implemented late escaping for inline styles.
+* Fix: Replaced echo with readfile for binary image output.
+
+= 1.0.4 =
+* Security: Added nonce verification for GET requests (pagination and image protection).
+* Security: Fixed file path resolution to use wp_upload_dir() for all server setups.
+* Security: Added validation for local file paths before using WP_Filesystem.
+* Security: Sanitized custom CSS before adding inline styles.
+* Fix: Improved binary image data output with proper documentation.
+
+= 1.0.3 =
+* Security: Added nonce verification to all AJAX handlers and REST API endpoints.
+* Security: Implemented WP_Filesystem for safe file operations and remote requests.
+* Fix: Updated filter prefixes to avoid namespace conflicts.
+* Fix: Refactored file path resolution logic using WordPress standards.
+* Improved: Added detailed documentation for external API services.
+
+= 1.0.2 =
+* Fixed image loading issues in popup after generation.
+* Improved error handling and image fallback mechanisms.
+* Removed guest user option from allowed user roles.
+
+= 1.0.1 =
+* Fixed minor bug in try-on popup.
+* Improved image handling.
+
+= 1.0.0 =
+* Initial release: Core virtual try-on functionality, admin settings, user account integration, and API support.
+
+== Upgrade Notice ==
+
+= 1.0.5 =
+Bug fixes: Updated documentation, improved security with late escaping, and better binary image handling.
+
+= 1.0.4 =
+Security enhancements: Nonce verification for GET requests, improved file path handling, and CSS sanitization.
+
+= 1.0.3 =
+Security improvements, filesystem updates, and code compliance fixes.
+
+= 1.0.2 =
+Fixed image loading issues in popup. Improved error handling.
+
+= 1.0.1 =
+Minor bug fixes. No action required.
+
+= 1.0.0 =
+Initial release.
+
+== Arbitrary Section ==
+
+= Requirements =
+* WordPress 5.6 or higher  
+* PHP 7.2 or higher  
+* WooCommerce 5.0 or higher  
+* Active internet connection for API calls (image generation)
+
+== Support ==
+
+For support, visit [ToolTeek Support](https://tryloom.toolteek.com/support) or open an issue on the WordPress plugin forum.
+
+== Privacy ==
+
+This plugin handles user-uploaded images with care.  
+Images are processed via a secure API and stored only as configured.  
+Ensure your site’s privacy policy covers image uploads and processing.  
+The plugin does **not share data with third parties** beyond the API used for generation.
+
+== External Services (API) ==
+
+This plugin relies on the **TryLoom Cloud API** (maintained by ToolTeek) to function.
+Because AI image generation requires significant computational resources, it cannot run directly on your WordPress hosting environment. Instead, user images and product data are sent to our secure cloud infrastructure for processing and the result is returned to your site.
+
+* **Service:** TryLoom Cloud API (hosted on `us-central1-try-on-proxy-by-toolteek.cloudfunctions.net`)
+* **Used For:** Authenticating the API connection (`/cloudConnection`) and performing AI image generation (`/fashionTryOn`).
+* **Data Sent:** Site URL, API credentials, product ID, product image, and the user's uploaded photo.
+* **Privacy Policy:** https://tryloom.toolteek.com/privacy-policy/
+* **Terms and Conditions:** https://tryloom.toolteek.com/terms-and-conditions/
+
+== Credits ==
+
+Developed by **ToolTeek**.  
+Icons from **Font Awesome** (MIT/SIL OFL/CC BY 4.0 Licensed).  
+Powered by the **TryLoom API**.
