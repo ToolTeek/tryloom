@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: TryLoom 1.0.4\n"
+"Project-Id-Version: TryLoom 1.1.0\n"
 "POT-Creation-Date: 2025-11-13 12:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"

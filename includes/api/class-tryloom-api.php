@@ -38,7 +38,7 @@ class Tryloom_API
 		// External Service: TryLoom Cloud API (Google Cloud Functions)
 		// Used for: AI Image Generation and License Validation
 		// Terms: https://tryloom.toolteek.com/terms-and-conditions/
-		$this->api_endpoint = 'https://us-central1-try-on-proxy-by-toolteek.cloudfunctions.net/fashionTryOn';
+		$this->api_endpoint = 'https://us-central1-tryloombytoolteek.cloudfunctions.net/fashionTryOn';
 
 		// Get platform key - prefer paid key, fallback to free key
 		$paid_key = get_option('tryloom_platform_key', '');
@@ -250,14 +250,18 @@ class Tryloom_API
 		// Determine license type
 		$license_type = !empty($paid_key) ? 'paid' : 'free';
 
+		// Get try-on method from settings, default to auto
+		$try_on_method = get_option('tryloom_try_on_method', 'auto');
+
 		$body = array(
 			'platform_key' => $platform_key,
 			'user_photo' => $user_photo_base64,
 			'product_image' => $product_image_base64,
 			'product_id' => $data['product_id'],
 			'store_domain' => site_url(),
-			'plugin_version' => defined('TRYLOOM_VERSION') ? TRYLOOM_VERSION : '1.0.4',
+			'plugin_version' => defined('TRYLOOM_VERSION') ? TRYLOOM_VERSION : '1.1.0',
 			'license_type' => $license_type,
+			'method' => $try_on_method,
 		);
 
 		$args = array(

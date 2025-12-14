@@ -19,7 +19,7 @@
     padding: 15px 20px;
     border: 1px solid #ccd0d4;
     border-radius: 4px;
-    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
     text-align: center;
 }
 
@@ -39,8 +39,8 @@
 
 .tryloom-header {
     display: flex;
-    align-items: center; 
-    gap: 12px; 
+    align-items: center;
+    gap: 12px;
     border-radius: 6px;
 
 }
@@ -55,10 +55,10 @@
 .tryloom-header-actions .button-primary {
     background: linear-gradient(135deg, #552FBC 0%, #6E4DDC 100%);
     border: none;
-    padding: 6px 16px; 
+    padding: 6px 16px;
     border-radius: 6px;
     font-weight: 600;
-    font-size: 13px; 
+    font-size: 13px;
     box-shadow: 0 3px 10px rgba(85, 47, 188, 0.3);
     transition: all 0.3s ease;
     color: white;
@@ -90,7 +90,7 @@
     border: 1px solid #ccd0d4;
     border-radius: 4px;
     text-align: center;
-    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
 }
 
 .tryloom-stats-item h4 {
@@ -147,4 +147,113 @@ select[multiple] option {
     .tryloom-stats-item {
         flex: 1 0 100%;
     }
+}
+
+/* Tooltip Styles */
+.tryloom-help-tip {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background: #dcdcde;
+    /* WP Standard Grey */
+    border-radius: 50%;
+    text-align: center;
+    line-height: 16px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #50575e;
+    cursor: help;
+    margin-left: 5px;
+    position: relative;
+    vertical-align: middle;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+.tryloom-help-tip::before {
+    content: "?";
+}
+
+.tryloom-help-tip:hover {
+    background: #2271b1;
+    /* WP Primary Blue */
+    color: #fff;
+}
+
+.tryloom-tooltip-content {
+    visibility: hidden;
+    opacity: 0;
+    width: 250px;
+    background-color: #1d2327;
+    /* WP Admin dark */
+    color: #fff;
+    text-align: left;
+    border-radius: 4px;
+    padding: 12px;
+    position: absolute;
+    z-index: 10000;
+    /* Position to the right of the icon */
+    top: 50%;
+    left: 170%;
+    /* Move further right to make room for arrow */
+    transform: translateY(-50%);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transition: opacity 0.2s ease-in-out, visibility 0.2s;
+    font-weight: normal;
+    line-height: 1.5;
+    font-size: 13px;
+    pointer-events: none;
+    /* Prevent flickering if mouse moves over gap */
+}
+
+/* Allow interaction with tooltip content (links) */
+.tryloom-help-tip:hover .tryloom-tooltip-content {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Tooltip Arrow (Left side) */
+.tryloom-tooltip-content::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 100%;
+    /* To the left of the tooltip box */
+    margin-top: -6px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: transparent #1d2327 transparent transparent;
+}
+
+.tryloom-tooltip-content a {
+    color: #72aee6;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 4px;
+}
+
+.tryloom-tooltip-content a:hover {
+    text-decoration: underline;
+    color: #fff;
+}
+
+/* Radio Button Layout */
+.tryloom-radio-group {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    /* Space between options */
+}
+
+.tryloom-radio-label {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 0;
+    /* Remove bottom margin for inline */
+}
+
+.tryloom-radio-label input[type="radio"] {
+    margin-top: 0;
+    margin-right: 6px;
 }

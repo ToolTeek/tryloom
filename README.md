@@ -3,7 +3,7 @@ Contributors: ToolTeek, dinethchamuditha
 Tags: woocommerce, virtual try-on, product visualization, e-commerce, fashion
 Requires at least: 5.6
 Tested up to: 6.9
-Stable tag: 1.0.5
+Stable tag: 1.1.0
 Requires PHP: 7.2
 WC requires at least: 5.0
 WC tested up to: 10.3
@@ -96,6 +96,13 @@ Yes. Theme color, primary color, and custom CSS options are available in setting
 
 == Changelog ==
 
+= 1.1.0 =
+* NEW: Added "Generation Mode" selector (Try-On, Studio, Auto).
+* NEW: "Studio Mode" now regenerates the background and lighting for professional results.
+* NEW: "Auto Mode" intelligently detects if the uploaded photo needs full studio processing.
+* UPDATE: Migrated API endpoint to US-Central1 for 3x faster generation speeds.
+* FIX: Critical update for backend connectivity.
+
 = 1.0.5 =
 * Fix: Updated external service documentation to match specific API domain.
 * Fix: Implemented late escaping for inline styles.
@@ -128,6 +135,9 @@ Yes. Theme color, primary color, and custom CSS options are available in setting
 * Initial release: Core virtual try-on functionality, admin settings, user account integration, and API support.
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+Major Update: Introduces new Generation Modes (Studio/Auto), 3x faster speeds, and critical backend fixes.
 
 = 1.0.5 =
 Bug fixes: Updated documentation, improved security with late escaping, and better binary image handling.
