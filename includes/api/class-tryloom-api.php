@@ -108,7 +108,11 @@ class Tryloom_API
 			}
 		}
 
-		// 2) Attachment URL -> attached file path (works even if CDN rewrites the URL)
+		// 2) Normalize URLs (remove scheme) for comparison
+		$url_no_scheme = preg_replace('/^https?:/', '', $url);
+		$url_no_scheme = strtok($url_no_scheme, '?'); // Remove query string
+
+		// 3) Attachment URL -> attached file path
 		$attachment_id = attachment_url_to_postid($url);
 		if ($attachment_id) {
 			$file_path = get_attached_file($attachment_id);
@@ -117,43 +121,20 @@ class Tryloom_API
 			}
 		}
 
-		// 3) Same-host direct mapping - try uploads directory first
-		$site_host = wp_parse_url(site_url(), PHP_URL_HOST);
-		$url_host = wp_parse_url($url, PHP_URL_HOST);
-		if ($site_host && $url_host && strtolower($site_host) === strtolower($url_host)) {
-			// Try to extract path from uploads directory URL
-			$upload_dir = wp_upload_dir();
-			$upload_base_url = $upload_dir['baseurl'];
-			$upload_base_dir = $upload_dir['basedir'];
+		// 4) Check against upload directory
+		$upload_dir = wp_upload_dir();
+		$base_url_no_scheme = preg_replace('/^https?:/', '', $upload_dir['baseurl']);
 
-			// Check if URL is within uploads directory
-			if (strpos($url, $upload_base_url) === 0) {
-				$relative_path = str_replace($upload_base_url, '', $url);
-				// Remove query string if present
-				$relative_path = strtok($relative_path, '?');
-				$file_path = $upload_base_dir . $relative_path;
-				if (file_exists($file_path) && is_readable($file_path)) {
-					return $file_path;
-				}
-			}
+		if (strpos($url_no_scheme, $base_url_no_scheme) !== false) {
+			$relative_path = str_replace($base_url_no_scheme, '', $url_no_scheme);
+			$file_path = $upload_dir['basedir'] . $relative_path;
+			// Fix potential double slashes
+			$file_path = str_replace('//', '/', $file_path);
+			// Fix windows slashes if needed (though WP usually handles this)
+			$file_path = wp_normalize_path($file_path);
 
-			// Fallback: try content directory mapping (for non-upload files)
-			// Use wp_upload_dir() to ensure compatibility with all server setups
-			$content_url = content_url();
-			if (strpos($url, $content_url) === 0) {
-				$relative_path = str_replace($content_url, '', $url);
-				$relative_path = strtok($relative_path, '?');
-				// Use wp_upload_dir() to get the base directory structure
-				$upload_dir = wp_upload_dir();
-				// For content directory files, we need to construct path relative to uploads base
-				// If the file is in uploads, use upload_dir, otherwise skip this fallback
-				// as we cannot reliably determine WP_CONTENT_DIR on all server setups
-				if (strpos($relative_path, '/uploads/') === 0) {
-					$file_path = $upload_dir['basedir'] . str_replace('/uploads', '', $relative_path);
-					if (file_exists($file_path) && is_readable($file_path)) {
-						return $file_path;
-					}
-				}
+			if (file_exists($file_path) && is_readable($file_path)) {
+				return $file_path;
 			}
 		}
 
@@ -172,6 +153,7 @@ class Tryloom_API
 
 		// Prefer local filesystem when possible
 		$local_path = $this->resolve_local_file_from_url($url);
+
 		if ($local_path) {
 			// Validate that $local_path is actually a local file path (not a URL)
 			// Check if it's a valid file path and exists
@@ -194,14 +176,20 @@ class Tryloom_API
 		}
 
 		// Fallback to HTTP API
-		$response = wp_remote_get($url, array('timeout' => 30));
+		// Disable SSL verification for compatibility and increase timeout
+		$args = array(
+			'timeout' => 60,
+			'sslverify' => false,
+			'user-agent' => 'TryLoom-WordPress/' . TRYLOOM_VERSION . '; ' . get_bloginfo('url')
+		);
+		$response = wp_remote_get($url, $args);
 
 		if (is_wp_error($response)) {
 			if ('yes' === get_option('tryloom_enable_logging', 'no')) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 				error_log('[WooCommerce Try On] Image Fetch WP_Error: ' . $response->get_error_message() . ' for URL: ' . $url);
 			}
-			return new WP_Error('image_fetch_error', __('Could not fetch image from URL.', 'tryloom'));
+			return new WP_Error('image_fetch_error', __('Could not fetch image from URL.', 'tryloom') . ' ' . $response->get_error_message());
 		}
 
 		$response_code = wp_remote_retrieve_response_code($response);
@@ -209,9 +197,21 @@ class Tryloom_API
 			return new WP_Error('image_fetch_error', __('Could not fetch image from URL (HTTP Error).', 'tryloom'));
 		}
 
+		// Check/Enforce Content-Length if available to save memory
+		$content_length = wp_remote_retrieve_header($response, 'content-length');
+		$max_size_bytes = 5 * 1536 * 1536; // ~11.8MB
+		if (!empty($content_length) && $content_length > $max_size_bytes) {
+			return new WP_Error('image_fetch_error', __('Image is too large to process.', 'tryloom'));
+		}
+
 		$image_data = wp_remote_retrieve_body($response);
 		if (empty($image_data)) {
 			return new WP_Error('image_fetch_error', __('Image data is empty.', 'tryloom'));
+		}
+
+		// Double check actual size after download
+		if (strlen($image_data) > $max_size_bytes) {
+			return new WP_Error('image_fetch_error', __('Image is too large to process.', 'tryloom'));
 		}
 
 		return base64_encode($image_data);
@@ -253,15 +253,20 @@ class Tryloom_API
 		// Get try-on method from settings, default to auto
 		$try_on_method = get_option('tryloom_try_on_method', 'auto');
 
+		// Debug logging for try-on method
+		if ('yes' === get_option('tryloom_enable_logging', 'no')) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log('[TryLoom] Try-on method from DB: ' . $try_on_method);
+		}
+
 		$body = array(
 			'platform_key' => $platform_key,
 			'user_photo' => $user_photo_base64,
 			'product_image' => $product_image_base64,
-			'product_id' => $data['product_id'],
-			'store_domain' => site_url(),
+			'store_domain' => wp_parse_url(site_url(), PHP_URL_HOST),
 			'plugin_version' => defined('TRYLOOM_VERSION') ? TRYLOOM_VERSION : '1.1.0',
-			'license_type' => $license_type,
 			'method' => $try_on_method,
+			'instance_id' => $this->get_instance_id(),
 		);
 
 		$args = array(
@@ -295,9 +300,8 @@ class Tryloom_API
 
 			// Handle "Free Trial Ended" error
 			if ('Free Trial Ended' === $error_message) {
-				// Disable try-on features
-				update_option('tryloom_enabled', 'no');
-				update_option('tryloom_free_trial_ended', 'yes');
+				// Disable try-on features checks via status flag
+				update_option('tryloom_subscription_ended', 'yes');
 
 				if ('yes' === get_option('tryloom_enable_logging', 'no')) {
 					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
@@ -388,6 +392,38 @@ class Tryloom_API
 	}
 
 	/**
+	 * Get or create a unique instance ID.
+	 *
+	 * @return string
+	 */
+	private function get_instance_id()
+	{
+		$instance_id = get_option('tryloom_instance_id');
+
+		if (!$instance_id) {
+			if (function_exists('wp_generate_uuid4')) {
+				$instance_id = wp_generate_uuid4();
+			} else {
+				// Fallback UUID v4 generation
+				$instance_id = sprintf(
+					'%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+					wp_rand(0, 0xffff),
+					wp_rand(0, 0xffff),
+					wp_rand(0, 0xffff),
+					wp_rand(0, 0x0fff) | 0x4000,
+					wp_rand(0, 0x3fff) | 0x8000,
+					wp_rand(0, 0xffff),
+					wp_rand(0, 0xffff),
+					wp_rand(0, 0xffff)
+				);
+			}
+			update_option('tryloom_instance_id', $instance_id);
+		}
+
+		return $instance_id;
+	}
+
+	/**
 	 * Send request to API.
 	 *
 	 * @param string $endpoint API endpoint.
@@ -453,7 +489,79 @@ class Tryloom_API
 			return $this->process_try_on($process_data);
 		}
 
-		// For other endpoints, return an error.
-		return new WP_Error('invalid_endpoint', __('Invalid API endpoint.', 'tryloom'));
+	}
+
+	/**
+	 * Check usage status from cloud server.
+	 *
+	 * @return void
+	 */
+	public function check_usage_status()
+	{
+		$paid_key = get_option('tryloom_platform_key', '');
+		$platform_key = !empty($paid_key) ? $paid_key : get_option('tryloom_free_platform_key', '');
+
+		if (empty($platform_key)) {
+			return;
+		}
+
+		$body = array(
+			'platform_key' => $platform_key,
+			'store_domain' => wp_parse_url(site_url(), PHP_URL_HOST),
+		);
+
+		$args = array(
+			'body' => wp_json_encode($body),
+			'headers' => array(
+				'Content-Type' => 'application/json',
+			),
+			'timeout' => 30,
+			'data_format' => 'body',
+		);
+
+		// Status endpoint
+		$response = wp_remote_post('https://status-pdpuoxmr2a-uc.a.run.app/status', $args);
+
+		if (is_wp_error($response)) {
+			// Log error but don't stop future checks, just wait for next cron
+			if ('yes' === get_option('tryloom_enable_logging', 'no')) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log('[WooCommerce Try On] Status Check Error: ' . $response->get_error_message());
+			}
+			return;
+		}
+
+		$response_code = wp_remote_retrieve_response_code($response);
+		$response_body = wp_remote_retrieve_body($response);
+		$data = json_decode($response_body, true);
+
+		if (200 === $response_code && is_array($data) && isset($data['status'])) {
+			if ('active' === $data['status']) {
+				// Plan is active again (refilled or upgraded)
+				update_option('tryloom_subscription_ended', 'no');
+
+				// Reset the 30-day cron counter so we can check again if it fails in future
+				update_option('tryloom_status_check_count', 0);
+
+				// Clear error flags
+				delete_option('tryloom_free_trial_error');
+
+				// Update usage if available
+				if (isset($data['used'])) {
+					update_option('tryloom_usage_used', absint($data['used']));
+				}
+				if (isset($data['limit'])) {
+					update_option('tryloom_usage_limit', absint($data['limit']));
+				}
+
+				if ('yes' === get_option('tryloom_enable_logging', 'no')) {
+					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Controlled by logging setting
+					error_log('[WooCommerce Try On] Status Check: Plan is active. Usage updated.');
+				}
+			} else {
+				// Plan is inactive/limit exceeded
+				update_option('tryloom_subscription_ended', 'yes');
+			}
+		}
 	}
 }

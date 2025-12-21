@@ -27,7 +27,13 @@ class Tryloom_Admin
 		// Register settings.
 		add_action('admin_init', array($this, 'register_settings'));
 
-		// Add settings link on plugin page.
+		// Handle clear all history.
+		add_action('admin_post_tryloom_clear_all_history', array($this, 'clear_all_history'));
+
+		// Handle delete user photos.
+		add_action('admin_post_tryloom_delete_user_photos', array($this, 'delete_user_photos'));
+
+		// Add settings link.
 		add_filter('plugin_action_links_' . TRYLOOM_PLUGIN_BASENAME, array($this, 'add_settings_link'));
 
 		// Add admin scripts and styles.
@@ -35,10 +41,6 @@ class Tryloom_Admin
 
 		// Add dashboard widget for statistics.
 		add_action('wp_dashboard_setup', array($this, 'add_dashboard_widget'));
-
-		// Add admin actions.
-		add_action('admin_post_tryloom_clear_all_history', array($this, 'clear_all_history'));
-		add_action('admin_post_tryloom_start_free_trial', array($this, 'start_free_trial'));
 
 		// Add admin notices.
 		add_action('admin_notices', array($this, 'admin_notices'));
@@ -52,7 +54,7 @@ class Tryloom_Admin
 		add_menu_page(
 			__('Try On Settings', 'tryloom'),
 			__('TryLoom', 'tryloom'),
-			'manage_woocommerce',
+			'manage_options',
 			'tryloom-settings',
 			array($this, 'settings_page'),
 			plugin_dir_url(__FILE__) . '/icon.png',
@@ -96,34 +98,34 @@ class Tryloom_Admin
 
 		// Register general settings.
 
-		register_setting('tryloom-settings-group', 'tryloom_try_on_method', array('sanitize_callback' => 'sanitize_text_field'));
-		register_setting('tryloom-settings-group', 'tryloom_enabled', array('sanitize_callback' => 'sanitize_text_field'));
-		register_setting('tryloom-settings-group', 'tryloom_platform_key', array('sanitize_callback' => array($this, 'sanitize_platform_key')));
-		register_setting('tryloom-settings-group', 'tryloom_allowed_categories', array('sanitize_callback' => array($this, 'sanitize_array')));
-		register_setting('tryloom-settings-group', 'tryloom_button_placement', array('sanitize_callback' => 'sanitize_text_field'));
+		register_setting('tryloom-settings-group', 'tryloom_try_on_method', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group', 'tryloom_enabled', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group', 'tryloom_platform_key', array('sanitize_callback' => array($this, 'sanitize_platform_key'), 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group', 'tryloom_allowed_categories', array('sanitize_callback' => array($this, 'sanitize_array'), 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group', 'tryloom_button_placement', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
 
 		// Register appearance settings.
-		register_setting('tryloom-settings-group', 'tryloom_theme_color', array('sanitize_callback' => 'sanitize_text_field'));
-		register_setting('tryloom-settings-group', 'tryloom_primary_color', array('sanitize_callback' => 'sanitize_hex_color'));
-		register_setting('tryloom-settings-group', 'tryloom_retry_button', array('sanitize_callback' => 'sanitize_text_field'));
+		register_setting('tryloom-settings-group', 'tryloom_theme_color', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group', 'tryloom_primary_color', array('sanitize_callback' => 'sanitize_hex_color', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group', 'tryloom_retry_button', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
 		// register_setting( 'tryloom-settings-group', 'tryloom_brand_watermark', array( 'sanitize_callback' => 'absint' ) );
-		register_setting('tryloom-settings-group', 'tryloom_custom_popup_css', array('sanitize_callback' => 'wp_strip_all_tags'));
-		register_setting('tryloom-settings-group', 'tryloom_custom_button_css', array('sanitize_callback' => 'wp_strip_all_tags'));
-		register_setting('tryloom-settings-group', 'tryloom_custom_account_css', array('sanitize_callback' => 'wp_strip_all_tags'));
+		register_setting('tryloom-settings-group', 'tryloom_custom_popup_css', array('sanitize_callback' => 'wp_strip_all_tags', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group', 'tryloom_custom_button_css', array('sanitize_callback' => 'wp_strip_all_tags', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group', 'tryloom_custom_account_css', array('sanitize_callback' => 'wp_strip_all_tags', 'capability' => 'manage_options'));
 
 		// Register user settings.
-		register_setting('tryloom-settings-group', 'tryloom_save_photos', array('sanitize_callback' => 'sanitize_text_field'));
-		register_setting('tryloom-settings-group', 'tryloom_generation_limit', array('sanitize_callback' => 'absint'));
-		register_setting('tryloom-settings-group', 'tryloom_time_period', array('sanitize_callback' => 'sanitize_text_field'));
-		register_setting('tryloom-settings-group', 'tryloom_delete_photos_days', array('sanitize_callback' => 'absint'));
-		register_setting('tryloom-settings-group', 'tryloom_allowed_user_roles', array('sanitize_callback' => array($this, 'sanitize_array')));
-		register_setting('tryloom-settings-group', 'tryloom_enable_history', array('sanitize_callback' => 'sanitize_text_field'));
-		register_setting('tryloom-settings-group', 'tryloom_enable_account_tab', array('sanitize_callback' => 'sanitize_text_field'));
+		register_setting('tryloom-settings-group', 'tryloom_save_photos', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group', 'tryloom_generation_limit', array('sanitize_callback' => 'absint', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group', 'tryloom_time_period', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group', 'tryloom_delete_photos_days', array('sanitize_callback' => 'absint', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group', 'tryloom_allowed_user_roles', array('sanitize_callback' => array($this, 'sanitize_array'), 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group', 'tryloom_enable_history', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
 
 		// Register advanced settings.
-		register_setting('tryloom-settings-group', 'tryloom_enable_logging', array('sanitize_callback' => 'sanitize_text_field'));
-		register_setting('tryloom-settings-group', 'tryloom_admin_user_roles', array('sanitize_callback' => array($this, 'sanitize_array')));
-		register_setting('tryloom-settings-group', 'tryloom_show_popup_errors', array('sanitize_callback' => 'sanitize_text_field'));
+		register_setting('tryloom-settings-group', 'tryloom_enable_logging', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group', 'tryloom_admin_user_roles', array('sanitize_callback' => array($this, 'sanitize_array'), 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group', 'tryloom_show_popup_errors', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group', 'tryloom_remove_data_on_delete', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
 
 		// Add settings fields.
 		// General settings.
@@ -259,16 +261,8 @@ class Tryloom_Admin
 
 		add_settings_field(
 			'tryloom_enable_history',
-			__('Enable Try On History', 'tryloom'),
+			__('Enable History', 'tryloom'),
 			array($this, 'enable_history_callback'),
-			'tryloom-settings',
-			'tryloom_user_section'
-		);
-
-		add_settings_field(
-			'tryloom_enable_account_tab',
-			__('Show Try-On Tab in My Account', 'tryloom'),
-			array($this, 'enable_account_tab_callback'),
 			'tryloom-settings',
 			'tryloom_user_section'
 		);
@@ -294,6 +288,14 @@ class Tryloom_Admin
 			'tryloom_show_popup_errors',
 			__('Show Browser Popup Errors', 'tryloom'),
 			array($this, 'show_popup_errors_callback'),
+			'tryloom-settings',
+			'tryloom_advanced_section'
+		);
+
+		add_settings_field(
+			'tryloom_remove_data_on_delete',
+			__('Remove Data on Uninstall', 'tryloom'),
+			array($this, 'remove_data_on_delete_callback'),
 			'tryloom-settings',
 			'tryloom_advanced_section'
 		);
@@ -325,6 +327,8 @@ class Tryloom_Admin
 		return $sanitized_input;
 	}
 
+
+
 	/**
 	 * Sanitize platform key.
 	 * Also clears free trial ended flag if paid key is added.
@@ -336,14 +340,17 @@ class Tryloom_Admin
 	{
 		$sanitized = sanitize_text_field($input);
 
-		// If a paid key is being added, clear the free trial ended flag
+		// If a key is being added/updated (not cleared)
 		if (!empty($sanitized)) {
-			$old_key = get_option('tryloom_platform_key', '');
+			// ALWAYS reset the free trial ended flag for any new key input
+			update_option('tryloom_subscription_ended', 'no');
 
-			// If adding a new paid key (old one was empty), clear free trial ended flag
-			if (empty($old_key)) {
-				update_option('tryloom_free_trial_ended', 'no');
-			}
+			// Clear any previous error messages
+			delete_option('tryloom_free_trial_error');
+
+			// Clear usage stats to force a fresh check from the server on the next request
+			delete_option('tryloom_usage_used');
+			delete_option('tryloom_usage_limit');
 		}
 
 		return $sanitized;
@@ -565,17 +572,51 @@ class Tryloom_Admin
 	 */
 	public function save_photos_callback()
 	{
-		$save_photos = get_option('tryloom_save_photos', 'let_user_decide');
+		$save_photos = get_option('tryloom_save_photos', 'yes');
+
+		// Calculate stats for User Photos
+		$stats = $this->get_storage_stats('tryloom_user_photos', 'image_url');
+		$has_photos = $stats['count'] > 0;
 		?>
 		<select name="tryloom_save_photos">
 			<option value="yes" <?php selected($save_photos, 'yes'); ?>><?php esc_html_e('Yes', 'tryloom'); ?></option>
 			<option value="no" <?php selected($save_photos, 'no'); ?>><?php esc_html_e('No', 'tryloom'); ?></option>
-			<option value="let_user_decide" <?php selected($save_photos, 'let_user_decide'); ?>>
-				<?php esc_html_e('Let User Decide', 'tryloom'); ?>
-			</option>
 		</select>
 		<p class="description"><?php esc_html_e('Choose whether user photos should be saved on the server.', 'tryloom'); ?>
 		</p>
+
+		<?php
+		// Always show the button container, but handle empty state
+		?>
+		<div style="margin-top: 15px;">
+			<button type="button" id="tryloom_delete_photos_btn" class="button button-secondary" <?php echo !$has_photos ? 'disabled' : ''; ?>>
+				<i class="fas fa-trash"></i>
+				<?php esc_html_e('Delete Saved User Photos', 'tryloom'); ?>
+			</button>
+			<span style="margin-left: 10px; font-style: italic; color: #666;">
+				<?php
+				/* translators: 1: Number of photos, 2: Total size of photos */
+				printf(esc_html__('(Saved: %1$d photos | Size: %2$s)', 'tryloom'), esc_html($stats['count']), esc_html($this->format_size($stats['size'])));
+				?>
+			</span>
+			<script type="text/javascript">
+				jQuery(document).ready(function ($) {
+					$('#tryloom_delete_photos_btn').on('click', function (e) {
+						e.preventDefault();
+						if ($(this).attr('disabled')) return;
+						if (confirm('<?php echo esc_js(__('Are you sure you want to delete all saved user photos? This cannot be undone.', 'tryloom')); ?>')) {
+							// Create a form outside of the existing one to avoid nesting issues
+							var form = $('<form action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post">' +
+								'<input type="hidden" name="action" value="tryloom_delete_user_photos" />' +
+								'<input type="hidden" name="_wpnonce" value="<?php echo esc_attr(wp_create_nonce('tryloom_delete_user_photos')); ?>" />' +
+								'</form>');
+							$('body').append(form);
+							form.submit();
+						}
+					});
+				});
+			</script>
+		</div>
 		<?php
 	}
 
@@ -701,6 +742,23 @@ class Tryloom_Admin
 	}
 
 	/**
+	 * Remove data on delete callback.
+	 */
+	public function remove_data_on_delete_callback()
+	{
+		$remove_data = get_option('tryloom_remove_data_on_delete', 'no');
+		?>
+		<label>
+			<input type="checkbox" name="tryloom_remove_data_on_delete" value="yes" <?php checked($remove_data, 'yes'); ?> />
+			<?php esc_html_e('Remove all data when I delete the plugin', 'tryloom'); ?>
+		</label>
+		<p class="description">
+			<?php esc_html_e('If checked, all TryLoom database tables, settings, and uploaded images will be permanently deleted when you delete the plugin from the Plugins screen.', 'tryloom'); ?>
+		</p>
+		<?php
+	}
+
+	/**
 	 * Custom popup CSS callback.
 	 */
 	public function custom_popup_css_callback()
@@ -760,6 +818,10 @@ class Tryloom_Admin
 	public function enable_history_callback()
 	{
 		$enabled = get_option('tryloom_enable_history', 'yes');
+
+		// Calculate stats for History
+		$stats = $this->get_storage_stats('tryloom_history', 'generated_image_url');
+		$has_history = $stats['count'] > 0;
 		?>
 		<select name="tryloom_enable_history">
 			<option value="yes" <?php selected($enabled, 'yes'); ?>><?php esc_html_e('Yes', 'tryloom'); ?></option>
@@ -767,38 +829,42 @@ class Tryloom_Admin
 		</select>
 		<p class="description">
 			<?php esc_html_e('Enable or disable Try-On history tracking.', 'tryloom'); ?><br>
-			<?php esc_html_e('When off: No history shown, and generated images auto-delete after 5 minutes.', 'tryloom'); ?>
+			<?php esc_html_e('When off: No history shown, and generated images auto-delete after 5 minutes.', 'tryloom'); ?><br>
+			<strong><?php esc_html_e('Note: Turning this off will also hide the Try-On tab in My Account.', 'tryloom'); ?></strong>
 		</p>
 		<div style="margin-top: 15px;">
-			<form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display: inline;">
-				<input type="hidden" name="action" value="tryloom_clear_all_history" />
-				<?php wp_nonce_field('tryloom_clear_all_history'); ?>
-				<button type="submit" class="button button-secondary"
-					onclick="return confirm('<?php echo esc_js(__('Are you sure you want to clear all try-on history? This will permanently delete all generated images from the server.', 'tryloom')); ?>');">
-					<i class="fas fa-trash"></i>
-					<?php esc_html_e('Clear All History', 'tryloom'); ?>
-				</button>
-			</form>
+			<button type="button" id="tryloom_clear_history_btn" class="button button-secondary" <?php echo !$has_history ? 'disabled' : ''; ?>>
+				<i class="fas fa-trash"></i>
+				<?php esc_html_e('Clear All History', 'tryloom'); ?>
+			</button>
+			<span style="margin-left: 10px; font-style: italic; color: #666;">
+				<?php
+				/* translators: 1: Number of images, 2: Total size of images */
+				printf(esc_html__('(Saved: %1$d images | Size: %2$s)', 'tryloom'), esc_html($stats['count']), esc_html($this->format_size($stats['size'])));
+				?>
+			</span>
+			<script type="text/javascript">
+				jQuery(document).ready(function ($) {
+					$('#tryloom_clear_history_btn').on('click', function (e) {
+						e.preventDefault();
+						if ($(this).attr('disabled')) return;
+						if (confirm('<?php echo esc_js(__('Are you sure you want to clear all try-on history? This will permanently delete all generated images from the server.', 'tryloom')); ?>')) {
+							// Create a form outside of the existing one to avoid nesting issues
+							var form = $('<form action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post">' +
+								'<input type="hidden" name="action" value="tryloom_clear_all_history" />' +
+								'<input type="hidden" name="_wpnonce" value="<?php echo esc_attr(wp_create_nonce('tryloom_clear_all_history')); ?>" />' +
+								'</form>');
+							$('body').append(form);
+							form.submit();
+						}
+					});
+				});
+			</script>
 		</div>
 		<?php
 	}
 
-	/**
-	 * Enable account tab callback.
-	 */
-	public function enable_account_tab_callback()
-	{
-		$enabled = get_option('tryloom_enable_account_tab', 'yes');
-		?>
-		<select name="tryloom_enable_account_tab">
-			<option value="yes" <?php selected($enabled, 'yes'); ?>><?php esc_html_e('Yes', 'tryloom'); ?></option>
-			<option value="no" <?php selected($enabled, 'no'); ?>><?php esc_html_e('No', 'tryloom'); ?></option>
-		</select>
-		<p class="description">
-			<?php esc_html_e('Show or hide the TryLoom Try-On tab in My Account.', 'tryloom'); ?><br>
-		</p>
-		<?php
-	}
+
 
 	/**
 	 * Add settings link on plugin page.
@@ -912,6 +978,102 @@ class Tryloom_Admin
 	}
 
 	/**
+	 * Delete all saved user photos.
+	 */
+	public function delete_user_photos()
+	{
+		// Check nonce and permissions.
+		if (!isset($_POST['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'tryloom_delete_user_photos') || !current_user_can('manage_woocommerce')) {
+			wp_die(esc_html__('You do not have sufficient permissions to access this page.', 'tryloom'));
+		}
+
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'tryloom_user_photos';
+
+		// Get all photo records to delete associated files.
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table, not public data
+		$photo_records = $wpdb->get_results('SELECT image_url, attachment_id FROM ' . esc_sql($table_name));
+
+		// Delete associated files.
+		foreach ($photo_records as $record) {
+
+			// Delete from media library if attached
+			if (!empty($record->attachment_id)) {
+				wp_delete_attachment($record->attachment_id, true);
+			}
+
+			// Delete file from custom path if exists (and not already deleted by attachment delete)
+			if (!empty($record->image_url)) {
+				$file_path = $this->get_file_path_from_url($record->image_url);
+				if ($file_path && file_exists($file_path)) {
+					wp_delete_file($file_path);
+				}
+			}
+		}
+
+		// Delete from DB.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- Custom table cleanup
+		$wpdb->query("DELETE FROM " . esc_sql($table_name));
+
+		// Redirect back with success message.
+		wp_safe_redirect(add_query_arg(array('page' => 'tryloom-settings', 'message' => 'photos_deleted'), admin_url('admin.php')));
+		exit;
+	}
+
+	/**
+	 * Helper: Get storage stats (count and size) for a table's image column.
+	 * 
+	 * @param string $table_name Table name (without prefix).
+	 * @param string $url_column Column name containing the image URL.
+	 * @return array ['count' => int, 'size' => int]
+	 */
+	private function get_storage_stats($table_name_suffix, $url_column)
+	{
+		global $wpdb;
+		$table_name = $wpdb->prefix . $table_name_suffix;
+
+		// Check table exists first to avoid errors during install/updates
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- System table check
+		if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table_name)) != $table_name) {
+			return array('count' => 0, 'size' => 0);
+		}
+
+		$safe_column = esc_sql($url_column);
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Column name validated through esc_sql sanitization
+		$urls = $wpdb->get_col("SELECT `$safe_column` FROM " . esc_sql($table_name) . " WHERE `$safe_column` IS NOT NULL AND `$safe_column` != ''");
+
+		$count = 0;
+		$size = 0;
+
+		foreach ($urls as $url) {
+			$path = $this->get_file_path_from_url($url);
+			if ($path && file_exists($path)) {
+				$count++;
+				$size += filesize($path);
+			}
+		}
+
+		return array('count' => count($urls), 'found_files_count' => $count, 'size' => $size);
+	}
+
+	/**
+	 * Helper: Format bytes to human readable string.
+	 * 
+	 * @param int $bytes
+	 * @param int $precision
+	 * @return string
+	 */
+	private function format_size($bytes, $precision = 2)
+	{
+		$units = array('B', 'KB', 'MB', 'GB', 'TB');
+		$bytes = max($bytes, 0);
+		$pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+		$pow = min($pow, count($units) - 1);
+		$bytes /= pow(1024, $pow);
+		return round($bytes, $precision) . ' ' . $units[$pow];
+	}
+
+	/**
 	 * Display admin notices.
 	 */
 	public function admin_notices()
@@ -921,34 +1083,18 @@ class Tryloom_Admin
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('All try-on history has been cleared successfully.', 'tryloom') . '</p></div>';
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if (isset($_GET['free_trial_started']) && '1' === sanitize_text_field(wp_unslash($_GET['free_trial_started']))) {
-			echo '<div class="notice notice-success is-dismissible"><p><strong>' . esc_html__('WooCommerce Try On:', 'tryloom') . '</strong> ' . esc_html__('Free trial activated successfully!', 'tryloom') . '</p></div>';
+		// Show subscription ended notice on all admin pages
+		$subscription_ended = get_option('tryloom_subscription_ended', 'no');
+		if ('yes' === $subscription_ended) {
+			echo '<div class="notice notice-error is-dismissible"><p>' .
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML allowed
+				__('Your TryLoom subscription has expired or payment failed.<br><strong>Your customers cannot see the Virtual Try-On button.</strong><br><a href="https://tryloom.toolteek.com/my-account/">Click here to renew now</a> to restore service immediately.', 'tryloom') .
+				'</p></div>';
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if (isset($_GET['free_trial_error']) && '1' === sanitize_text_field(wp_unslash($_GET['free_trial_error']))) {
-			$error = get_option('tryloom_free_trial_error', '');
-			$error_message = !empty($error) ? $error : __('Free trial activation failed. Please try again later.', 'tryloom');
-			$retry_nonce = wp_create_nonce('tryloom_start_free_trial');
-			$retry_url = admin_url('admin-post.php?action=tryloom_start_free_trial&_wpnonce=' . $retry_nonce);
-			echo '<div class="notice notice-error is-dismissible tryloom-free-trial-error-notice"><p><strong>' . esc_html__('WooCommerce Try On:', 'tryloom') . '</strong> ' . esc_html($error_message) . ' <a href="' . esc_url($retry_url) . '" class="button button-small" style="margin-left: 10px;">' . esc_html__('Retry', 'tryloom') . '</a></p></div>';
-		}
-
-		// Show free trial ended notice on all admin pages
-		$free_trial_ended = get_option('tryloom_free_trial_ended', 'no');
-		if ('yes' === $free_trial_ended) {
-			echo '<div class="notice notice-error is-dismissible"><p><strong>' . esc_html__('WooCommerce Try On:', 'tryloom') . '</strong> ' . esc_html__('Your free trial ended. Please buy a subscription to continue use this feature.', 'tryloom') . '</p></div>';
-		}
-
-		// Show free trial activation failed notice
-		$free_trial_error = get_option('tryloom_free_trial_error', '');
-		$stored_free_key = get_option('tryloom_free_platform_key', '');
-		$stored_paid_key = get_option('tryloom_platform_key', '');
-		if (empty($stored_free_key) && empty($stored_paid_key) && !empty($free_trial_error) && 'Free Trial Ended' !== $free_trial_error) {
-			$retry_nonce = wp_create_nonce('tryloom_start_free_trial');
-			$retry_url = admin_url('admin-post.php?action=tryloom_start_free_trial&_wpnonce=' . $retry_nonce);
-			echo '<div class="notice notice-warning is-dismissible tryloom-free-trial-error-notice"><p><strong>' . esc_html__('WooCommerce Try On:', 'tryloom') . '</strong> ' . esc_html($free_trial_error) . ' <a href="' . esc_url($retry_url) . '" class="button button-small" style="margin-left: 10px;">' . esc_html__('Retry', 'tryloom') . '</a></p></div>';
+		// Warning if Cron is not working
+		if (!wp_next_scheduled('tryloom_check_account_status') || !wp_next_scheduled('tryloom_cleanup_inactive_users')) {
+			echo '<div class="notice notice-warning is-dismissible"><p><strong>' . esc_html__('TryLoom System Warning:', 'tryloom') . '</strong> ' . esc_html__('Scheduled tasks (WP-Cron) do not appear to be running. This may prevent automatic history cleanup and account status checks.', 'tryloom') . '</p></div>';
 		}
 
 		// Only show conflict warnings on Try On settings page.
@@ -1008,14 +1154,15 @@ class Tryloom_Admin
 		}
 	}
 
+
 	/**
 	 * Enqueue admin scripts and styles.
 	 */
 	public function enqueue_admin_scripts($hook)
 	{
-		if ('toplevel_page_tryloom-settings' !== $hook && 'woocommerce_page_tryloom-settings' !== $hook) {
-			return;
-		}
+		// if ('toplevel_page_tryloom-settings' !== $hook && 'woocommerce_page_tryloom-settings' !== $hook) {
+		// 	return;
+		// }
 
 		// Enqueue Font Awesome.
 		// Note: Font Awesome is bundled locally for WordPress.org compliance.
@@ -1025,6 +1172,9 @@ class Tryloom_Admin
 			array(),
 			'6.4.0'
 		);
+
+		// Enqueue WooCommerce Admin Styles (for SelectWoo/Select2).
+		wp_enqueue_style('woocommerce_admin_styles');
 
 		// Enqueue color picker.
 		wp_enqueue_style('wp-color-picker');
@@ -1037,8 +1187,8 @@ class Tryloom_Admin
 		wp_enqueue_script(
 			'tryloom-admin',
 			TRYLOOM_PLUGIN_URL . 'assets/js/admin.js',
-			array('jquery', 'wp-color-picker'),
-			TRYLOOM_VERSION,
+			array('jquery', 'wp-color-picker', 'selectWoo'),
+			time(), // Force reload
 			true
 		);
 
@@ -1146,46 +1296,20 @@ class Tryloom_Admin
 	/**
 	 * Handler for starting free trial (admin_post action).
 	 */
-	public function start_free_trial()
-	{
-		// Check nonce and permissions.
-		if (!isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'tryloom_start_free_trial') || !current_user_can('manage_woocommerce')) {
-			wp_die(esc_html__('You do not have sufficient permissions to access this page.', 'tryloom'));
-		}
-
-		// Generate verification token and connect to cloud service
-		if (function_exists('tryloom')) {
-			// Generate token if it doesn't exist
-			tryloom()->generate_verification_token();
-			// Connect to cloud service to get free key
-			tryloom()->connect_to_cloud_service();
-
-			// Check if registration was successful
-			$free_key = get_option('tryloom_free_platform_key', '');
-			$error = get_option('tryloom_free_trial_error', '');
-
-			if (!empty($free_key)) {
-				// Redirect back with success message.
-				wp_safe_redirect(add_query_arg(array('page' => 'tryloom-settings', 'free_trial_started' => '1'), admin_url('admin.php')));
-			} elseif (!empty($error)) {
-				// Redirect back with error message.
-				wp_safe_redirect(add_query_arg(array('page' => 'tryloom-settings', 'free_trial_error' => '1'), admin_url('admin.php')));
-			} else {
-				// Redirect back with generic error.
-				wp_safe_redirect(add_query_arg(array('page' => 'tryloom-settings', 'free_trial_error' => '1'), admin_url('admin.php')));
-			}
-		} else {
-			// Redirect back with error.
-			wp_safe_redirect(add_query_arg(array('page' => 'tryloom-settings', 'free_trial_error' => '1'), admin_url('admin.php')));
-		}
-		exit;
-	}
+	/* start_free_trial method removed */
 
 	/**
 	 * Settings page.
 	 */
 	public function settings_page()
 	{
+		// Force check status if subscription ended (user visiting settings page)
+		if ('yes' === get_option('tryloom_subscription_ended', 'no')) {
+			if (function_exists('tryloom') && tryloom()->api) {
+				tryloom()->api->check_usage_status();
+			}
+		}
+
 		// Get statistics.
 		global $wpdb;
 		$today = gmdate('Y-m-d');
@@ -1279,8 +1403,7 @@ class Tryloom_Admin
 			$paid_key = get_option('tryloom_platform_key', '');
 			$free_key = get_option('tryloom_free_platform_key', '');
 			$show_start_free_button = empty($paid_key) && empty($free_key);
-			$start_free_trial_nonce = wp_create_nonce('tryloom_start_free_trial');
-			$start_free_trial_url = admin_url('admin-post.php?action=tryloom_start_free_trial&_wpnonce=' . $start_free_trial_nonce);
+			// Removed nonce generation for start free trial
 			?>
 			<div class="tryloom-header">
 				<div class="tryloom-header-info">
@@ -1288,12 +1411,12 @@ class Tryloom_Admin
 				</div>
 				<div class="tryloom-header-actions">
 					<?php if ($show_start_free_button): ?>
-						<a href="<?php echo esc_url($start_free_trial_url); ?>" class="button button-primary"
+						<a href="https://tryloom.toolteek.com/my-account/" class="button button-primary" target="_blank"
 							style="margin-right: 10px;">
 							<?php esc_html_e('Start for Free', 'tryloom'); ?>
 						</a>
 					<?php endif; ?>
-					<a href="https://tryloom.toolteek.com/" class="button button-primary" target="_blank">
+					<a href="https://tryloom.toolteek.com/#pricing" class="button button-primary" target="_blank">
 						<?php esc_html_e('Subscription Options', 'tryloom'); ?>
 					</a>
 				</div>
@@ -1303,11 +1426,6 @@ class Tryloom_Admin
 				<?php
 				settings_fields('tryloom-settings-group');
 				do_settings_sections('tryloom-settings');
-				?>
-				<input type="hidden" name="option_page" value="tryloom-settings-group" />
-				<input type="hidden" name="action" value="update" />
-				<?php
-				wp_nonce_field('tryloom-settings-group-options');
 				submit_button();
 				?>
 			</form>

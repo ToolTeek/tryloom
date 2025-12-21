@@ -36,7 +36,7 @@
     left: 100%;
 }
 
-.tryloom-button > * {
+.tryloom-button>* {
     position: relative;
 }
 
@@ -73,6 +73,7 @@
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -101,6 +102,7 @@
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
     color: #fff;
 }
+
 .tryloom-theme-dark .tryloom-popup-header,
 .tryloom-theme-dark .tryloom-popup-body,
 .tryloom-theme-dark .tryloom-result,
@@ -109,10 +111,12 @@
 .tryloom-theme-dark .tryloom-popup-footer {
     color: #fff;
 }
+
 .tryloom-theme-dark .tryloom-history-table th,
 .tryloom-theme-dark .tryloom-history-table td {
     color: #fff;
 }
+
 .tryloom-theme-dark .tryloom-popup-content input,
 .tryloom-theme-dark .tryloom-popup-content select,
 .tryloom-theme-dark .tryloom-popup-content button,
@@ -122,8 +126,9 @@
     color: #fff !important;
     border-color: #444a6a;
 }
+
 .tryloom-theme-dark .tryloom-variation.selected {
-    background: rgba(255,255,255,0.08) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
 }
 
 .tryloom-popup-header {
@@ -229,6 +234,7 @@
 .tryloom-step {
     display: flex;
     flex-wrap: wrap;
+    /* Force 2 columns on desktop, wrap actions to bottom */
     gap: 30px;
 }
 
@@ -242,46 +248,114 @@
     min-width: 300px;
 }
 
-/* Mobile responsive */
+/* Single Column Layout with Fixed Buttons */
 @media (max-width: 768px) {
     .tryloom-popup-content {
         width: 95%;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
     }
-    
+
+    .tryloom-popup-header {
+        padding: 15px 20px;
+        flex-shrink: 0;
+    }
+
     .tryloom-popup-body {
         padding: 20px;
+        padding-bottom: 90px;
+        /* Space for fixed button */
+        flex: 1;
+        overflow-y: auto;
     }
-    
+
     .tryloom-step {
-        flex-direction: row;
-        gap: 15px;
-        flex-wrap: wrap;
+        flex-direction: column;
+        gap: 20px;
     }
-    
+
     .tryloom-upload,
     .tryloom-variations {
-        flex: 1;
-        min-width: calc(50% - 7.5px);
+        width: 100%;
+        min-width: 100%;
     }
-    
+
     .tryloom-upload h4,
     .tryloom-variations h4 {
         font-size: 16px;
     }
-    
-    .tryloom-actions {
-        flex-basis: 100%;
-        margin-top: 15px;
-        text-align: center;
+
+    /* Fixed Generate Button at Bottom */
+    .tryloom-step-1 .tryloom-actions {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 999;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(10px);
+        padding: 15px 20px;
+        margin: 0;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
     }
-    
+
+    .tryloom-theme-dark .tryloom-step-1 .tryloom-actions {
+        background: rgba(26, 32, 44, 0.98);
+        border-top-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .tryloom-step-1 .tryloom-actions .tryloom-generate {
+        width: 100%;
+        margin: 0;
+        padding: 14px 20px;
+        font-size: 16px;
+    }
+
+    /* Fixed Looks Good Button at Bottom for Step 2 */
+    .tryloom-step-2 .tryloom-result-actions {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 999;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(10px);
+        padding: 15px 20px;
+        margin: 0;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .tryloom-theme-dark .tryloom-step-2 .tryloom-result-actions {
+        background: rgba(26, 32, 44, 0.98);
+        border-top-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .tryloom-step-2 .tryloom-result-actions .button,
+    .tryloom-step-2 .tryloom-result-actions .tryloom-add-to-cart {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 14px 20px;
+        font-size: 16px;
+    }
+
     .tryloom-result-image {
         padding: 15px;
     }
-    
+
     .tryloom-image-actions {
         bottom: 15px;
         right: 15px;
+    }
+
+    /* Scroll lock during generation */
+    .tryloom-popup-body.is-generating {
+        overflow: hidden !important;
+        touch-action: none;
+        -webkit-overflow-scrolling: none;
     }
 }
 
@@ -613,9 +687,9 @@
     left: 100%;
 }
 
-.tryloom-generate > *,
-.tryloom-add-to-cart > *,
-.tryloom-download > * {
+.tryloom-generate>*,
+.tryloom-add-to-cart>*,
+.tryloom-download>* {
     position: relative;
     z-index: 1;
 }
@@ -659,7 +733,7 @@
     left: 100%;
 }
 
-.tryloom-retry > * {
+.tryloom-retry>* {
     position: relative;
     z-index: 1;
 }
@@ -691,8 +765,8 @@
 .tryloom-result-image {
     margin-bottom: 30px;
     width: 100%;
-    max-width: 600px;
-    padding: 20px;
+    max-width: 500px;
+    padding: 15px;
     background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
     border-radius: 16px;
     box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.05);
@@ -700,7 +774,9 @@
     justify-content: center;
     align-items: center;
     position: relative;
-    min-height: 360px;
+    min-height: 300px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .tryloom-theme-dark .tryloom-result-image {
@@ -825,16 +901,28 @@
     gap: 15px;
     flex-wrap: wrap;
     width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+.tryloom-result-actions .button,
+.tryloom-result-actions .tryloom-add-to-cart {
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
 }
 
 /* Loading Overlay */
 .tryloom-loading-overlay {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
+    right: 0;
+    bottom: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.9);  /* Light theme overlay */
+    background: rgba(255, 255, 255, 0.95);
+    /* Light theme overlay */
     z-index: 1000;
     display: flex;
     flex-direction: column;
@@ -844,7 +932,8 @@
 }
 
 .tryloom-theme-dark .tryloom-loading-overlay {
-    background: rgba(26, 32, 44, 0.95);  /* Dark theme overlay */
+    background: rgba(26, 32, 44, 0.95);
+    /* Dark theme overlay */
 }
 
 .tryloom-spinner {
@@ -865,17 +954,25 @@
 .tryloom-loading-overlay p {
     font-size: 16px;
     font-weight: 600;
-    color: #2d3748;  /* Dark text for light theme */
-    margin: 0;
+    color: #2d3748;
+    /* Dark text for light theme */
+    margin-top: 20px;
+    letter-spacing: 0.5px;
 }
 
 .tryloom-theme-dark .tryloom-loading-overlay p {
-    color: #f7fafc;  /* Light text for dark theme */
+    color: #f7fafc;
+    /* Light text for dark theme */
 }
 
 @keyframes tryloom-spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Upload Progress */
@@ -928,14 +1025,29 @@
 }
 
 .tryloom-progress-text {
-    margin-top: 20px;
-    font-size: 16px;
-    font-weight: 600;
+    margin-top: 15px;
+    margin-bottom: 0;
+    font-size: 13px;
+    font-weight: 500;
     color: #4a5568;
+    text-align: center;
 }
 
 .tryloom-theme-dark .tryloom-progress-text {
     color: #cbd5e0;
+}
+
+/* Upload overlay specific styling */
+.tryloom-upload-progress-overlay .tryloom-spinner {
+    display: block !important;
+    margin: 0 auto;
+    width: 50px;
+    height: 50px;
+}
+
+.tryloom-upload-progress-overlay .tryloom-progress-text {
+    margin-top: 12px;
+    font-size: 13px;
 }
 
 .tryloom-progress-percent {
@@ -1208,115 +1320,6 @@
     transform: scale(1.1);
 }
 
-/* Responsive */
-@media screen and (max-width: 600px) {
-    .tryloom-popup-content {
-        width: 95%;
-        max-height: 80vh;
-        border-radius: 16px;
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .tryloom-popup-header {
-        padding: 20px;
-        flex-shrink: 0;
-    }
-    
-    .tryloom-popup-header h3 {
-        font-size: 20px;
-    }
-    
-    .tryloom-popup-body {
-        padding: 20px;
-        padding-bottom: 80px; /* Space for fixed button */
-        flex: 1;
-        overflow-y: auto;
-    }
-    
-    .tryloom-step {
-        flex-direction: column;
-        gap: 25px;
-    }
-    
-    .tryloom-upload,
-    .tryloom-variations {
-        min-width: 100%;
-    }
-    
-    /* Fixed Generate Button at Bottom */
-    .tryloom-step-1 .tryloom-actions {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        z-index: 999;
-        background: linear-gradient(to top, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
-        backdrop-filter: blur(10px);
-        padding: 15px 20px;
-        margin: 0;
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
-        border-top: 1px solid rgba(0, 0, 0, 0.05);
-    }
-    
-    .tryloom-theme-dark .tryloom-step-1 .tryloom-actions {
-        background: linear-gradient(to top, rgba(26, 32, 44, 0.98) 0%, rgba(26, 32, 44, 0.95) 100%);
-        border-top-color: rgba(255, 255, 255, 0.1);
-    }
-    
-    .tryloom-step-1 .tryloom-actions .tryloom-generate {
-        width: 100%;
-        margin: 0;
-        padding: 14px 20px;
-        font-size: 16px;
-    }
-    
-    /* Fixed Add to Cart Button at Bottom for Step 2 */
-    .tryloom-step-2 .tryloom-result-actions {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        z-index: 999;
-        background: linear-gradient(to top, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
-        backdrop-filter: blur(10px);
-        padding: 15px 20px;
-        margin: 0;
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
-        border-top: 1px solid rgba(0, 0, 0, 0.05);
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .tryloom-theme-dark .tryloom-step-2 .tryloom-result-actions {
-        background: linear-gradient(to top, rgba(26, 32, 44, 0.98) 0%, rgba(26, 32, 44, 0.95) 100%);
-        border-top-color: rgba(255, 255, 255, 0.1);
-    }
-    
-    .tryloom-step-2 .tryloom-result-actions .button,
-    .tryloom-step-2 .tryloom-result-actions a {
-        width: 100%;
-        margin: 0;
-        padding: 14px 20px;
-        font-size: 16px;
-    }
-    
-    .tryloom-result-actions {
-        flex-direction: column;
-        gap: 12px;
-    }
-    
-    .tryloom-result-actions .button,
-    .tryloom-result-actions a {
-        width: 100%;
-        margin: 0;
-    }
-    
-    .tryloom-account-photos {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 15px;
-    }
-}
 /* Pagination Styles */
 .tryloom-pagination {
     margin: 20px 0;
@@ -1535,7 +1538,8 @@
 /* Prefixes with .tryloom-account-history to be specific */
 .tryloom-account-history .tryloom-history-table {
     width: 100%;
-    border-collapse: collapse; /* Clean, single borders */
+    border-collapse: collapse;
+    /* Clean, single borders */
     margin-top: 1.5em;
     font-size: 1rem;
     color: #333;
@@ -1573,7 +1577,8 @@
 
 /* --- 5. Image Style (Desktop default) --- */
 .tryloom-history-table td img {
-    display: block; /* Typically block for desktop layout */
+    display: block;
+    /* Typically block for desktop layout */
     border-radius: 6px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
@@ -1635,6 +1640,7 @@
 /* --- 9. Responsive (Mobile) Table Styles --- */
 /* These styles will only apply on screens 768px or smaller */
 @media (max-width: 768px) {
+
     .tryloom-history-table,
     .tryloom-history-table thead,
     .tryloom-history-table tbody,
@@ -1653,25 +1659,30 @@
     .tryloom-history-table tbody tr {
         margin-bottom: 20px;
         border-radius: 12px;
-        border: 1px solid #e0e0e0; /* Optional: Add border for card effect */
+        border: 1px solid #e0e0e0;
+        /* Optional: Add border for card effect */
     }
 
     .tryloom-history-table td {
         border: none;
-        border-bottom: 1px solid #f0f0f0; /* Separator line between fields */
+        border-bottom: 1px solid #f0f0f0;
+        /* Separator line between fields */
         position: relative;
         padding-left: 50%;
-        text-align: right; /* Default for mobile cells */
+        text-align: right;
+        /* Default for mobile cells */
     }
 
     /* Mobile specific style for the image column to align content to the right */
-    .tryloom-history-table td:nth-of-type(3) { /* Target the Image column */
+    .tryloom-history-table td:nth-of-type(3) {
+        /* Target the Image column */
         text-align: right;
     }
 
     /* Ensure image respects text-align in mobile view */
     .tryloom-history-table td:nth-of-type(3) img {
-        display: inline-block; /* Change to inline-block to allow text-align to work */
+        display: inline-block;
+        /* Change to inline-block to allow text-align to work */
     }
 
 
@@ -1688,13 +1699,25 @@
         color: #4a5568;
     }
 
-    .tryloom-history-table td:nth-of-type(1):before { content: "Date"; }
-    .tryloom-history-table td:nth-of-type(2):before { content: "Product"; }
-    .tryloom-history-table td:nth-of-type(3):before { content: "Image"; }
-    .tryloom-history-table td:nth-of-type(4):before { content: "Actions"; }
+    .tryloom-history-table td:nth-of-type(1):before {
+        content: "Date";
+    }
+
+    .tryloom-history-table td:nth-of-type(2):before {
+        content: "Product";
+    }
+
+    .tryloom-history-table td:nth-of-type(3):before {
+        content: "Image";
+    }
+
+    .tryloom-history-table td:nth-of-type(4):before {
+        content: "Actions";
+    }
 
     .tryloom-history-table td:last-child {
-        border-bottom: none; /* No line for the last item in the card */
+        border-bottom: none;
+        /* No line for the last item in the card */
     }
 
     .tryloom-history-table tbody tr td:first-child {
@@ -1704,4 +1727,386 @@
     .tryloom-history-table tbody tr td:last-child {
         border-radius: 0 0 12px 12px;
     }
+}
+
+/* Loading Overlay Refinements */
+.tryloom-loading-overlay {
+    background: rgba(255, 255, 255, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.tryloom-theme-dark .tryloom-loading-overlay {
+    background: rgba(26, 32, 44, 0.95);
+}
+
+/* Custom Circular Progress */
+.tryloom-progress-container {
+    position: relative;
+    width: 120px;
+    height: 120px;
+}
+
+.tryloom-progress-svg {
+    transform: rotate(-90deg);
+    width: 120px;
+    height: 120px;
+}
+
+.tryloom-progress-bg {
+    fill: none;
+    stroke: #e2e8f0;
+    stroke-width: 8;
+}
+
+.tryloom-theme-dark .tryloom-progress-bg {
+    stroke: #2d3748;
+}
+
+.tryloom-progress-bar {
+    fill: none;
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: 283;
+    /* 2 * PI * 45 */
+    stroke-dashoffset: 283;
+}
+
+.tryloom-progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    font-weight: 700;
+    color: #4a5568;
+}
+
+.tryloom-theme-dark .tryloom-progress-text {
+    color: #edf2f7;
+}
+
+/* Loading Status Text */
+.tryloom-loading-status {
+    margin-top: 25px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #718096;
+    text-align: center;
+    min-height: 24px;
+    animation: tryloom-pulse 2s infinite;
+}
+
+.tryloom-theme-dark .tryloom-loading-status {
+    color: #cbd5e0;
+}
+
+@keyframes tryloom-pulse {
+    0% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.6;
+    }
+}
+
+/* Hide default spinner when using custom one */
+.tryloom-loading-overlay .tryloom-spinner {
+    display: none !important;
+}
+
+
+/* Circular Progress Bar */
+.tryloom-progress-ring {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 20px;
+}
+
+.tryloom-progress-ring__svg {
+    transform: rotate(-90deg);
+}
+
+.tryloom-progress-ring__circle {
+    transition: stroke-dashoffset 0.3s;
+    transform-origin: 50% 50%;
+    stroke-dasharray: 326.72;
+    /* 2 * PI * r (52) */
+    stroke-dashoffset: 326.72;
+    stroke-linecap: round;
+}
+
+.tryloom-progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    font-weight: 700;
+    color: #4a5568;
+}
+
+.tryloom-theme-dark .tryloom-progress-text {
+    color: #fff;
+}
+
+.tryloom-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    backdrop-filter: blur(5px);
+}
+
+.tryloom-theme-dark .tryloom-loading-overlay {
+    background: rgba(26, 32, 44, 0.95);
+}
+
+.tryloom-loading-status {
+    font-size: 16px;
+    font-weight: 600;
+    color: #4a5568;
+    margin-top: 10px;
+    animation: tryloom-text-blink 1.5s infinite;
+}
+
+.tryloom-theme-dark .tryloom-loading-status {
+    color: #cbd5e0;
+}
+
+@keyframes tryloom-text-blink {
+    0% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.6;
+    }
+}
+
+/* =============================================
+   Mobile Responsive Fixes (Bugs 8 & 9)
+   ============================================= */
+
+/* =============================================
+   Round 2 Bug Fixes - CORRECTED
+   ============================================= */
+
+/* Bug R2-4: Save photo option styling (below upload area) */
+.tryloom-save-option {
+    margin-top: 15px;
+    padding: 12px 15px;
+    background: rgba(102, 126, 234, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    text-align: center;
+}
+
+.tryloom-save-option label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #4a5568;
+}
+
+.tryloom-theme-dark .tryloom-save-option {
+    background: rgba(168, 192, 255, 0.05);
+    border-color: rgba(168, 192, 255, 0.1);
+}
+
+.tryloom-theme-dark .tryloom-save-option label {
+    color: #cbd5e0;
+}
+
+/* Bug R2-5: Upload progress overlay - text BELOW spinner */
+.tryloom-upload-progress-overlay {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.tryloom-upload-progress-overlay .tryloom-progress-circle {
+    order: 1;
+}
+
+.tryloom-upload-progress-overlay .tryloom-progress-text {
+    order: 2;
+    margin-top: 15px !important;
+    margin-bottom: 0 !important;
+    display: block !important;
+}
+
+/* Bug R2-3 & R2-6: Spinner with primary color - FIX VISIBILITY */
+.tryloom-spinner {
+    border: 4px solid rgba(85, 47, 188, 0.2) !important;
+    border-top: 4px solid var(--tryloom-primary-color, #552FBC) !important;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: tryloom-spin 1s linear infinite;
+}
+
+.tryloom-loading-overlay .tryloom-spinner {
+    border: 5px solid rgba(85, 47, 188, 0.2) !important;
+    border-top: 5px solid var(--tryloom-primary-color, #552FBC) !important;
+    width: 60px;
+    height: 60px;
+    display: block !important;
+}
+
+.tryloom-theme-dark .tryloom-spinner {
+    border-color: rgba(168, 192, 255, 0.2) !important;
+    border-top-color: var(--tryloom-primary-color, #a8c0ff) !important;
+}
+
+/* Bug R2-8: Download/retry buttons with SAME SIZE visible background */
+.tryloom-image-actions {
+    display: flex !important;
+    gap: 10px;
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    z-index: 5;
+}
+
+.tryloom-icon-button {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: none !important;
+    border-radius: 50% !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    max-width: 44px !important;
+    max-height: 44px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.tryloom-icon-button svg {
+    width: 20px;
+    height: 20px;
+}
+
+.tryloom-icon-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.tryloom-download-icon {
+    color: var(--tryloom-primary-color, #552FBC) !important;
+}
+
+.tryloom-retry-icon {
+    color: #718096 !important;
+}
+
+.tryloom-theme-dark .tryloom-icon-button {
+    background: rgba(45, 55, 72, 0.95) !important;
+}
+
+.tryloom-theme-dark .tryloom-download-icon {
+    color: #a8c0ff !important;
+}
+
+.tryloom-theme-dark .tryloom-retry-icon {
+    color: #cbd5e0 !important;
+}
+
+/* Bug R2-7: Prevent scroll during generation overlay - STRONGER */
+.tryloom-popup-body.is-generating {
+    overflow: hidden !important;
+    max-height: 100% !important;
+    pointer-events: none;
+}
+
+.tryloom-popup-body.is-generating .tryloom-loading-overlay {
+    pointer-events: all;
+}
+
+/* =============================================
+   Circular Progress Ring (Filling Animation)
+   ============================================= */
+.tryloom-progress-ring-container {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tryloom-progress-ring {
+    transform: rotate(-90deg);
+}
+
+.tryloom-progress-ring-bg {
+    stroke: rgba(85, 47, 188, 0.15);
+}
+
+.tryloom-progress-ring-fill {
+    stroke: var(--tryloom-primary-color, #552FBC);
+    transition: stroke-dashoffset 0.3s ease-out;
+}
+
+.tryloom-theme-dark .tryloom-progress-ring-bg {
+    stroke: rgba(168, 192, 255, 0.15);
+}
+
+.tryloom-theme-dark .tryloom-progress-ring-fill {
+    stroke: var(--tryloom-primary-color, #a8c0ff);
+}
+
+.tryloom-progress-percent {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--tryloom-primary-color, #552FBC);
+}
+
+.tryloom-theme-dark .tryloom-progress-percent {
+    color: var(--tryloom-primary-color, #a8c0ff);
+}
+
+.tryloom-loading-overlay .tryloom-loading-status {
+    margin-top: 20px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.tryloom-theme-dark .tryloom-loading-overlay .tryloom-loading-status {
+    color: #cbd5e0;
 }

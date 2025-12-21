@@ -163,8 +163,8 @@ class Tryloom
 		// Cart conversion AJAX endpoint
 		add_action('wp_ajax_tryloom_cart_conversion', array($this, 'ajax_cart_conversion'));
 
-		// Register REST API endpoint for verification
-		add_action('rest_api_init', array($this, 'register_rest_routes'));
+		// Register status check cron handler
+		add_action('tryloom_check_account_status', array($this, 'check_account_status'));
 	}
 
 	/**
@@ -196,6 +196,11 @@ class Tryloom
 		if (!wp_next_scheduled('tryloom_cleanup_inactive_users')) {
 			wp_schedule_event(time() + DAY_IN_SECONDS, 'daily', 'tryloom_cleanup_inactive_users');
 		}
+
+		// Schedule status check
+		if (!wp_next_scheduled('tryloom_check_account_status')) {
+			wp_schedule_event(time(), 'twicedaily', 'tryloom_check_account_status');
+		}
 	}
 
 	/**
@@ -208,6 +213,7 @@ class Tryloom
 
 		// Clear scheduled cleanup
 		wp_clear_scheduled_hook('tryloom_cleanup_inactive_users');
+		wp_clear_scheduled_hook('tryloom_check_account_status');
 	}
 
 	/**
@@ -488,77 +494,107 @@ class Tryloom
 		}
 
 		$cutoff = current_time('timestamp') - ($days * DAY_IN_SECONDS);
-
-		// Find users whose last login is older than cutoff
 		global $wpdb;
+
+		// ---------------------------------------------------------
+		// 1. Delete ALL generated try-on results older than $days
+		// ---------------------------------------------------------
+		$history_table = $wpdb->prefix . 'tryloom_history';
+
+		// Find old history records
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table for history cleanup
+		$old_history = $wpdb->get_results($wpdb->prepare(
+			"SELECT id, generated_image_url FROM " . esc_sql($history_table) . " WHERE created_at < %s",
+			gmdate('Y-m-d H:i:s', $cutoff)
+		));
+
+		if ($old_history) {
+			$ids_to_delete = array();
+			foreach ($old_history as $record) {
+				if (!empty($record->generated_image_url)) {
+					// Delete from filesystem and media library
+					$this->delete_generated_image($record->generated_image_url);
+				}
+				$ids_to_delete[] = $record->id;
+			}
+
+			// Bulk delete from DB
+			if (!empty($ids_to_delete)) {
+				$format_ids = implode(',', array_map('intval', $ids_to_delete));
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- IDs pre-sanitized with intval
+				$wpdb->query("DELETE FROM " . esc_sql($history_table) . " WHERE id IN ($format_ids)");
+			}
+		}
+
+		// ---------------------------------------------------------
+		// 2. Delete USER UPLOADED photos only if user inactive
+		// ---------------------------------------------------------
 		$usermeta_table = $wpdb->usermeta;
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
-		$user_ids = $wpdb->get_col($wpdb->prepare(
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- System table for user activity check
+		$inactive_user_ids = $wpdb->get_col($wpdb->prepare(
 			'SELECT user_id FROM ' . esc_sql($usermeta_table) . ' WHERE meta_key = %s AND meta_value <> %s AND CAST(meta_value AS UNSIGNED) < %d',
 			'tryloom_last_login',
 			'',
 			$cutoff
 		));
 
-		if (empty($user_ids)) {
+		if (!empty($inactive_user_ids)) {
+			$photos_table = $wpdb->prefix . 'tryloom_user_photos';
+			foreach ($inactive_user_ids as $user_id) {
+				$user_id = intval($user_id);
+
+				// Get user's uploaded photos
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table for inactive user cleanup
+				$user_photos = $wpdb->get_results($wpdb->prepare(
+					'SELECT id, attachment_id, image_url FROM ' . esc_sql($photos_table) . ' WHERE user_id = %d',
+					$user_id
+				));
+
+				if ($user_photos) {
+					foreach ($user_photos as $photo) {
+						// Delete attachment if used
+						if (!empty($photo->attachment_id)) {
+							wp_delete_attachment((int) $photo->attachment_id, true);
+						}
+						// Delete file references
+						if (!empty($photo->image_url)) {
+							$file_path = $this->get_file_path_from_url($photo->image_url);
+							if ($file_path && file_exists($file_path)) {
+								wp_delete_file($file_path);
+							}
+						}
+					}
+					// Remove from DB
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table for inactive user cleanup
+					$wpdb->delete($photos_table, array('user_id' => $user_id), array('%d'));
+				}
+			}
+		}
+	}
+
+	/**
+	 * Check account status via cron.
+	 */
+	public function check_account_status()
+	{
+		// Only run if subscription has ended (limit exceeded)
+		if ('yes' !== get_option('tryloom_subscription_ended', 'no')) {
 			return;
 		}
 
-		$photos_table = $wpdb->prefix . 'tryloom_user_photos';
-		$history_table = $wpdb->prefix . 'tryloom_history';
-
-		foreach ($user_ids as $user_id) {
-			$user_id = intval($user_id);
-
-			// Delete generated images from media library and filesystem for this user's history
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
-			$history_records = $wpdb->get_results($wpdb->prepare(
-				'SELECT generated_image_url FROM ' . esc_sql($history_table) . ' WHERE user_id = %d',
-				$user_id
-			));
-			if ($history_records) {
-				foreach ($history_records as $record) {
-					if (!empty($record->generated_image_url)) {
-						$attachment_id = attachment_url_to_postid($record->generated_image_url);
-						if ($attachment_id) {
-							wp_delete_attachment($attachment_id, true);
-						}
-
-						// Delete from filesystem using WordPress upload directory
-						$file_path = $this->get_file_path_from_url($record->generated_image_url);
-						if ($file_path && file_exists($file_path)) {
-							wp_delete_file($file_path);
-						}
-					}
-				}
-			}
-
-			// Delete user's uploaded photos and attachments
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
-			$user_photos = $wpdb->get_results($wpdb->prepare(
-				'SELECT attachment_id, image_url FROM ' . esc_sql($photos_table) . ' WHERE user_id = %d',
-				$user_id
-			));
-			if ($user_photos) {
-				foreach ($user_photos as $photo) {
-					if (!empty($photo->attachment_id)) {
-						wp_delete_attachment((int) $photo->attachment_id, true);
-					}
-					if (!empty($photo->image_url)) {
-						$file_path = $this->get_file_path_from_url($photo->image_url);
-						if ($file_path && file_exists($file_path)) {
-							wp_delete_file($file_path);
-						}
-					}
-				}
-			}
-
-			// Delete DB rows for this user
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Using $wpdb->delete() with prepared format strings
-			$wpdb->delete($history_table, array('user_id' => $user_id), array('%d'));
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Using $wpdb->delete() with prepared format strings
-			$wpdb->delete($photos_table, array('user_id' => $user_id), array('%d'));
+		// Get check count (max 60 checks = 30 days of twice daily)
+		$count = absint(get_option('tryloom_status_check_count', 0));
+		if ($count >= 60) {
+			return;
 		}
+
+		// Perform check
+		if ($this->api) {
+			$this->api->check_usage_status();
+		}
+
+		// Increment counter
+		update_option('tryloom_status_check_count', $count + 1);
 	}
 
 	/**
@@ -598,140 +634,6 @@ class Tryloom
 			], ['%d', '%d', '%d', '%d']);
 		}
 		wp_send_json_success();
-	}
-
-	/**
-	 * Generate unique verification token for free trial.
-	 */
-	public function generate_verification_token()
-	{
-		$existing_token = get_option('tryloom_verification_token', '');
-
-		// Only generate if token doesn't exist
-		if (empty($existing_token)) {
-			$token = wp_generate_password(64, false);
-			update_option('tryloom_verification_token', $token);
-		}
-	}
-
-	/**
-	 * Ensure free platform key exists by hitting verification endpoint when needed.
-	 */
-	public function maybe_fetch_free_key()
-	{
-		$paid_key = get_option('tryloom_platform_key', '');
-		$free_key = get_option('tryloom_free_platform_key', '');
-		if (empty($paid_key) && empty($free_key)) {
-			$this->generate_verification_token();
-			$this->connect_to_cloud_service();
-		}
-	}
-
-	/**
-	 * Register free trial with verification server.
-	 */
-	public function connect_to_cloud_service()
-	{
-		// In-process lock to prevent duplicate requests within the same PHP request
-		static $already_attempted = false;
-		if ($already_attempted) {
-			return;
-		}
-		$already_attempted = true;
-
-		// Cross-request transient lock to avoid rapid duplicate calls
-		if (get_transient('tryloom_verification_lock')) {
-			return;
-		}
-		set_transient('tryloom_verification_lock', 1, 60); // 60 seconds debounce
-
-		$token = get_option('tryloom_verification_token', '');
-
-		if (empty($token)) {
-			return;
-		}
-
-		$site_url = site_url();
-
-		$args = array(
-			'body' => wp_json_encode(array(
-				'token' => $token,
-				'referrer' => $site_url,
-			)),
-			'headers' => array(
-				'Content-Type' => 'application/json',
-			),
-			'timeout' => 30,
-			'data_format' => 'body',
-		);
-
-		// External Service: TryLoom Cloud API (ToolTeek)
-		// Used for: Authenticating the API session (Service Check)
-		// Privacy Policy: https://tryloom.toolteek.com/privacy-policy/
-		$response = wp_remote_post('https://cloudconnection-pdpuoxmr2a-uc.a.run.app', $args);
-
-		if (is_wp_error($response)) {
-			// Store error for admin display
-			update_option('tryloom_free_trial_error', 'Free Trial activation failed.');
-			return;
-		}
-
-		$response_code = wp_remote_retrieve_response_code($response);
-		$response_body = wp_remote_retrieve_body($response);
-		$response_data = json_decode($response_body, true);
-
-		if (200 === $response_code && isset($response_data['status']) && 'success' === $response_data['status']) {
-			// Save free platform key
-			if (isset($response_data['free_platform_key'])) {
-				update_option('tryloom_free_platform_key', sanitize_text_field($response_data['free_platform_key']));
-				// Clear any previous errors
-				delete_option('tryloom_free_trial_error');
-			}
-		} else {
-			// Store error for admin display
-			$error_message = isset($response_data['error']) ? $response_data['error'] : 'Free Trial activation failed.';
-			update_option('tryloom_free_trial_error', sanitize_text_field($error_message));
-		}
-	}
-
-	/**
-	 * Register REST API routes.
-	 */
-	public function register_rest_routes()
-	{
-		register_rest_route(
-			'tryloom/v1',
-			'/verify',
-			array(
-				'methods' => 'GET',
-				'callback' => array($this, 'rest_get_verification_token'),
-				'permission_callback' => '__return_true',
-			)
-		);
-	}
-
-	/**
-	 * REST API callback to return verification token.
-	 *
-	 * @param WP_REST_Request $request Request object.
-	 * @return WP_REST_Response
-	 */
-	public function rest_get_verification_token($request)
-	{
-		$token = get_option('tryloom_verification_token', '');
-
-		if (empty($token)) {
-			// Generate token if it doesn't exist
-			$this->generate_verification_token();
-			$token = get_option('tryloom_verification_token', '');
-		}
-
-		return new WP_REST_Response(
-			array(
-				'token' => $token,
-			),
-			200
-		);
 	}
 
 	/**
@@ -785,7 +687,7 @@ class Tryloom
 			'wc_try_on_usage_limit' => 'tryloom_usage_limit',
 			'wc_try_on_free_trial_error' => 'tryloom_free_trial_error',
 			'wc_try_on_verification_token' => 'tryloom_verification_token',
-			'wc_try_on_free_trial_ended' => 'tryloom_free_trial_ended',
+			'wc_try_on_free_trial_ended' => 'tryloom_subscription_ended',
 		);
 
 		foreach ($option_map as $legacy_key => $new_key) {

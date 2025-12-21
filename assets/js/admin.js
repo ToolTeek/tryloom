@@ -4,66 +4,72 @@
  * @package WooCommerce_Try_On
  */
 
-( function( $ ) {
+(function ($) {
 	'use strict';
 
-	// Initialize color picker.
-	$( '.tryloom-color-picker' ).wpColorPicker();
+	$(document).ready(function () {
 
-	// Initialize media uploader.
-	$( '.tryloom-media-upload' ).on( 'click', function( e ) {
-		e.preventDefault();
+		// Initialize color picker with default color (Bug R2-9).
+		$('.tryloom-color-picker').wpColorPicker({
+			defaultColor: '#552FBC'
+		});
 
-		var button = $( this );
-		var container = button.closest( '.tryloom-media-uploader' );
-		var preview = container.find( '.tryloom-media-preview' );
-		var input = container.find( 'input[type="hidden"]' );
+		// Initialize media uploader.
+		$('.tryloom-media-upload').on('click', function (e) {
+			e.preventDefault();
 
-		var frame = wp.media( {
-			title: 'Select or Upload Media',
-			button: {
-				text: 'Use this media'
-			},
-			multiple: false
-		} );
+			var button = $(this);
+			var container = button.closest('.tryloom-media-uploader');
+			var preview = container.find('.tryloom-media-preview');
+			var input = container.find('input[type="hidden"]');
 
-		frame.on( 'select', function() {
-			var attachment = frame.state().get( 'selection' ).first().toJSON();
-			preview.html( '<img src="' + attachment.url + '" alt="" style="max-width: 100%;" />' );
-			input.val( attachment.id );
-		} );
+			var frame = wp.media({
+				title: 'Select or Upload Media',
+				button: {
+					text: 'Use this media'
+				},
+				multiple: false
+			});
 
-		frame.open();
-	} );
+			frame.on('select', function () {
+				var attachment = frame.state().get('selection').first().toJSON();
+				preview.html('<img src="' + attachment.url + '" alt="" style="max-width: 100%;" />');
+				input.val(attachment.id);
+			});
 
-	// Remove media.
-	$( '.tryloom-media-remove' ).on( 'click', function( e ) {
-		e.preventDefault();
+			frame.open();
+		});
 
-		var button = $( this );
-		var container = button.closest( '.tryloom-media-uploader' );
-		var preview = container.find( '.tryloom-media-preview' );
-		var input = container.find( 'input[type="hidden"]' );
+		// Remove media.
+		$('.tryloom-media-remove').on('click', function (e) {
+			e.preventDefault();
 
-		preview.html( '' );
-		input.val( '' );
-	} );
+			var button = $(this);
+			var container = button.closest('.tryloom-media-uploader');
+			var preview = container.find('.tryloom-media-preview');
+			var input = container.find('input[type="hidden"]');
 
-	// Toggle shortcode display based on button placement selection.
-	$( 'select[name="tryloom_button_placement"]' ).on( 'change', function() {
-		var value = $( this ).val();
-		var description = $( this ).next( '.description' );
+			preview.html('');
+			input.val('');
+		});
 
-		if ( 'shortcode' === value ) {
-			description.html(
-				'Choose where to place the Try On button.<br>Use shortcode: <code>[tryloom]</code>'
-			);
-		} else {
-			description.html( 'Choose where to place the Try On button.' );
-		}
-	} );
+		// Toggle shortcode display based on button placement selection.
+		$('select[name="tryloom_button_placement"]').on('change', function () {
+			var value = $(this).val();
+			var description = $(this).next('.description');
 
-	// Initialize select2 for enhanced select fields.
-	$( '.wc-enhanced-select' ).select2();
+			if ('shortcode' === value) {
+				description.html(
+					'Choose where to place the Try On button.<br>Use shortcode: <code>[tryloom]</code>'
+				);
+			} else {
+				description.html('Choose where to place the Try On button.');
+			}
+		});
 
-} )( jQuery );
+		// Initialize select2 for enhanced select fields.
+		$('.wc-enhanced-select').select2();
+
+	});
+
+})(jQuery);

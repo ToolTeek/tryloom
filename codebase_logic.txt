@@ -1,0 +1,103 @@
+TryLoom - Codebase Logic Explanation
+======================================
+
+Overview
+--------
+TryLoom is a WordPress/WooCommerce plugin that facilitates virtual try-on experiences for customers. It integrates with a cloud-based AI service (hosted on Google Cloud Functions) to generate images of users wearing products.
+
+Directory Structure
+-------------------
+- `tryloom.php`: Main plugin entry point.
+- `includes/`: Core logic classes.
+  - `admin/class-tryloom-admin.php`: Admin dashboard settings and backend logic.
+  - `frontend/class-tryloom-frontend.php`: Frontend UI (buttons, popups), AJAX handlers, and image serving.
+  - `api/class-tryloom-api.php`: Communication with the external AI text-to-image/image-to-image service.
+- `assets/`: CSS and JS files for frontend and admin.
+- `templates/`: HTML templates (e.g., the try-on popup modal).
+- `languages/`: Translation files.
+
+Core Classes & Logic
+--------------------
+
+1. Main Class (`tryloom.php`)
+   - **Initialization**: Checks if WooCommerce is active before loading.
+   - **Singleton Pattern**: Uses `get_instance()` to ensure a single instance.
+   - **Database Setup**: Creates custom tables on installation via `dbDelta`:
+     - `wp_tryloom_history`: Stores records of generated try-on images.
+     - `wp_tryloom_user_photos`: Stores user-uploaded base photos.
+     - `wp_tryloom_cart_conversions`: Tracks if a try-on led to a cart addition.
+   - **Cron Jobs**: Schedules periodic cleanup of old images (`tryloom_cleanup_inactive_users`) and temporary generated images (`tryloom_delete_generated_image`).
+   - **Hooks**: Registers activation/deactivation hooks and loads the other classes (`Admin`, `Frontend`, `API`).
+
+2. Admin Class (`includes/admin/class-tryloom-admin.php`)
+   - **Settings Page**: Registers the "TryLoom" menu in WordPress Admin.
+   - **Configuration**: Manages settings for:
+     - **General**: API keys (Free/Paid), allowed categories, button placement.
+     - **Appearance**: Colors, CSS overrides.
+     - **User**: History limits, photo retention policies.
+     - **Advanced**: Logging, debugging.
+   - **Licensing Logic**:
+     - Handles "Platform Key" validation.
+     - Automatically resets "Free Trial" status flags when a new key is saved (`sanitize_platform_key`).
+     - Includes logic to fetch a free API key from the simplified verification service if none exists.
+
+3. Frontend Class (`includes/frontend/class-tryloom-frontend.php`)
+   - **UI Integration**:
+     - Injects the "Virtual Try On" button on single product pages (`woocommerce_after_add_to_cart_button` hook).
+     - Supports shortcode `[tryloom]` for manual placement.
+     - Adds a "Try On" tab to the WooCommerce "My Account" area.
+   - **The Popup**:
+     - Loads the modal template (`templates/try-on-popup.php`) into the page footer.
+   - **AJAX Handlers**:
+     - `tryloom_upload_photo`: Handles user photo uploads.
+     - `tryloom_generate`: The core workflow (see "Generation Flow" below).
+     - `tryloom_delete_photo` / `tryloom_delete_history`: User management actions.
+   - **Image Protection**:
+     - Creates a custom directory `wp-content/uploads/tryloom/` protected by an `.htaccess` file.
+     - Serves images via a PHP proxy method (`protect_try_on_images`) that verifies a nonce (`tryloom_image_access`) and user permissions before acting as a pass-through for the file content.
+   - **Image Saving**:
+     - Uses `WP_Filesystem` to write generated binary data to disk.
+
+4. API Class (`includes/api/class-tryloom-api.php`)
+   - **Endpoint**: Targets `https://us-central1-tryloombytoolteek.cloudfunctions.net/fashionTryOn`.
+   - **Request Preparation**:
+     - Resolves local file paths from URLs (handling both standard uploads and the plugin's protected paths).
+     - Encodes images to Base64.
+     - Constructs the payload: `platform_key`, `user_photo` (base64), `product_image` (base64), `product_id`, `method` (tryon/studio/auto).
+   - **Execution**: Sends a remote POST request (`wp_remote_post`) with a timeout (default 120s).
+   - **Response Handling**:
+     - Parses the JSON response.
+     - Checks for specific errors like "Free Trial Ended".
+     - Updates local usage statistics (`tryloom_usage_used`, `tryloom_usage_limit`).
+     - Returns the raw Base64 image data or a `WP_Error`.
+
+The Generation Workflow (Step-by-Step)
+--------------------------------------
+1.  **User Action**: User clicks "Virtual Try On" on a product page.
+2.  **Upload/Select**: User uploads a photo or selects a previously saved one.
+3.  **Request**: Frontend sends an AJAX request (`tryloom_generate`) with `product_id` and the user image info.
+4.  **Validation (Backend)**:
+    -   Script checks if the user has hit their generation limit (based on `tryloom_history` and `tryloom_time_period`).
+    -   Checks if the Free Trial has clearly ended.
+5.  **Preparation**:
+    -   `Tryloom_API` fetches the product image and user photo.
+    -   Both are converted to Base64 strings.
+6.  **External Call**:
+    -   Data is sent to the Cloud Function.
+    -   Cloud Function processes the AI generation.
+7.  **Response**:
+    -   Cloud Function returns a Base64 string of the new image.
+8.  **Saving**:
+    -   `Tryloom_Frontend` decodes the Base64 string.
+    -   Saves the file to `uploads/tryloom/<filename>.png`.
+    -   If History is enabled: Creates a WP Attachment and a record in `wp_tryloom_history`.
+    -   If History is disabled: Schedules a cron event to delete the file in 5 minutes.
+9.  **Display**:
+    -   The AJAX response returns the secure URL of the new image.
+    -   Frontend Javascript updates the modal to show the result.
+
+Security Features
+-----------------
+-   **Nonces**: Used extensively for AJAX actions and image access URLs.
+-   **Capability Checks**: AJAX handlers verify user login status and capabilities.
+-   **Directory Protection**: The `uploads/tryloom` directory is direct-access forbidden (via `.htaccess`), forcing access through the code-controlled proxy that validates the user session.

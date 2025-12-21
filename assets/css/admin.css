@@ -1,259 +1,269 @@
 /**
- * WooCommerce Try On Admin CSS.
- *
- * @package WooCommerce_Try_On
+ * Admin Styles
  */
 
-/* Minimal custom styles - using WordPress defaults */
+.tryloom-header {
+    background: #fff;
+    padding: 20px;
+    border-bottom: 1px solid #e5e5e5;
+    margin-left: -20px;
+    margin-top: -10px;
+    margin-right: -20px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
-/* Daily Stats - Simple boxes */
-.tryloom-daily-stats {
-    margin: 20px 0;
+.tryloom-header-info p {
+    font-size: 16px;
+    margin: 0;
+    font-weight: 500;
+}
+
+.tryloom-settings-container {
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    max-width: 1200px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.tryloom-footer {
+    border-top: 1px solid #eee;
+    margin-top: 40px;
+    padding-top: 20px;
+}
+
+/* Dashboard Widget */
+.tryloom-dashboard-widget {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 15px;
 }
 
 .tryloom-stat-box {
-    background: #fff;
-    padding: 15px 20px;
-    border: 1px solid #ccd0d4;
+    background: #f8f9fa;
+    padding: 15px;
     border-radius: 4px;
-    box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+    border: 1px solid #e2e4e7;
     text-align: center;
 }
 
-.tryloom-stat-box h3 {
-    margin: 0 0 8px;
-    font-size: 12px;
+.tryloom-stat-box h4 {
+    margin: 0 0 10px 0;
     color: #646970;
-    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .tryloom-stat-box .stat-number {
-    font-size: 28px;
-    font-weight: 400;
-    margin: 0;
-    color: #1d2327;
-}
-
-.tryloom-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    border-radius: 6px;
-
-}
-
-.tryloom-header-info p {
-    margin: 0;
-    font-size: 14px;
-    color: #333;
-    line-height: 1.4;
-}
-
-.tryloom-header-actions .button-primary {
-    background: linear-gradient(135deg, #552FBC 0%, #6E4DDC 100%);
-    border: none;
-    padding: 6px 16px;
-    border-radius: 6px;
+    font-size: 24px;
     font-weight: 600;
-    font-size: 13px;
-    box-shadow: 0 3px 10px rgba(85, 47, 188, 0.3);
-    transition: all 0.3s ease;
-    color: white;
-    text-shadow: none;
-    text-decoration: none;
+    color: #552FBC;
+    margin: 0 0 5px 0;
 }
 
-.tryloom-header-actions .button-primary:hover {
-    background: linear-gradient(135deg, #6E4DDC 0%, #552FBC 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 5px 15px rgba(85, 47, 188, 0.4);
-    color: white;
-}
-
-
-
-/* Dashboard Widget Stats */
-.tryloom-stats {
-    display: flex;
-    flex-wrap: wrap;
-    margin: 0 -10px;
-}
-
-.tryloom-stats-item {
-    flex: 1 0 45%;
-    margin: 10px;
-    padding: 15px;
-    background: #fff;
-    border: 1px solid #ccd0d4;
-    border-radius: 4px;
-    text-align: center;
-    box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
-}
-
-.tryloom-stats-item h4 {
-    color: #646970;
-    font-size: 13px;
+.tryloom-stat-box .description {
+    font-size: 12px;
+    color: #787c82;
     margin: 0;
-    font-weight: 400;
-}
-
-.tryloom-stats-number {
-    font-size: 28px;
-    font-weight: 400;
-    color: #1d2327;
-    margin: 10px 0 0;
-}
-
-.tryloom-top-products {
-    margin-top: 15px;
-}
-
-.tryloom-top-products li {
-    padding: 8px 0;
-    border-bottom: 1px solid #dcdcde;
-}
-
-.tryloom-top-products li:last-child {
-    border-bottom: none;
-}
-
-/* Fixed Save Button */
-.tryloom-settings .submit {
-    position: sticky;
-    bottom: 0px;
-    z-index: 999;
-    background: white;
-    padding: 15px 20px;
-    margin: 20px -20px -20px;
-    border-top: 1px solid #dcdcde;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-}
-
-/* Selected option highlight */
-select[multiple] option:checked {
-    background: #552FBC linear-gradient(0deg, #552FBC 0%, #552FBC 100%);
-    color: white;
-}
-
-select[multiple] option {
-    padding: 4px 8px;
-}
-
-/* Responsive */
-@media screen and (max-width: 782px) {
-    .tryloom-stats-item {
-        flex: 1 0 100%;
-    }
 }
 
 /* Tooltip Styles */
 .tryloom-help-tip {
-    display: inline-block;
+    position: relative;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
     width: 16px;
     height: 16px;
-    background: #dcdcde;
-    /* WP Standard Grey */
+    background-color: #dcdcde;
+    color: #50575e;
     border-radius: 50%;
-    text-align: center;
-    line-height: 16px;
     font-size: 11px;
     font-weight: 600;
-    color: #50575e;
     cursor: help;
+    line-height: 1;
     margin-left: 5px;
-    position: relative;
     vertical-align: middle;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }
 
 .tryloom-help-tip::before {
     content: "?";
 }
 
-.tryloom-help-tip:hover {
-    background: #2271b1;
-    /* WP Primary Blue */
-    color: #fff;
-}
-
 .tryloom-tooltip-content {
     visibility: hidden;
-    opacity: 0;
-    width: 250px;
+    width: 200px;
     background-color: #1d2327;
-    /* WP Admin dark */
     color: #fff;
-    text-align: left;
+    text-align: center;
     border-radius: 4px;
-    padding: 12px;
+    padding: 8px 10px;
     position: absolute;
-    z-index: 10000;
-    /* Position to the right of the icon */
-    top: 50%;
-    left: 170%;
-    /* Move further right to make room for arrow */
-    transform: translateY(-50%);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    transition: opacity 0.2s ease-in-out, visibility 0.2s;
+    z-index: 9999;
+    bottom: 135%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 12px;
+    line-height: 1.4;
     font-weight: normal;
-    line-height: 1.5;
-    font-size: 13px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     pointer-events: none;
-    /* Prevent flickering if mouse moves over gap */
 }
 
-/* Allow interaction with tooltip content (links) */
-.tryloom-help-tip:hover .tryloom-tooltip-content {
-    visibility: visible;
-    opacity: 1;
-    pointer-events: auto;
-}
-
-/* Tooltip Arrow (Left side) */
 .tryloom-tooltip-content::after {
     content: "";
     position: absolute;
-    top: 50%;
-    right: 100%;
-    /* To the left of the tooltip box */
-    margin-top: -6px;
-    border-width: 6px;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
     border-style: solid;
-    border-color: transparent #1d2327 transparent transparent;
+    border-color: #1d2327 transparent transparent transparent;
 }
 
+.tryloom-help-tip:hover .tryloom-tooltip-content {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Tooltip Link */
 .tryloom-tooltip-content a {
-    color: #72aee6;
-    text-decoration: none;
-    display: inline-block;
-    margin-top: 4px;
-}
-
-.tryloom-tooltip-content a:hover {
-    text-decoration: underline;
     color: #fff;
+    text-decoration: underline;
+    pointer-events: auto;
+    /* Allow clicking links */
 }
 
-/* Radio Button Layout */
-.tryloom-radio-group {
-    margin-top: 8px;
-    display: flex;
-    align-items: center;
+/* Stats Styles (Settings Page) */
+.tryloom-daily-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
-    /* Space between options */
+    margin-bottom: 20px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.tryloom-radio-label {
+.tryloom-stat-box {
+    background: #fff;
+    padding: 20px;
+    border-radius: 4px;
+    border: 1px solid #c3c4c7;
+    text-align: center;
+    box-sizing: border-box;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+/* Dashboard Widget Fixes (If used elsewhere with different class) */
+.tryloom-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.tryloom-stats-item {
+    background: #f0f0f1;
+    padding: 10px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.tryloom-stats-item h4 {
+    margin: 0 0 5px;
+    font-size: 12px;
+}
+
+.tryloom-stats-number {
+    font-size: 20px;
+    font-weight: bold;
+    color: #552FBC;
+    margin: 0;
+}
+
+/* =============================================
+   Bug 5: Subscription Button Styling
+   ============================================= */
+.tryloom-header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.tryloom-header-actions .button {
     display: inline-flex;
     align-items: center;
-    margin-bottom: 0;
-    /* Remove bottom margin for inline */
+    justify-content: center;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
 }
 
-.tryloom-radio-label input[type="radio"] {
-    margin-top: 0;
-    margin-right: 6px;
+.tryloom-header-actions .button-primary {
+    background: #552FBC;
+    color: #fff !important;
+}
+
+.tryloom-header-actions .button-primary:hover {
+    background: #4325a0;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(85, 47, 188, 0.3);
+}
+
+.tryloom-header-actions .button-secondary,
+.tryloom-header-actions .button:not(.button-primary) {
+    background: #3c434a;
+    color: #fff !important;
+}
+
+.tryloom-header-actions .button-secondary:hover,
+.tryloom-header-actions .button:not(.button-primary):hover {
+    background: #2c3338;
+    transform: translateY(-1px);
+}
+
+/* =============================================
+   Bug 6: Sticky Save Changes Button
+   ============================================= */
+.tryloom-settings-form {
+    position: relative;
+    padding-bottom: 80px;
+}
+
+.tryloom-settings-form .submit {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, #fff 70%, transparent);
+    padding: 20px 0;
+    margin-top: 20px;
+    z-index: 100;
+}
+
+.tryloom-settings-form #submit {
+    background: #552FBC;
+    border-color: #552FBC;
+    color: #fff;
+    padding: 10px 30px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.tryloom-settings-form #submit:hover {
+    background: #4325a0;
+    border-color: #4325a0;
+    box-shadow: 0 4px 12px rgba(85, 47, 188, 0.3);
 }
