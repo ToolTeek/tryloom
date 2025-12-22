@@ -66,7 +66,7 @@ if ($default_photo_url && strpos($default_photo_url, '?tryloom_image=') !== fals
     style="display: none; --tryloom-primary-color: <?php echo esc_attr($primary_color); ?>;">
     <div class="tryloom-popup-content">
         <div class="tryloom-popup-header">
-            <h3><?php esc_html_e('Virtual Try On', 'tryloom'); ?></h3>
+            <h3><?php esc_html_e('AI Fitting Room', 'tryloom'); ?></h3>
             <button class="tryloom-popup-close">&times;</button>
         </div>
 

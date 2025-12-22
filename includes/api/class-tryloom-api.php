@@ -101,8 +101,12 @@ class Tryloom_API
 					$image_name = sanitize_file_name($query_params['tryloom_image']);
 					$upload_dir = wp_upload_dir();
 					$protected_image_path = $upload_dir['basedir'] . '/tryloom/' . $image_name;
-					if (file_exists($protected_image_path) && is_readable($protected_image_path)) {
-						return $protected_image_path;
+
+					// FIX: Directory Traversal Protection
+					$real_path = realpath($protected_image_path);
+					$real_base = realpath($upload_dir['basedir']);
+					if ($real_path && $real_base && strpos($real_path, $real_base) === 0 && file_exists($real_path)) {
+						return $real_path;
 					}
 				}
 			}
@@ -179,7 +183,7 @@ class Tryloom_API
 		// Disable SSL verification for compatibility and increase timeout
 		$args = array(
 			'timeout' => 60,
-			'sslverify' => false,
+			'sslverify' => apply_filters('tryloom_ssl_verify', true),
 			'user-agent' => 'TryLoom-WordPress/' . TRYLOOM_VERSION . '; ' . get_bloginfo('url')
 		);
 		$response = wp_remote_get($url, $args);
@@ -199,7 +203,7 @@ class Tryloom_API
 
 		// Check/Enforce Content-Length if available to save memory
 		$content_length = wp_remote_retrieve_header($response, 'content-length');
-		$max_size_bytes = 5 * 1536 * 1536; // ~11.8MB
+		$max_size_bytes = 5 * 1024 * 1024; // 5MB
 		if (!empty($content_length) && $content_length > $max_size_bytes) {
 			return new WP_Error('image_fetch_error', __('Image is too large to process.', 'tryloom'));
 		}
