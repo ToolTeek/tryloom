@@ -172,7 +172,7 @@ class Tryloom_Frontend
 			<button type="button" class="<?php echo esc_attr($button_classes); ?> tryloom-button"
 				data-product-id="<?php echo esc_attr($product->get_id()); ?>"
 				style="background-color: <?php echo esc_attr($primary_color); ?>; color: #fff;">
-				<?php esc_html_e('Virtual Try On', 'tryloom'); ?>
+				<?php esc_html_e('See It On Me', 'tryloom'); ?>
 			</button>
 			<?php
 		}
@@ -521,6 +521,7 @@ class Tryloom_Frontend
 			array(
 				'ajax_url' => admin_url('admin-ajax.php'),
 				'nonce' => wp_create_nonce('tryloom'),
+				'plugin_url' => plugin_dir_url(dirname(dirname(__FILE__))),
 				'primary_color' => get_option('tryloom_primary_color', '#552FBC'),
 				'show_popup_errors' => get_option('tryloom_show_popup_errors', 'no') === 'yes',
 				'save_photos_setting' => get_option('tryloom_save_photos', 'yes'),

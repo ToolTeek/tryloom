@@ -229,8 +229,9 @@
 				$('#tryloom-file').val('');
 				$('.tryloom-upload-preview').html(
 					'<div class="tryloom-upload-placeholder">' +
-					'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="64" height="64"><path fill="none" d="M0 0h24v24H0z"/><path d="M21 15v3h3v2h-3v3h-2v-3h-3v-2h3v-3h2zm.008-12c.548 0 .992.445.992.993v9.349A5.99 5.99 0 0 0 20 13V5H4v13.586l3.293-3.293a1 1 0 0 1 1.414 0L12 18.586l2.293-2.293a1 1 0 0 1 1.414 0l.293.293V13a5.99 5.99 0 0 0-2 .341V9a1 1 0 0 1 1-1h5zm-9.489 4.99a3.5 3.5 0 1 1-3.5 3.5 3.5 3.5 0 0 1 3.5-3.5zM4.003 3h16.995c.55 0 .997.446.997.996V13h-2V5H4v13.589l3.294-3.291a1 1 0 0 1 1.32-.084l.094.084 3.292 3.292 1.968-1.968a5.942 5.942 0 0 0 1.173 1.423l-3.141 3.141a1 1 0 0 1-1.32.084l-.094-.084L8 18.585l-5.293 5.294A1 1 0 0 1 1.999 24a.993.993 0 0 1-.996-.996V3.996A.996.996 0 0 1 1.997 3h.006z" fill="rgba(128,128,128,0.5)"/></svg>' +
-					'<p>' + (tryloom_params.i18n.click_or_drag || 'Click or drag to upload') + '</p>' +
+					'<img src="' + tryloom_params.plugin_url + 'assets/img/tryloom_upload_placeholder.png" alt="Upload" width="80" height="80" />' +
+					'<p class="tryloom-upload-title">' + (tryloom_params.i18n.upload_your_photo || 'Upload your photo') + '</p>' +
+					'<p class="tryloom-upload-subtitle">' + (tryloom_params.i18n.drag_and_drop || 'or drag and drop here.') + '</p>' +
 					'</div>'
 				);
 
@@ -477,7 +478,6 @@
 				// Attempt to force display the image even if preloader failed
 				// This handles cases where CORS or specific browser behaviors might block programmatic loading
 				// but the browser can still display the <img> tag correctly.
-				console.log('Attempting to force display image as fallback...');
 				resultImg.attr('src', imageUrl);
 				self.setDownloadLinks(imageUrl, filename);
 				self.finishResultImageLoading();
@@ -788,7 +788,6 @@
 
 					this.displayResultImage(savedState.imageUrl, savedState.filename, {
 						onError: function () {
-							console.log('Generated image was deleted, clearing state');
 							TryloomUI.clearGenerationState();
 
 							self.resetPopup();
@@ -1217,7 +1216,7 @@
 				if (currentProgress < targetProgress) {
 					var speed = getSpeedMultiplier(currentProgress);
 					// Base increment of 0.5% per 50ms, modified by speed
-					currentProgress += 0.5 * speed;
+					currentProgress += 0.35 * speed;
 					if (currentProgress > targetProgress) {
 						currentProgress = targetProgress;
 					}
@@ -1389,7 +1388,6 @@
 				var fiveMinutes = 5 * 60 * 1000;
 
 				if (currentTime - stateTime > fiveMinutes) {
-					console.log('Clearing stuck generation state');
 					TryloomUI.clearGenerationState();
 					return;
 				}

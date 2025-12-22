@@ -72,8 +72,8 @@ if ($default_photo_url && strpos($default_photo_url, '?tryloom_image=') !== fals
 
         <div class="tryloom-popup-body">
             <!-- Step 1: Upload and Select Variation -->
-            <div class="tryloom-step tryloom-step-1" style="display: flex; flex-wrap: wrap; gap: 30px;">
-                <div class="tryloom-upload" style="flex: 1 1 calc(50% - 15px); min-width: 280px;">
+            <div class="tryloom-step tryloom-step-1">
+                <div class="tryloom-upload">
                     <h4><?php esc_html_e('Your Photo', 'tryloom'); ?></h4>
                     <div class="tryloom-upload-area">
                         <div class="tryloom-upload-preview">
@@ -84,13 +84,12 @@ if ($default_photo_url && strpos($default_photo_url, '?tryloom_image=') !== fals
                                 </div>
                             <?php else: ?>
                                 <div class="tryloom-upload-placeholder">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="64" height="64">
-                                        <path fill="none" d="M0 0h24v24H0z" />
-                                        <path
-                                            d="M21 15v3h3v2h-3v3h-2v-3h-3v-2h3v-3h2zm.008-12c.548 0 .992.445.992.993v9.349A5.99 5.99 0 0 0 20 13V5H4v13.586l3.293-3.293a1 1 0 0 1 1.414 0L12 18.586l2.293-2.293a1 1 0 0 1 1.414 0l.293.293V13a5.99 5.99 0 0 0-2 .341V9a1 1 0 0 1 1-1h5zm-9.489 4.99a3.5 3.5 0 1 1-3.5 3.5 3.5 3.5 0 0 1 3.5-3.5zM4.003 3h16.995c.55 0 .997.446.997.996V13h-2V5H4v13.589l3.294-3.291a1 1 0 0 1 1.32-.084l.094.084 3.292 3.292 1.968-1.968a5.942 5.942 0 0 0 1.173 1.423l-3.141 3.141a1 1 0 0 1-1.32.084l-.094-.084L8 18.585l-5.293 5.294A1 1 0 0 1 1.999 24a.993.993 0 0 1-.996-.996V3.996A.996.996 0 0 1 1.997 3h.006z"
-                                            fill="rgba(128,128,128,0.5)" />
-                                    </svg>
-                                    <p><?php esc_html_e('Click or drag to upload', 'tryloom'); ?></p>
+                                    <img src="<?php echo esc_url(plugin_dir_url(dirname(__FILE__)) . 'assets/img/tryloom_upload_placeholder.png'); ?>"
+                                        alt="<?php esc_attr_e('Upload', 'tryloom'); ?>" width="80" height="80" />
+                                    <p class="tryloom-upload-title"><?php esc_html_e('Upload your photo', 'tryloom'); ?></p>
+                                    <p class="tryloom-upload-subtitle">
+                                        <?php esc_html_e('or drag and drop here.', 'tryloom'); ?>
+                                    </p>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -98,14 +97,14 @@ if ($default_photo_url && strpos($default_photo_url, '?tryloom_image=') !== fals
                 </div>
                 <input type="file" id="tryloom-file" accept="image/*" style="display: none;">
 
-                <div class="tryloom-variations" style="flex: 1 1 calc(50% - 15px); min-width: 280px;">
+                <div class="tryloom-variations">
                     <h4><?php esc_html_e('Select Product Variation', 'tryloom'); ?></h4>
                     <div class="tryloom-variations-container">
                         <p class="tryloom-loading"><?php esc_html_e('Loading variations...', 'tryloom'); ?></p>
                     </div>
                 </div>
 
-                <div class="tryloom-actions" style="flex-basis: 100%; margin-top: 10px;">
+                <div class="tryloom-actions">
                     <?php
                     // Get Add to Cart button classes.
                     // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
@@ -114,7 +113,7 @@ if ($default_photo_url && strpos($default_photo_url, '?tryloom_image=') !== fals
                     <button type="button" class="<?php echo esc_attr($button_classes); ?> tryloom-generate"
                         style="background-color: <?php echo esc_attr($primary_color); ?>; color: #fff;">
                         <i class="fas fa-magic"></i>
-                        <?php esc_html_e('Generate Try On', 'tryloom'); ?>
+                        <?php esc_html_e('See My Look', 'tryloom'); ?>
                     </button>
                 </div>
             </div><!-- End tryloom-step-1 -->

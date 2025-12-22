@@ -4,6 +4,112 @@
  * @package WooCommerce_Try_On
  */
 
+:root {
+    /* Colors - Light Theme (Default) */
+    --tryloom-bg-primary: #ffffff;
+    --tryloom-bg-secondary: #f8f9fa;
+    --tryloom-bg-tertiary: #f7fafc;
+    --tryloom-bg-gradient-start: #ffffff;
+    --tryloom-bg-gradient-end: #f8f9fa;
+
+    --tryloom-text-main: #2d3748;
+    --tryloom-text-body: #718096;
+    --tryloom-text-label: #4a5568;
+    --tryloom-text-light: #ffffff;
+
+    --tryloom-border-color: #cbd5e0;
+    --tryloom-border-light: rgba(0, 0, 0, 0.05);
+
+    /* Functional Colors */
+    --tryloom-success: #48bb78;
+    --tryloom-error: #e53e3e;
+    --tryloom-warning: #ecc94b;
+
+    /* Shadows */
+    --tryloom-shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.1);
+    --tryloom-shadow-md: 0 10px 25px rgba(0, 0, 0, 0.1);
+
+    /* Component Specific */
+    --tryloom-header-bg: rgba(255, 255, 255, 0.5);
+    --tryloom-input-bg: #fff;
+    --tryloom-input-border: #e2e8f0;
+    --tryloom-close-color: #555;
+    --tryloom-close-hover: #e53e3e;
+
+    --tryloom-text-gradient-start: #667eea;
+    --tryloom-text-gradient-end: #764ba2;
+
+    --tryloom-scrollbar-track: rgba(0, 0, 0, 0.05);
+    --tryloom-scrollbar-thumb: rgba(0, 0, 0, 0.2);
+    --tryloom-scrollbar-hover: rgba(0, 0, 0, 0.3);
+
+    --tryloom-container-bg: rgba(255, 255, 255, 0.5);
+    --tryloom-container-border: rgba(0, 0, 0, 0.05);
+
+    --tryloom-variation-bg: #fff;
+    --tryloom-variation-border: rgba(0, 0, 0, 0.05);
+    --tryloom-variation-hover-bg: rgba(102, 126, 234, 0.03);
+    --tryloom-variation-hover-border: rgba(102, 126, 234, 0.3);
+
+    --tryloom-retry-bg: #f7fafc;
+    --tryloom-retry-text: #4a5568;
+    --tryloom-retry-hover: #edf2f7;
+
+    --tryloom-result-bg: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    --tryloom-loading-overlay-bg: rgba(255, 255, 255, 0.95);
+    --tryloom-spinner-track: rgba(102, 126, 234, 0.1);
+    --tryloom-spinner-fill: #667eea;
+}
+
+.tryloom-theme-dark {
+    /* Colors - Dark Theme Overrides */
+    --tryloom-bg-primary: #1a1a2e;
+    --tryloom-bg-secondary: #16213e;
+    --tryloom-bg-tertiary: #2d3748;
+    --tryloom-bg-gradient-start: #1a1a2e;
+    --tryloom-bg-gradient-end: #16213e;
+
+    --tryloom-text-main: #f7fafc;
+    --tryloom-text-body: #cbd5e0;
+    --tryloom-text-label: #e2e8f0;
+
+    --tryloom-border-color: #4a5568;
+    --tryloom-border-light: rgba(255, 255, 255, 0.1);
+
+    --tryloom-shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.3);
+    --tryloom-shadow-md: 0 15px 35px rgba(0, 0, 0, 0.3);
+
+    --tryloom-header-bg: rgba(255, 255, 255, 0.03);
+    --tryloom-input-bg: #222851;
+    --tryloom-input-border: #444a6a;
+    --tryloom-close-color: #ccc;
+    --tryloom-close-hover: #ff6b6b;
+
+    --tryloom-text-gradient-start: #a8c0ff;
+    --tryloom-text-gradient-end: #c5a1ff;
+
+    --tryloom-scrollbar-track: rgba(255, 255, 255, 0.05);
+    --tryloom-scrollbar-thumb: rgba(255, 255, 255, 0.2);
+    --tryloom-scrollbar-hover: rgba(255, 255, 255, 0.3);
+
+    --tryloom-container-bg: rgba(255, 255, 255, 0.03);
+    --tryloom-container-border: rgba(255, 255, 255, 0.1);
+
+    --tryloom-variation-bg: rgba(255, 255, 255, 0.03);
+    --tryloom-variation-border: rgba(255, 255, 255, 0.1);
+    --tryloom-variation-hover-bg: rgba(168, 192, 255, 0.05);
+    --tryloom-variation-hover-border: rgba(168, 192, 255, 0.3);
+
+    --tryloom-retry-bg: #2d3748;
+    --tryloom-retry-text: #cbd5e0;
+    --tryloom-retry-hover: #4a5568;
+
+    --tryloom-result-bg: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+    --tryloom-loading-overlay-bg: rgba(26, 32, 44, 0.95);
+    --tryloom-spinner-track: rgba(168, 192, 255, 0.1);
+    --tryloom-spinner-fill: #a8c0ff;
+}
+
 /* Try On Button */
 .tryloom-button {
     margin-left: 10px;
@@ -18,22 +124,6 @@
     box-shadow: 0 4px 15px rgba(0, 115, 170, 0.2);
     position: relative;
     overflow: hidden;
-}
-
-.tryloom-button:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transition: left 0.5s;
-    pointer-events: none;
-}
-
-.tryloom-button:hover:before {
-    left: 100%;
 }
 
 .tryloom-button>* {
@@ -83,46 +173,44 @@
     width: 90%;
     max-width: 900px;
     max-height: 90vh;
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    background: linear-gradient(135deg, var(--tryloom-bg-gradient-start) 0%, var(--tryloom-bg-gradient-end) 100%);
     border-radius: 20px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--tryloom-shadow-md);
     transform: scale(0.95);
     transition: transform 0.3s ease;
     position: relative;
+    color: var(--tryloom-text-main);
 }
 
 .tryloom-popup.open .tryloom-popup-content {
     transform: scale(1);
 }
 
-.tryloom-theme-dark .tryloom-popup-content {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
-    color: #fff;
+/* Dark mode overrides handled by variables */
+
+/* Component Styling using Variables */
+.tryloom-popup-content input,
+.tryloom-popup-content select {
+    background: var(--tryloom-input-bg) !important;
+    color: var(--tryloom-text-main) !important;
+    border-color: var(--tryloom-input-border);
 }
 
-.tryloom-theme-dark .tryloom-popup-header,
-.tryloom-theme-dark .tryloom-popup-body,
-.tryloom-theme-dark .tryloom-result,
-.tryloom-theme-dark .tryloom-account,
-.tryloom-theme-dark .tryloom-upload-preview,
-.tryloom-theme-dark .tryloom-popup-footer {
-    color: #fff;
+.tryloom-popup-header,
+.tryloom-popup-body,
+.tryloom-result,
+.tryloom-account,
+.tryloom-upload-preview,
+.tryloom-popup-footer,
+.tryloom-history-table th,
+.tryloom-history-table td {
+    color: var(--tryloom-text-main);
 }
 
-.tryloom-theme-dark .tryloom-history-table th,
-.tryloom-theme-dark .tryloom-history-table td {
-    color: #fff;
-}
 
-.tryloom-theme-dark .tryloom-popup-content input,
-.tryloom-theme-dark .tryloom-popup-content select {
-    background: #222851 !important;
-    color: #fff !important;
-    border-color: #444a6a;
-}
 
 /* Keep button text white but allow inline background-color to work */
 .tryloom-theme-dark .tryloom-generate,
@@ -137,31 +225,19 @@
 
 .tryloom-popup-header {
     padding: 25px 30px;
-    background: rgba(255, 255, 255, 0.5);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    background: var(--tryloom-header-bg);
+    border-bottom: 1px solid var(--tryloom-border-light);
     display: flex;
     justify-content: space-between;
     align-items: center;
     backdrop-filter: blur(10px);
 }
 
-.tryloom-theme-dark .tryloom-popup-header {
-    background: rgba(255, 255, 255, 0.03);
-    border-bottom-color: rgba(255, 255, 255, 0.1);
-}
-
 .tryloom-popup-header h3 {
     margin: 0;
     font-size: 24px;
     font-weight: 700;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.tryloom-theme-dark .tryloom-popup-header h3 {
-    background: linear-gradient(135deg, #a8c0ff 0%, #c5a1ff 100%);
+    background: linear-gradient(135deg, var(--tryloom-text-gradient-start) 0%, var(--tryloom-text-gradient-end) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -174,26 +250,16 @@
     height: 40px;
     font-size: 24px;
     cursor: pointer;
-    color: #555;
+    color: var(--tryloom-close-color);
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
-    background-color: transparent !important;
 }
 
 .tryloom-popup-close:hover {
     transform: rotate(90deg) scale(1.2);
-    color: #e53e3e;
-    background-color: transparent !important;
-}
-
-.tryloom-theme-dark .tryloom-popup-close {
-    color: #ccc;
-}
-
-.tryloom-theme-dark .tryloom-popup-close:hover {
-    color: #ff6b6b;
+    color: var(--tryloom-close-hover);
 }
 
 .tryloom-popup-body {
@@ -209,29 +275,17 @@
 }
 
 .tryloom-popup-body::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.05);
+    background: var(--tryloom-scrollbar-track);
     border-radius: 10px;
 }
 
 .tryloom-popup-body::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--tryloom-scrollbar-thumb);
     border-radius: 10px;
 }
 
 .tryloom-popup-body::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.3);
-}
-
-.tryloom-theme-dark .tryloom-popup-body::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.tryloom-theme-dark .tryloom-popup-body::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.tryloom-theme-dark .tryloom-popup-body::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: var(--tryloom-scrollbar-hover);
 }
 
 /* Step 1 */
@@ -243,13 +297,13 @@
 }
 
 .tryloom-upload {
-    flex: 1;
-    min-width: 300px;
+    flex: 1 1 calc(50% - 15px);
+    min-width: 280px;
 }
 
 .tryloom-variations {
-    flex: 1;
-    min-width: 300px;
+    flex: 1 1 calc(50% - 15px);
+    min-width: 280px;
 }
 
 /* Single Column Layout with Fixed Buttons */
@@ -281,8 +335,8 @@
 
     .tryloom-upload,
     .tryloom-variations {
-        width: 100%;
-        min-width: 100%;
+        display: flex;
+        flex-direction: column;
     }
 
     .tryloom-upload h4,
@@ -370,31 +424,41 @@
     margin-bottom: 20px;
     font-size: 18px;
     font-weight: 700;
-    color: #2d3748;
+    color: var(--tryloom-text-main);
 }
 
-.tryloom-theme-dark .tryloom-upload h4,
-.tryloom-theme-dark .tryloom-variations h4 {
-    color: #f7fafc;
+.tryloom-upload-area,
+.tryloom-variations-container {
+    flex: 1;
+    /* Grow to fill space if needed */
+    height: 320px;
+    /* Fixed height for consistency */
+    min-height: 320px;
+    /* Prevent shrinking */
+    max-height: 320px;
+    /* Prevent growing (enables scrolling for variations) */
+    box-sizing: border-box;
+
 }
 
 .tryloom-upload-area {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 0;
     border: 3px dashed #cbd5e0;
     border-radius: 16px;
     padding: 30px;
     text-align: center;
     cursor: pointer;
-    margin-bottom: 20px;
     min-height: 250px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
     background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
 }
+
 
 .tryloom-upload-area:before {
     content: '';
@@ -403,7 +467,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    background: color-mix(in srgb, var(--tryloom-primary-color, #667eea) 10%, transparent);
     opacity: 0;
     transition: opacity 0.3s ease;
 }
@@ -413,9 +477,9 @@
 }
 
 .tryloom-upload-area:hover {
-    border-color: #667eea;
+    border-color: var(--tryloom-primary-color, #667eea);
     transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.1);
 }
 
 .tryloom-theme-dark .tryloom-upload-area {
@@ -424,18 +488,32 @@
 }
 
 .tryloom-theme-dark .tryloom-upload-area:hover {
-    border-color: #a8c0ff;
+    border-color: var(--tryloom-primary-color, #a8c0ff);
 }
 
 .tryloom-upload-placeholder p {
-    margin-top: 15px;
+    margin: 0;
     color: #718096;
-    font-size: 15px;
-    font-weight: 500;
 }
 
-.tryloom-theme-dark .tryloom-upload-placeholder p {
-    color: #cbd5e0;
+.tryloom-upload-title {
+    font-size: 20px;
+    font-weight: 500;
+    color: #5a5a5a;
+}
+
+.tryloom-upload-subtitle {
+    font-size: 14px;
+    font-weight: 400;
+    color: #888;
+}
+
+.tryloom-theme-dark .tryloom-upload-title {
+    color: #e0e0e0;
+}
+
+.tryloom-theme-dark .tryloom-upload-subtitle {
+    color: #a0a0a0;
 }
 
 .tryloom-file {
@@ -498,45 +576,15 @@
     font-size: 20px;
 }
 
-.tryloom-save-photo {
-    margin-top: 15px;
-    padding: 15px;
-    background: rgba(102, 126, 234, 0.05);
-    border-radius: 10px;
-    border: 1px solid rgba(102, 126, 234, 0.1);
-}
 
-.tryloom-save-photo label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    font-weight: 500;
-    color: #4a5568;
-}
-
-.tryloom-theme-dark .tryloom-save-photo {
-    background: rgba(168, 192, 255, 0.05);
-    border-color: rgba(168, 192, 255, 0.1);
-}
-
-.tryloom-theme-dark .tryloom-save-photo label {
-    color: #cbd5e0;
-}
-
-.tryloom-save-photo input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-}
 
 .tryloom-variations-container {
     max-height: 350px;
     overflow-y: auto;
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--tryloom-container-border);
     border-radius: 12px;
     padding: 15px;
-    background: rgba(255, 255, 255, 0.5);
+    background: var(--tryloom-container-bg);
 }
 
 .tryloom-variations-container::-webkit-scrollbar {
@@ -544,18 +592,13 @@
 }
 
 .tryloom-variations-container::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.05);
+    background: var(--tryloom-scrollbar-track);
     border-radius: 10px;
 }
 
 .tryloom-variations-container::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--tryloom-scrollbar-thumb);
     border-radius: 10px;
-}
-
-.tryloom-theme-dark .tryloom-variations-container {
-    border-color: rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.03);
 }
 
 .tryloom-variation {
@@ -563,38 +606,28 @@
     align-items: center;
     margin-bottom: 12px;
     padding: 15px;
-    border: 2px solid rgba(0, 0, 0, 0.05);
+    border: 2px solid var(--tryloom-variation-border);
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.3s ease;
-    background: white;
+    background: var(--tryloom-variation-bg);
 }
 
 .tryloom-variation:hover {
-    border-color: rgba(102, 126, 234, 0.3);
-    background: rgba(102, 126, 234, 0.03);
+    border-color: var(--tryloom-variation-hover-border);
+    background: var(--tryloom-variation-hover-bg);
     transform: translateX(5px);
 }
 
-.tryloom-theme-dark .tryloom-variation {
-    border-color: rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.03);
-}
-
-.tryloom-theme-dark .tryloom-variation:hover {
-    border-color: rgba(168, 192, 255, 0.3);
-    background: rgba(168, 192, 255, 0.05);
-}
-
 .tryloom-variation.selected {
-    border-color: #667eea;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+    border-color: var(--tryloom-primary-color, #667eea);
+    background: color-mix(in srgb, var(--tryloom-primary-color, #667eea) 5%, transparent);
+    box-shadow: 0 4px 15px color-mix(in srgb, var(--tryloom-primary-color, #667eea) 20%, transparent);
 }
 
 .tryloom-theme-dark .tryloom-variation.selected {
-    border-color: #a8c0ff;
-    background: linear-gradient(135deg, rgba(168, 192, 255, 0.15) 0%, rgba(197, 161, 255, 0.15) 100%);
+    border-color: var(--tryloom-primary-color, #a8c0ff);
+    background: color-mix(in srgb, var(--tryloom-primary-color, #a8c0ff) 15%, transparent);
 }
 
 .tryloom-variation-image {
@@ -619,26 +652,19 @@
 .tryloom-variation-name {
     font-weight: 600;
     margin-bottom: 6px;
-    color: #2d3748;
+    color: var(--tryloom-text-main);
     font-size: 15px;
-}
-
-.tryloom-theme-dark .tryloom-variation-name {
-    color: #f7fafc;
 }
 
 .tryloom-variation-price {
     font-size: 14px;
-    color: #718096;
+    color: var(--tryloom-text-body);
     font-weight: 500;
 }
 
-.tryloom-theme-dark .tryloom-variation-price {
-    color: #cbd5e0;
-}
-
 .tryloom-actions {
-    margin-top: 30px;
+    flex-basis: 100%;
+    margin-top: 10px;
     text-align: center;
     width: 100%;
 }
@@ -674,22 +700,7 @@
 .tryloom-generate:before,
 .tryloom-add-to-cart:before,
 .tryloom-download:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transition: left 0.5s;
-    z-index: 0;
-    pointer-events: none;
-}
-
-.tryloom-generate:hover:before,
-.tryloom-add-to-cart:hover:before,
-.tryloom-download:hover:before {
-    left: 100%;
+    content: none;
 }
 
 .tryloom-generate>*,
@@ -715,8 +726,8 @@
 }
 
 .tryloom-retry {
-    background: #f7fafc;
-    color: #4a5568;
+    background: var(--tryloom-retry-bg);
+    color: var(--tryloom-retry-text);
     position: relative;
     overflow: hidden;
 }
@@ -744,17 +755,8 @@
 }
 
 .tryloom-retry:hover {
-    background: #edf2f7;
+    background: var(--tryloom-retry-hover);
     transform: translateY(-2px);
-}
-
-.tryloom-theme-dark .tryloom-retry {
-    background: #2d3748;
-    color: #cbd5e0;
-}
-
-.tryloom-theme-dark .tryloom-retry:hover {
-    background: #4a5568;
 }
 
 /* Step 2 */
@@ -772,7 +774,7 @@
     width: 100%;
     max-width: 500px;
     padding: 15px;
-    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    background: var(--tryloom-result-bg);
     border-radius: 16px;
     box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.05);
     display: flex;
@@ -782,10 +784,6 @@
     min-height: 300px;
     margin-left: auto;
     margin-right: auto;
-}
-
-.tryloom-theme-dark .tryloom-result-image {
-    background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
 }
 
 .tryloom-result-image img {
@@ -829,11 +827,11 @@
 }
 
 .tryloom-image-actions {
+    display: flex;
+    gap: 10px;
     position: absolute;
     bottom: 30px;
     right: 30px;
-    display: flex;
-    gap: 15px;
     z-index: 5;
 }
 
@@ -856,7 +854,7 @@
 .tryloom-icon-button:hover {
     transform: scale(1.1);
     color: #764ba2;
-    background-color: transparent !important;
+    background-color: white !important;
 }
 
 .tryloom-icon-button svg,
@@ -926,8 +924,7 @@
     bottom: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.95);
-    /* Light theme overlay */
+    background: var(--tryloom-loading-overlay-bg);
     z-index: 1000;
     display: flex;
     flex-direction: column;
@@ -936,38 +933,22 @@
     pointer-events: all;
 }
 
-.tryloom-theme-dark .tryloom-loading-overlay {
-    background: rgba(26, 32, 44, 0.95);
-    /* Dark theme overlay */
-}
-
 .tryloom-spinner {
-    border: 4px solid rgba(102, 126, 234, 0.1);
+    border: 4px solid var(--tryloom-spinner-track);
     border-radius: 50%;
-    border-top: 4px solid #667eea;
+    border-top: 4px solid var(--tryloom-spinner-fill);
     width: 50px;
     height: 50px;
     animation: tryloom-spin 1s linear infinite;
     margin-bottom: 20px;
 }
 
-.tryloom-theme-dark .tryloom-spinner {
-    border-color: rgba(168, 192, 255, 0.1);
-    border-top-color: #a8c0ff;
-}
-
 .tryloom-loading-overlay p {
     font-size: 16px;
     font-weight: 600;
-    color: #2d3748;
-    /* Dark text for light theme */
+    color: var(--tryloom-text-main);
     margin-top: 20px;
     letter-spacing: 0.5px;
-}
-
-.tryloom-theme-dark .tryloom-loading-overlay p {
-    color: #f7fafc;
-    /* Light text for dark theme */
 }
 
 @keyframes tryloom-spin {
@@ -987,7 +968,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--tryloom-loading-overlay-bg);
     backdrop-filter: blur(10px);
     display: flex;
     flex-direction: column;
@@ -997,8 +978,19 @@
     z-index: 5;
 }
 
-.tryloom-theme-dark .tryloom-upload-progress-overlay {
-    background: rgba(26, 32, 44, 0.95);
+.tryloom-upload-progress-overlay .tryloom-progress-circle {
+    order: 1;
+}
+
+.tryloom-upload-progress-overlay .tryloom-progress-text {
+    order: 2;
+    margin-top: 25px;
+    margin-bottom: 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--tryloom-text-label);
+    text-align: center;
+    display: block;
 }
 
 .tryloom-progress-circle {
@@ -1306,14 +1298,14 @@
 }
 
 .tryloom-upload-area.dragover {
-    border-color: #667eea;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border-color: var(--tryloom-primary-color, #667eea);
+    background: color-mix(in srgb, var(--tryloom-primary-color, #667eea) 10%, transparent);
     transform: scale(1.02);
 }
 
 .tryloom-theme-dark .tryloom-upload-area.dragover {
-    border-color: #a8c0ff;
-    background: linear-gradient(135deg, rgba(168, 192, 255, 0.15) 0%, rgba(197, 161, 255, 0.15) 100%);
+    border-color: var(--tryloom-primary-color, #a8c0ff);
+    background: color-mix(in srgb, var(--tryloom-primary-color, #a8c0ff) 15%, transparent);
 }
 
 .tryloom-upload-placeholder svg {
@@ -1470,591 +1462,24 @@
     cursor: pointer;
 }
 
-/* Unify popup buttons with main try-on button */
-.tryloom-button,
-.tryloom-generate,
-.tryloom-add-to-cart {
-    margin-left: 10px;
-    vertical-align: middle;
-    padding: 12px 28px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 15px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 115, 170, 0.2);
-    position: relative;
-    overflow: hidden;
-}
+/* Removed redundant 'Undo' button styles and Dead Code */
 
-/* Remove shine animation */
-.tryloom-button:before,
-.tryloom-generate:before,
-.tryloom-add-to-cart:before {
-    content: none !important;
-    display: none !important;
-}
-
-/* Keep a subtle hover without shine */
-.tryloom-button:hover,
-.tryloom-generate:hover,
-.tryloom-add-to-cart:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 115, 170, 0.3);
-}
-
-/* Icon buttons - no hover background, even in dark theme */
-.tryloom-icon-button,
-.tryloom-icon-button:hover,
-.tryloom-theme-dark .tryloom-icon-button,
-.tryloom-theme-dark .tryloom-icon-button:hover {
-    background: transparent !important;
-    box-shadow: none !important;
-}
-
-/* Ensure dark theme buttons still readable; colors handled inline or above */
-.tryloom-theme-dark .tryloom-generate,
-.tryloom-theme-dark .tryloom-add-to-cart {
-    color: #fff !important;
-}
-
-/* * This is the standard WordPress class to hide text visually 
- * but keep it for screen readers.
- */
-.screen-reader-text {
-    border: 0;
-    clip: rect(1px, 1px, 1px, 1px);
-    clip-path: inset(50%);
-    height: 1px;
-    margin: -1px;
-    overflow: hidden;
-    padding: 0;
-    position: absolute;
-    width: 1px;
-    word-wrap: normal !important;
-}
-
-
-
-
-
-
-/* --- 1. Main Table Styling --- */
-/* Prefixes with .tryloom-account-history to be specific */
-.tryloom-account-history .tryloom-history-table {
-    width: 100%;
-    border-collapse: collapse;
-    /* Clean, single borders */
-    margin-top: 1.5em;
-    font-size: 1rem;
-    color: #333;
-}
-
-/* --- 2. Table Header --- */
-.tryloom-history-table th {
-    text-align: left;
-    font-weight: 600;
-    border-bottom: 2px solid #e0e0e0;
-    padding: 12px 15px;
-    text-transform: uppercase;
-    font-size: 0.85em;
-    letter-spacing: 0.05em;
-}
-
-/* --- 3. Table Body & Rows --- */
-.tryloom-history-table tbody tr {
-    border-bottom: 1px solid #f0f0f0;
-    transition: background-color 0.2s ease-in-out;
-}
-
-/* Add a subtle hover effect to the rows */
-.tryloom-history-table tbody tr:hover {
-    background-color: #f9f9f9;
-}
-
-/* --- 4. Table Cells (Data and Header) --- */
-.tryloom-history-table th,
-.tryloom-history-table td {
-    padding: 16px 15px;
-    vertical-align: middle;
-    line-height: 1.5;
-}
-
-/* --- 5. Image Style (Desktop default) --- */
-.tryloom-history-table td img {
-    display: block;
-    /* Typically block for desktop layout */
-    border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-/* --- 6. Action Button Styles --- */
-.tryloom-history-table td .button {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
-    padding: 4px;
-    margin: 0 4px;
-    text-decoration: none;
-    line-height: 1;
-}
-
-/* --- 7. Icon Styling --- */
-.tryloom-history-table td .button .fas {
-    font-size: 1.4em;
-    color: #888;
-    transition: all 0.2s ease-in-out;
-}
-
-/* Download button hover */
-.tryloom-history-table td .button[download]:hover .fas {
-    color: #552FBC;
-    transform: scale(1.15);
-}
-
-/* Try Again button hover */
-.tryloom-history-table td .button:not([download]):not(.tryloom-delete-history):hover .fas {
-    color: #2271b1;
-    transform: scale(1.15);
-}
-
-/* Delete button hover */
-.tryloom-history-table td .button.tryloom-delete-history:hover .fas {
-    color: #d63638;
-    transform: scale(1.15);
-}
-
-/* --- 8. General History Action Buttons --- */
-.tryloom-history-actions {
-    margin-bottom: 20px;
-}
-
-.tryloom-history-actions .button {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.tryloom-delete-history {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-
-/* --- 9. Responsive (Mobile) Table Styles --- */
-/* These styles will only apply on screens 768px or smaller */
-@media (max-width: 768px) {
-
-    .tryloom-history-table,
-    .tryloom-history-table thead,
-    .tryloom-history-table tbody,
-    .tryloom-history-table th,
-    .tryloom-history-table td,
-    .tryloom-history-table tr {
-        display: block;
-    }
-
-    .tryloom-history-table thead tr {
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
-    }
-
-    .tryloom-history-table tbody tr {
-        margin-bottom: 20px;
-        border-radius: 12px;
-        border: 1px solid #e0e0e0;
-        /* Optional: Add border for card effect */
-    }
-
-    .tryloom-history-table td {
-        border: none;
-        border-bottom: 1px solid #f0f0f0;
-        /* Separator line between fields */
-        position: relative;
-        padding-left: 50%;
-        text-align: right;
-        /* Default for mobile cells */
-    }
-
-    /* Mobile specific style for the image column to align content to the right */
-    .tryloom-history-table td:nth-of-type(3) {
-        /* Target the Image column */
-        text-align: right;
-    }
-
-    /* Ensure image respects text-align in mobile view */
-    .tryloom-history-table td:nth-of-type(3) img {
-        display: inline-block;
-        /* Change to inline-block to allow text-align to work */
-    }
-
-
-    .tryloom-history-table td:before {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        left: 16px;
-        width: 45%;
-        padding-right: 10px;
-        white-space: nowrap;
-        font-weight: 700;
-        text-align: left;
-        color: #4a5568;
-    }
-
-    .tryloom-history-table td:nth-of-type(1):before {
-        content: "Date";
-    }
-
-    .tryloom-history-table td:nth-of-type(2):before {
-        content: "Product";
-    }
-
-    .tryloom-history-table td:nth-of-type(3):before {
-        content: "Image";
-    }
-
-    .tryloom-history-table td:nth-of-type(4):before {
-        content: "Actions";
-    }
-
-    .tryloom-history-table td:last-child {
-        border-bottom: none;
-        /* No line for the last item in the card */
-    }
-
-    .tryloom-history-table tbody tr td:first-child {
-        border-radius: 12px 12px 0 0;
-    }
-
-    .tryloom-history-table tbody tr td:last-child {
-        border-radius: 0 0 12px 12px;
-    }
-}
-
-/* Loading Overlay Refinements */
-.tryloom-loading-overlay {
-    background: rgba(255, 255, 255, 0.95);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-.tryloom-theme-dark .tryloom-loading-overlay {
-    background: rgba(26, 32, 44, 0.95);
-}
-
-/* Custom Circular Progress */
-.tryloom-progress-container {
-    position: relative;
-    width: 120px;
-    height: 120px;
-}
-
-.tryloom-progress-svg {
-    transform: rotate(-90deg);
-    width: 120px;
-    height: 120px;
-}
-
-.tryloom-progress-bg {
-    fill: none;
-    stroke: #e2e8f0;
-    stroke-width: 8;
-}
-
-.tryloom-theme-dark .tryloom-progress-bg {
-    stroke: #2d3748;
-}
-
-.tryloom-progress-bar {
-    fill: none;
-    stroke-width: 8;
-    stroke-linecap: round;
-    stroke-dasharray: 283;
-    /* 2 * PI * 45 */
-    stroke-dashoffset: 283;
-}
-
-.tryloom-progress-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 24px;
-    font-weight: 700;
-    color: #4a5568;
-}
-
-.tryloom-theme-dark .tryloom-progress-text {
-    color: #edf2f7;
-}
-
-/* Loading Status Text */
-.tryloom-loading-status {
-    margin-top: 25px;
-    font-size: 16px;
-    font-weight: 500;
-    color: #718096;
-    text-align: center;
-    min-height: 24px;
-    animation: tryloom-pulse 2s infinite;
-}
-
-.tryloom-theme-dark .tryloom-loading-status {
-    color: #cbd5e0;
-}
-
-@keyframes tryloom-pulse {
-    0% {
-        opacity: 0.6;
-    }
-
-    50% {
-        opacity: 1;
-    }
-
-    100% {
-        opacity: 0.6;
-    }
-}
-
-/* Hide default spinner when using custom one */
-.tryloom-loading-overlay .tryloom-spinner {
-    display: none !important;
-}
-
-
-/* Circular Progress Bar */
-.tryloom-progress-ring {
-    position: relative;
-    width: 120px;
-    height: 120px;
-    margin: 0 auto 20px;
-    left: 15px;
-}
-
-.tryloom-progress-ring__svg {
-    transform: rotate(-90deg);
-}
-
-.tryloom-progress-ring__circle {
-    transition: stroke-dashoffset 0.3s;
-    transform-origin: 50% 50%;
-    stroke-dasharray: 326.72;
-    /* 2 * PI * r (52) */
-    stroke-dashoffset: 326.72;
-    stroke-linecap: round;
-}
-
-.tryloom-progress-text {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-top: 15px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #4a5568;
-    white-space: nowrap;
-}
-
-.tryloom-theme-dark .tryloom-progress-text {
-    color: #fff;
-}
-
-.tryloom-loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.95);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 10000;
-    backdrop-filter: blur(5px);
-}
-
-.tryloom-theme-dark .tryloom-loading-overlay {
-    background: rgba(26, 32, 44, 0.95);
-}
-
-.tryloom-loading-status {
-    font-size: 16px;
-    font-weight: 600;
-    color: #4a5568;
-    margin-top: 10px;
-    animation: tryloom-text-blink 1.5s infinite;
-}
-
-.tryloom-theme-dark .tryloom-loading-status {
-    color: #cbd5e0;
-}
-
-@keyframes tryloom-text-blink {
-    0% {
-        opacity: 0.6;
-    }
-
-    50% {
-        opacity: 1;
-    }
-
-    100% {
-        opacity: 0.6;
-    }
-}
-
-/* =============================================
-   Mobile Responsive Fixes (Bugs 8 & 9)
-   ============================================= */
-
-/* =============================================
-   Round 2 Bug Fixes - CORRECTED
-   ============================================= */
-
-/* Bug R2-4: Save photo option styling (below upload area) */
-.tryloom-save-option {
-    margin-top: 15px;
-    padding: 12px 15px;
-    background: rgba(102, 126, 234, 0.05);
-    border-radius: 8px;
-    border: 1px solid rgba(102, 126, 234, 0.1);
-    text-align: center;
-}
-
-.tryloom-save-option label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    color: #4a5568;
-}
-
-.tryloom-theme-dark .tryloom-save-option {
-    background: rgba(168, 192, 255, 0.05);
-    border-color: rgba(168, 192, 255, 0.1);
-}
-
-.tryloom-theme-dark .tryloom-save-option label {
-    color: #cbd5e0;
-}
-
-/* Bug R2-5: Upload progress overlay - text BELOW spinner */
-.tryloom-upload-progress-overlay {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-}
-
-.tryloom-upload-progress-overlay .tryloom-progress-circle {
-    order: 1;
-}
-
-.tryloom-upload-progress-overlay .tryloom-progress-text {
-    order: 2;
-    margin-top: 25px !important;
-    margin-bottom: 0 !important;
-    display: block !important;
-    text-align: center;
-}
-
-/* Bug R2-3 & R2-6: Spinner with primary color - FIX VISIBILITY */
-.tryloom-spinner {
-    border: 4px solid rgba(85, 47, 188, 0.2) !important;
-    border-top: 4px solid var(--tryloom-primary-color, #552FBC) !important;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    animation: tryloom-spin 1s linear infinite;
-}
-
-.tryloom-loading-overlay .tryloom-spinner {
-    border: 5px solid rgba(85, 47, 188, 0.2) !important;
-    border-top: 5px solid var(--tryloom-primary-color, #552FBC) !important;
-    width: 60px;
-    height: 60px;
-    display: block !important;
-}
-
-.tryloom-theme-dark .tryloom-spinner {
-    border-color: rgba(168, 192, 255, 0.2) !important;
-    border-top-color: var(--tryloom-primary-color, #a8c0ff) !important;
-}
-
-/* Bug R2-8: Download/retry buttons with SAME SIZE visible background */
-.tryloom-image-actions {
-    display: flex !important;
-    gap: 10px;
-    position: absolute;
-    bottom: 30px;
-    right: 30px;
-    z-index: 5;
-}
-
+/* Mobile Responsive Fixes - Consolidated */
+/* Bug R2-8: Icon buttons standard size */
 .tryloom-icon-button {
-    background: rgba(255, 255, 255, 0.95) !important;
-    border: none !important;
-    border-radius: 50% !important;
     width: 44px !important;
     height: 44px !important;
-    min-width: 44px !important;
-    min-height: 44px !important;
-    max-width: 44px !important;
-    max-height: 44px !important;
     padding: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.tryloom-icon-button svg {
-    width: 20px;
-    height: 20px;
-}
-
-.tryloom-icon-button:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-.tryloom-download-icon {
-    color: var(--tryloom-primary-color, #552FBC) !important;
-}
-
-.tryloom-retry-icon {
-    color: #718096 !important;
+    border-radius: 50% !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15) !important;
 }
 
 .tryloom-theme-dark .tryloom-icon-button {
     background: rgba(45, 55, 72, 0.95) !important;
 }
 
-.tryloom-theme-dark .tryloom-download-icon {
-    color: #a8c0ff !important;
-}
-
-.tryloom-theme-dark .tryloom-retry-icon {
-    color: #cbd5e0 !important;
-}
-
-/* Bug R2-7: Prevent scroll during generation overlay - STRONGER */
+/* Bug R2-7: Prevent scroll during generation overlay */
 .tryloom-popup-body.is-generating {
     overflow: hidden !important;
     max-height: 100% !important;
@@ -2065,9 +1490,7 @@
     pointer-events: all;
 }
 
-/* =============================================
-   Circular Progress Ring (Filling Animation)
-   ============================================= */
+/* Circular Progress Ring (Filling Animation) */
 .tryloom-progress-ring-container {
     position: relative;
     width: 80px;
@@ -2083,20 +1506,12 @@
 }
 
 .tryloom-progress-ring-bg {
-    stroke: rgba(85, 47, 188, 0.15);
+    stroke: var(--tryloom-spinner-track);
 }
 
 .tryloom-progress-ring-fill {
-    stroke: var(--tryloom-primary-color, #552FBC);
+    stroke: var(--tryloom-primary-color, #667eea);
     transition: stroke-dashoffset 0.3s ease-out;
-}
-
-.tryloom-theme-dark .tryloom-progress-ring-bg {
-    stroke: rgba(168, 192, 255, 0.15);
-}
-
-.tryloom-theme-dark .tryloom-progress-ring-fill {
-    stroke: var(--tryloom-primary-color, #a8c0ff);
 }
 
 .tryloom-progress-percent {
@@ -2106,22 +1521,5 @@
     transform: translate(-50%, -50%);
     font-size: 20px;
     font-weight: 700;
-    color: var(--tryloom-primary-color, #552FBC);
-}
-
-.tryloom-theme-dark .tryloom-progress-percent {
-    color: var(--tryloom-primary-color, #a8c0ff);
-}
-
-.tryloom-loading-overlay .tryloom-loading-status {
-    margin-top: 20px;
-    font-size: 15px;
-    font-weight: 600;
-    color: #4a5568;
-    text-align: center;
-    width: 100%;
-}
-
-.tryloom-theme-dark .tryloom-loading-overlay .tryloom-loading-status {
-    color: #cbd5e0;
+    color: var(--tryloom-spinner-fill);
 }
