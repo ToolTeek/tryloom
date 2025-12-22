@@ -3,7 +3,7 @@ Contributors: ToolTeek, dinethchamuditha
 Tags: woocommerce, virtual try-on, product visualization, e-commerce, fashion
 Requires at least: 5.6
 Tested up to: 6.9
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 Requires PHP: 7.2
 WC requires at least: 5.0
 WC tested up to: 10.3
@@ -96,6 +96,15 @@ Yes. Theme color, primary color, and custom CSS options are available in setting
 
 == Changelog ==
 
+= 1.2.0 =
+* New: Implemented cloud status check endpoint for reliable usage tracking.
+* Update: Enhanced SSL verification for all API calls.
+* Fix: Added strict directory traversal protection for file handling.
+* Update: Optimized database queries for the dashboard and settings page.
+* Update: Improved image serving with binary streaming to reduce server memory usage.
+* Update: Switched to local hosting for Font Awesome icons (GDPR compliance).
+* Update: Refreshed "My Virtual Closet" pagination and layout.
+
 = 1.1.0 =
 * NEW: Added "Generation Mode" selector (Try-On, Studio, Auto).
 * NEW: "Studio Mode" now regenerates the background and lighting for professional results.
@@ -135,6 +144,9 @@ Yes. Theme color, primary color, and custom CSS options are available in setting
 * Initial release: Core virtual try-on functionality, admin settings, user account integration, and API support.
 
 == Upgrade Notice ==
+
+= 1.2.0 =
+Major update: Includes critical security hardening (SSL & file handling), GDPR compliance fixes (local fonts), and significant performance improvements. Recommended for all users.
 
 = 1.1.0 =
 Major Update: Introduces new Generation Modes (Studio/Auto), 3x faster speeds, and critical backend fixes.
@@ -178,11 +190,13 @@ The plugin does **not share data with third parties** beyond the API used for ge
 
 == External Services (API) ==
 
-This plugin relies on the **TryLoom Cloud API** (maintained by ToolTeek) to function.
+This plugin relies on the **TryLoom Cloud Platform** (maintained by ToolTeek) to function.
 Because AI image generation requires significant computational resources, it cannot run directly on your WordPress hosting environment. Instead, user images and product data are sent to our secure cloud infrastructure for processing and the result is returned to your site.
 
-* **Service:** TryLoom Cloud API (hosted on `us-central1-try-on-proxy-by-toolteek.cloudfunctions.net`)
-* **Used For:** Authenticating the API connection (`/cloudConnection`) and performing AI image generation (`/fashionTryOn`).
+* **Service:** TryLoom Cloud API & Status Check
+* **Hosts:** * `us-central1-tryloombytoolteek.cloudfunctions.net` (Image Generation)
+    * `status-pdpuoxmr2a-uc.a.run.app` (Service Status & Usage)
+* **Used For:** Authenticating the API connection, checking plan usage/status, and performing AI image generation.
 * **Data Sent:** Site URL, API credentials, product ID, product image, and the user's uploaded photo.
 * **Privacy Policy:** https://tryloom.toolteek.com/privacy-policy/
 * **Terms and Conditions:** https://tryloom.toolteek.com/terms-and-conditions/

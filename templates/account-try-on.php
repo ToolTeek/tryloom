@@ -166,7 +166,7 @@ if ('yes' === $enable_history) {
                     $base_url = remove_query_arg(array('history_page', '_wpnonce'));
                     $pagination_nonce = wp_create_nonce('tryloom_history_pagination');
 
-                    echo paginate_links(array(
+                    echo wp_kses_post(paginate_links(array(
                         'base' => add_query_arg('history_page', '%#%'),
                         'format' => '',
                         'current' => $page,
@@ -175,7 +175,7 @@ if ('yes' === $enable_history) {
                         'next_text' => __('Next', 'tryloom') . ' &raquo;',
                         'type' => 'plain',
                         'add_args' => array('_wpnonce' => $pagination_nonce),
-                    ));
+                    )));
                     ?>
                 </div>
             <?php endif; ?>

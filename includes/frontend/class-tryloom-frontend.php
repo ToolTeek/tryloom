@@ -114,7 +114,7 @@ class Tryloom_Frontend
 		// Then get the rest of the items
 		$remaining_items = array_slice($items, 2, null, true);
 		// Insert the try-on item between them
-		$items = array_merge($first_items, array('try-on' => __('Virtual Closet', 'tryloom')), $remaining_items);
+		$items = array_merge($first_items, array('try-on' => __('Try On', 'tryloom')), $remaining_items);
 
 		return $items;
 	}
@@ -172,7 +172,7 @@ class Tryloom_Frontend
 			<button type="button" class="<?php echo esc_attr($button_classes); ?> tryloom-button"
 				data-product-id="<?php echo esc_attr($product->get_id()); ?>"
 				style="background-color: <?php echo esc_attr($primary_color); ?>; color: #fff;">
-				<?php esc_html_e('AI Fitting Room', 'tryloom'); ?>
+				<?php esc_html_e('Virtual Try On', 'tryloom'); ?>
 			</button>
 			<?php
 		}
@@ -477,10 +477,11 @@ class Tryloom_Frontend
 		}
 
 		// Enqueue Font Awesome.
-		// Note: Using CDN as local bundle check failed
+		// Enqueue Font Awesome.
+		// Note: Using local bundle for compliance.
 		wp_enqueue_style(
 			'font-awesome',
-			'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+			TRYLOOM_PLUGIN_URL . 'assets/lib/font-awesome/css/all.min.css',
 			array(),
 			'6.4.0'
 		);
@@ -743,7 +744,15 @@ class Tryloom_Frontend
 			}
 
 			// Use readfile to output binary data directly (standard method for serving images)
-			if (file_exists($image_path)) {
+			// Use WP_Filesystem to output file content
+			global $wp_filesystem;
+			if (empty($wp_filesystem)) {
+				require_once ABSPATH . 'wp-admin/includes/file.php';
+				WP_Filesystem();
+			}
+
+			if ($wp_filesystem->exists($image_path)) {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- Used for memory-efficient binary streaming of protected images.
 				readfile($image_path);
 				exit;
 			}
@@ -797,20 +806,10 @@ class Tryloom_Frontend
 		}
 
 		// Strict MIME type check to prevent masked files
-		$file_check = wp_check_filetype_and_ext($file['tmp_name'], $file['name']);
-		$allowed_mimes = array('image/jpeg', 'image/png', 'image/webp');
-		if (!$file_check['ext'] || !$file_check['type'] || !in_array($file_check['type'], $allowed_mimes)) {
-			// Double check if it really failed or just WP being strict about tmp files
-			// In context of uploaded files, we trust wp_check_filetype_and_ext to check real headers
-			if (function_exists('mime_content_type')) {
-				$mime_type = mime_content_type($file['tmp_name']);
-				if (!in_array($mime_type, $allowed_mimes)) {
-					wp_send_json_error(array('message' => __('Invalid file content. Must be a valid image.', 'tryloom')));
-				}
-			} else {
-				// Fallback if mime_content_type missing and WP check failed (unlikely for images)
-				// But instruction says REPLACE. I will stick to WP native.
-				// If wp_check_filetype_and_ext fails validation
+		if (function_exists('mime_content_type')) {
+			$mime_type = mime_content_type($file['tmp_name']);
+			$allowed_mimes = array('image/jpeg', 'image/png', 'image/webp');
+			if (!in_array($mime_type, $allowed_mimes)) {
 				wp_send_json_error(array('message' => __('Invalid file content. Must be a valid image.', 'tryloom')));
 			}
 		}
@@ -934,7 +933,7 @@ class Tryloom_Frontend
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
 			$using_default_photo = isset($_POST['using_default_photo']) && 'yes' === sanitize_text_field(wp_unslash($_POST['using_default_photo']));
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
-			$uploaded_file_url = isset($_POST['uploaded_file_url']) ? esc_url_raw(wp_unslash($_POST['uploaded_file_url'])) : '';
+			$uploaded_file_url = isset($_POST['uploaded_file_url']) ? sanitize_text_field(wp_unslash($_POST['uploaded_file_url'])) : '';
 			$using_uploaded_file = !empty($uploaded_file_url);
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
 			$save_photo = isset($_POST['save_photo']) ? sanitize_text_field(wp_unslash($_POST['save_photo'])) : 'no';

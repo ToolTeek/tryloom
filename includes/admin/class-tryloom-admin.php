@@ -946,10 +946,6 @@ class Tryloom_Admin
 			wp_die(esc_html__('You do not have sufficient permissions to access this page.', 'tryloom'));
 		}
 
-		if (function_exists('set_time_limit')) {
-			set_time_limit(300);
-		}
-
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'tryloom_history';
 
@@ -990,10 +986,6 @@ class Tryloom_Admin
 		// Check nonce and permissions.
 		if (!isset($_POST['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'tryloom_delete_user_photos') || !current_user_can('manage_woocommerce')) {
 			wp_die(esc_html__('You do not have sufficient permissions to access this page.', 'tryloom'));
-		}
-
-		if (function_exists('set_time_limit')) {
-			set_time_limit(300);
 		}
 
 		global $wpdb;
@@ -1174,12 +1166,10 @@ class Tryloom_Admin
 		// }
 
 		// Enqueue Font Awesome.
-		// Note: Font Awesome is bundled locally for WordPress.org compliance.
-		// Enqueue Font Awesome.
-		// Note: Using CDN as local bundle check failed
+		// Note: Using local bundle for compliance.
 		wp_enqueue_style(
 			'font-awesome',
-			'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+			TRYLOOM_PLUGIN_URL . 'assets/lib/font-awesome/css/all.min.css',
 			array(),
 			'6.4.0'
 		);
@@ -1235,50 +1225,31 @@ class Tryloom_Admin
 	{
 		global $wpdb;
 
-		$stats = get_transient('tryloom_stats');
-		if (false === $stats) {
-			// Get total try-ons in the last hour.
-			$table_name = $wpdb->prefix . 'tryloom_history';
-			$hour_ago = gmdate('Y-m-d H:i:s', strtotime('-1 hour'));
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
-			$total_hour = $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . esc_sql($table_name) . ' WHERE created_at > %s', $hour_ago));
+		// Get total try-ons in the last hour.
+		$table_name = $wpdb->prefix . 'tryloom_history';
+		$hour_ago = gmdate('Y-m-d H:i:s', strtotime('-1 hour'));
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+		$total_hour = $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . esc_sql($table_name) . ' WHERE created_at > %s', $hour_ago));
 
-			// Get total try-ons in the last day.
-			$day_ago = gmdate('Y-m-d H:i:s', strtotime('-1 day'));
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
-			$total_day = $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . esc_sql($table_name) . ' WHERE created_at > %s', $day_ago));
+		// Get total try-ons in the last day.
+		$day_ago = gmdate('Y-m-d H:i:s', strtotime('-1 day'));
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+		$total_day = $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . esc_sql($table_name) . ' WHERE created_at > %s', $day_ago));
 
-			// Get total try-ons in the last week.
-			$week_ago = gmdate('Y-m-d H:i:s', strtotime('-1 week'));
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
-			$total_week = $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . esc_sql($table_name) . ' WHERE created_at > %s', $week_ago));
+		// Get total try-ons in the last week.
+		$week_ago = gmdate('Y-m-d H:i:s', strtotime('-1 week'));
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+		$total_week = $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . esc_sql($table_name) . ' WHERE created_at > %s', $week_ago));
 
-			// Get total try-ons all time.
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
-			$total_all = $wpdb->get_var('SELECT COUNT(*) FROM ' . esc_sql($table_name));
+		// Get total try-ons all time.
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+		$total_all = $wpdb->get_var('SELECT COUNT(*) FROM ' . esc_sql($table_name));
 
-			// Get top products.
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
-			$top_products = $wpdb->get_results(
-				'SELECT product_id, COUNT(*) as count FROM ' . esc_sql($table_name) . ' GROUP BY product_id ORDER BY count DESC LIMIT 5'
-			);
-
-			$stats = array(
-				'total_hour' => $total_hour,
-				'total_day' => $total_day,
-				'total_week' => $total_week,
-				'total_all' => $total_all,
-				'top_products' => $top_products
-			);
-
-			set_transient('tryloom_stats', $stats, 3600);
-		} else {
-			$total_hour = $stats['total_hour'];
-			$total_day = $stats['total_day'];
-			$total_week = $stats['total_week'];
-			$total_all = $stats['total_all'];
-			$top_products = $stats['top_products'];
-		}
+		// Get top products.
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+		$top_products = $wpdb->get_results(
+			'SELECT product_id, COUNT(*) as count FROM ' . esc_sql($table_name) . ' GROUP BY product_id ORDER BY count DESC LIMIT 5'
+		);
 
 		// Display statistics.
 		?>
@@ -1351,9 +1322,8 @@ class Tryloom_Admin
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
 		$today_active_users = $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT COUNT(DISTINCT user_id) FROM ' . esc_sql($history_table) . ' WHERE created_at >= %s AND created_at <= %s',
-				$today . ' 00:00:00',
-				$today . ' 23:59:59'
+				'SELECT COUNT(DISTINCT user_id) FROM ' . esc_sql($history_table) . ' WHERE DATE(created_at) = %s',
+				$today
 			)
 		);
 
@@ -1361,9 +1331,8 @@ class Tryloom_Admin
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
 		$today_try_on_count = $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT COUNT(*) FROM ' . esc_sql($history_table) . ' WHERE created_at >= %s AND created_at <= %s',
-				$today . ' 00:00:00',
-				$today . ' 23:59:59'
+				'SELECT COUNT(*) FROM ' . esc_sql($history_table) . ' WHERE DATE(created_at) = %s',
+				$today
 			)
 		);
 
@@ -1371,8 +1340,8 @@ class Tryloom_Admin
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
 		$last_30_days_users = $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT COUNT(DISTINCT user_id) FROM ' . esc_sql($history_table) . ' WHERE created_at >= %s',
-				$thirty_days_ago . ' 00:00:00'
+				'SELECT COUNT(DISTINCT user_id) FROM ' . esc_sql($history_table) . ' WHERE DATE(created_at) >= %s',
+				$thirty_days_ago
 			)
 		);
 
@@ -1380,8 +1349,8 @@ class Tryloom_Admin
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
 		$last_30_days_count = $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT COUNT(*) FROM ' . esc_sql($history_table) . ' WHERE created_at >= %s',
-				$thirty_days_ago . ' 00:00:00'
+				'SELECT COUNT(*) FROM ' . esc_sql($history_table) . ' WHERE DATE(created_at) >= %s',
+				$thirty_days_ago
 			)
 		);
 		?>

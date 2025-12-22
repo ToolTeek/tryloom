@@ -268,7 +268,7 @@ class Tryloom_API
 			'user_photo' => $user_photo_base64,
 			'product_image' => $product_image_base64,
 			'store_domain' => wp_parse_url(site_url(), PHP_URL_HOST),
-			'plugin_version' => defined('TRYLOOM_VERSION') ? TRYLOOM_VERSION : '1.1.0',
+			'plugin_version' => defined('TRYLOOM_VERSION') ? TRYLOOM_VERSION : '1.2.0',
 			'method' => $try_on_method,
 			'instance_id' => $this->get_instance_id(),
 		);
@@ -532,7 +532,9 @@ class Tryloom_API
 			'data_format' => 'body',
 		);
 
-		// Status endpoint
+		// External Service: TryLoom Status API
+		// Used for: Real-time Service Health Checks and Usage Tracking
+		// Terms: https://tryloom.toolteek.com/terms-and-conditions/
 		$response = wp_remote_post('https://status-pdpuoxmr2a-uc.a.run.app/status', $args);
 
 		if (is_wp_error($response)) {
