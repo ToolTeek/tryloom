@@ -357,6 +357,15 @@ class Tryloom_API
 		if (isset($response_data['used']) && isset($response_data['limit'])) {
 			update_option('tryloom_usage_used', absint($response_data['used']));
 			update_option('tryloom_usage_limit', absint($response_data['limit']));
+			if ('yes' === get_option('tryloom_enable_logging', 'no')) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log('[TryLoom] Usage updated: ' . $response_data['used'] . '/' . $response_data['limit']);
+			}
+		} else {
+			if ('yes' === get_option('tryloom_enable_logging', 'no')) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log('[TryLoom] API response missing usage data - used: ' . (isset($response_data['used']) ? 'yes' : 'no') . ', limit: ' . (isset($response_data['limit']) ? 'yes' : 'no'));
+			}
 		}
 
 		// Return the base64 encoded image string.

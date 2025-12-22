@@ -245,7 +245,7 @@ class Tryloom_Admin
 
 		add_settings_field(
 			'tryloom_delete_photos_days',
-			__('Delete Photos After', 'tryloom'),
+			__('Delete Photos After (Days)', 'tryloom'),
 			array($this, 'delete_photos_days_callback'),
 			'tryloom-settings',
 			'tryloom_user_section'
@@ -339,16 +339,17 @@ class Tryloom_Admin
 	public function sanitize_platform_key($input)
 	{
 		$sanitized = sanitize_text_field($input);
+		$current_key = get_option('tryloom_platform_key', '');
 
-		// If a key is being added/updated (not cleared)
-		if (!empty($sanitized)) {
-			// ALWAYS reset the free trial ended flag for any new key input
+		// Only perform actions if the key is actually changing
+		if (!empty($sanitized) && $sanitized !== $current_key) {
+			// Reset the subscription ended flag for new key
 			update_option('tryloom_subscription_ended', 'no');
 
 			// Clear any previous error messages
 			delete_option('tryloom_free_trial_error');
 
-			// Clear usage stats to force a fresh check from the server on the next request
+			// Clear usage stats only when key changes to force fresh check
 			delete_option('tryloom_usage_used');
 			delete_option('tryloom_usage_limit');
 		}
@@ -663,7 +664,7 @@ class Tryloom_Admin
 		<input type="number" name="tryloom_delete_photos_days" value="<?php echo esc_attr($delete_photos_days); ?>" min="1"
 			step="1" />
 		<p class="description">
-			<?php esc_html_e("Automatically remove user photos if the user hasn't logged in for the selected number of days.", 'tryloom'); ?>
+			<?php esc_html_e("Automatically deletes user photos and generated results older than this limit.", 'tryloom'); ?>
 		</p>
 		<?php
 	}
@@ -1368,7 +1369,7 @@ class Tryloom_Admin
 				</div>
 			</div>
 
-			<div class="tryloom-daily-stats" style="margin-top: 20px;">
+			<div class="tryloom-daily-stats" style="margin-top: 10px;">
 				<div class="tryloom-stat-box">
 					<h3><?php esc_html_e('Last 30 Days Active Users', 'tryloom'); ?></h3>
 					<p class="stat-number"><?php echo esc_html($last_30_days_users); ?></p>
@@ -1385,7 +1386,7 @@ class Tryloom_Admin
 			$usage_limit = get_option('tryloom_usage_limit', null);
 			if (null !== $usage_used && null !== $usage_limit) {
 				?>
-				<div class="tryloom-daily-stats" style="margin-top: 20px;">
+				<div class="tryloom-daily-stats" style="margin-top: 10px;">
 					<div class="tryloom-stat-box">
 						<h3><?php esc_html_e('Usage Counter', 'tryloom'); ?></h3>
 						<p class="stat-number"><?php echo esc_html($usage_used); ?> / <?php echo esc_html($usage_limit); ?></p>
