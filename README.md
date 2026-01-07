@@ -3,7 +3,7 @@ Contributors: ToolTeek, dinethchamuditha
 Tags: woocommerce, virtual try-on, product visualization, e-commerce, fashion
 Requires at least: 5.6
 Tested up to: 6.9
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 Requires PHP: 7.2
 WC requires at least: 5.0
 WC tested up to: 10.3
@@ -36,7 +36,7 @@ This plugin acts as a connector to the TryLoom Cloud Platform. All image process
 This plugin requires WooCommerce to function.  
 It uses a cloud-based API for image processing, ensuring high-quality results without taxing your server.  
 
-For more details, visit the [plugin documentation](https://tryloom.toolteek.com/docs)
+For more details, visit the [plugin documentation](https://gettryloom.com/docs)
 
 == Installation ==
 
@@ -60,7 +60,7 @@ After activation, the plugin will automatically set up a free trial key if no pa
 Yes. TryLoom is an extension for WooCommerce and requires it to be installed and active.
 
 = How do I get a platform key? =
-Upon activation, a free trial key is automatically fetched. For unlimited usage, subscribe at [TryLoom Official Website](https://tryloom.toolteek.com/).
+Upon activation, a free trial key is automatically fetched. For unlimited usage, subscribe at [TryLoom Official Website](https://gettryloom.com/).
 
 = Where are user images stored? =
 Images are stored securely in a protected directory on your server (`wp-content/uploads/tryloom/`).  
@@ -95,6 +95,10 @@ Yes. Theme color, primary color, and custom CSS options are available in setting
 6. **Dashboard Widget** – Usage statistics overview.
 
 == Changelog ==
+
+= 1.2.1 =
+* Update: Migrated to new backend infrastructure for service continuity.
+* Fix: Updated all API endpoints to match new configuration.
 
 = 1.2.0 =
 * New: Implemented cloud status check endpoint for reliable usage tracking.
@@ -145,6 +149,9 @@ Yes. Theme color, primary color, and custom CSS options are available in setting
 
 == Upgrade Notice ==
 
+= 1.2.1 =
+Critical Maintenance: Updates API endpoints for the new backend provider. Required for continued service operation.
+
 = 1.2.0 =
 Major update: Includes critical security hardening (SSL & file handling), GDPR compliance fixes (local fonts), and significant performance improvements. Recommended for all users.
 
@@ -179,7 +186,7 @@ Initial release.
 
 == Support ==
 
-For support, visit [ToolTeek Support](https://tryloom.toolteek.com/support) or open an issue on the WordPress plugin forum.
+For support, visit [TryLoom Support](https://gettryloom.com/support) or open an issue on the WordPress plugin forum.
 
 == Privacy ==
 
@@ -194,12 +201,12 @@ This plugin relies on the **TryLoom Cloud Platform** (maintained by ToolTeek) to
 Because AI image generation requires significant computational resources, it cannot run directly on your WordPress hosting environment. Instead, user images and product data are sent to our secure cloud infrastructure for processing and the result is returned to your site.
 
 * **Service:** TryLoom Cloud API & Status Check
-* **Hosts:** * `us-central1-tryloombytoolteek.cloudfunctions.net` (Image Generation)
-    * `status-pdpuoxmr2a-uc.a.run.app` (Service Status & Usage)
+* **Hosts:** * `fashiontryon-vqmfnpmz4q-uc.a.run.app` (Image Generation)
+    * `status-vqmfnpmz4q-uc.a.run.app` (Service Status & Usage)
 * **Used For:** Authenticating the API connection, checking plan usage/status, and performing AI image generation.
 * **Data Sent:** Site URL, API credentials, product ID, product image, and the user's uploaded photo.
-* **Privacy Policy:** https://tryloom.toolteek.com/privacy-policy/
-* **Terms and Conditions:** https://tryloom.toolteek.com/terms-and-conditions/
+* **Privacy Policy:** https://gettryloom.com/privacy-policy/
+* **Terms and Conditions:** https://gettryloom.com/terms-and-conditions/
 
 == Credits ==
 

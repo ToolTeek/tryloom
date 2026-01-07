@@ -418,7 +418,7 @@ class Tryloom_Admin
 				<span class="tryloom-help-tip">
 					<span class="tryloom-tooltip-content">
 						<?php esc_html_e('Smart AI automatically selects the best mode for customer photo to ensure quality and usability.', 'tryloom'); ?>
-						<br><a href="https://tryloom.toolteek.com/studio-vs-try-on-mode-guide/"
+						<br><a href="https://gettryloom.com/studio-vs-try-on-mode-guide/"
 							target="_blank"><?php esc_html_e('Learn more', 'tryloom'); ?></a>
 					</span>
 				</span>
@@ -430,7 +430,7 @@ class Tryloom_Admin
 				<span class="tryloom-help-tip">
 					<span class="tryloom-tooltip-content">
 						<?php esc_html_e('Fastest option. Creates high-quality, studio-lit images with professional lighting and background.', 'tryloom'); ?>
-						<br><a href="https://tryloom.toolteek.com/studio-vs-try-on-mode-guide/"
+						<br><a href="https://gettryloom.com/studio-vs-try-on-mode-guide/"
 							target="_blank"><?php esc_html_e('Learn more', 'tryloom'); ?></a>
 					</span>
 				</span>
@@ -442,7 +442,7 @@ class Tryloom_Admin
 				<span class="tryloom-help-tip">
 					<span class="tryloom-tooltip-content">
 						<?php esc_html_e('Maximum realism. Preserves exact facial features, fabric textures and background.', 'tryloom'); ?>
-						<br><a href="https://tryloom.toolteek.com/studio-vs-try-on-mode-guide/"
+						<br><a href="https://gettryloom.com/studio-vs-try-on-mode-guide/"
 							target="_blank"><?php esc_html_e('Learn more', 'tryloom'); ?></a>
 					</span>
 				</span>
@@ -463,7 +463,7 @@ class Tryloom_Admin
 		<p class="description">
 			<?php
 			echo wp_kses_post(
-				__('By default, you are on the free plan. Enter your TryLoom platform key for more freedom. <a href="https://tryloom.toolteek.com/get-key" target="_blank">Get your key here</a>.', 'tryloom')
+				__('By default, you are on the free plan. Enter your TryLoom platform key for more freedom. <a href="https://gettryloom.com/my-account" target="_blank">Get your key here</a>.', 'tryloom')
 			);
 			?>
 		</p>
@@ -1089,7 +1089,7 @@ class Tryloom_Admin
 		if ('yes' === $subscription_ended) {
 			echo '<div class="notice notice-error is-dismissible"><p>' .
 				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML allowed
-				__('Your TryLoom subscription has expired or payment failed.<br><strong>Your customers cannot see the Virtual Try-On button.</strong><br><a href="https://tryloom.toolteek.com/my-account/">Click here to renew now</a> to restore service immediately.', 'tryloom') .
+				__('Your TryLoom subscription has expired or payment failed.<br><strong>Your customers cannot see the Virtual Try-On button.</strong><br><a href="https://gettryloom.com/my-account/">Click here to renew now</a> to restore service immediately.', 'tryloom') .
 				'</p></div>';
 		}
 
@@ -1412,12 +1412,12 @@ class Tryloom_Admin
 				</div>
 				<div class="tryloom-header-actions">
 					<?php if ($show_start_free_button): ?>
-						<a href="https://tryloom.toolteek.com/my-account/" class="button button-primary" target="_blank"
+						<a href="https://gettryloom.com/my-account/" class="button button-primary" target="_blank"
 							style="margin-right: 10px;">
 							<?php esc_html_e('Start for Free', 'tryloom'); ?>
 						</a>
 					<?php endif; ?>
-					<a href="https://tryloom.toolteek.com/#pricing" class="button button-primary" target="_blank">
+					<a href="https://gettryloom.com/#pricing" class="button button-primary" target="_blank">
 						<?php esc_html_e('Subscription Options', 'tryloom'); ?>
 					</a>
 				</div>

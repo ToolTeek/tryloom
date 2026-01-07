@@ -35,10 +35,10 @@ class Tryloom_API
 	 */
 	public function __construct()
 	{
-		// External Service: TryLoom Cloud API (Google Cloud Functions)
+		// External Service: TryLoom Cloud API
 		// Used for: AI Image Generation and License Validation
-		// Terms: https://tryloom.toolteek.com/terms-and-conditions/
-		$this->api_endpoint = 'https://us-central1-tryloombytoolteek.cloudfunctions.net/fashionTryOn';
+		// Terms: https://gettryloom.com/terms-and-conditions/
+		$this->api_endpoint = 'https://fashiontryon-vqmfnpmz4q-uc.a.run.app';
 
 		// Get platform key - prefer paid key, fallback to free key
 		$paid_key = get_option('tryloom_platform_key', '');
@@ -268,7 +268,7 @@ class Tryloom_API
 			'user_photo' => $user_photo_base64,
 			'product_image' => $product_image_base64,
 			'store_domain' => wp_parse_url(site_url(), PHP_URL_HOST),
-			'plugin_version' => defined('TRYLOOM_VERSION') ? TRYLOOM_VERSION : '1.2.0',
+			'plugin_version' => defined('TRYLOOM_VERSION') ? TRYLOOM_VERSION : '1.2.1',
 			'method' => $try_on_method,
 			'instance_id' => $this->get_instance_id(),
 		);
@@ -534,8 +534,8 @@ class Tryloom_API
 
 		// External Service: TryLoom Status API
 		// Used for: Real-time Service Health Checks and Usage Tracking
-		// Terms: https://tryloom.toolteek.com/terms-and-conditions/
-		$response = wp_remote_post('https://status-pdpuoxmr2a-uc.a.run.app/status', $args);
+		// Terms: https://gettryloom.com/terms-and-conditions/
+		$response = wp_remote_post('https://status-vqmfnpmz4q-uc.a.run.app/status', $args);
 
 		if (is_wp_error($response)) {
 			// Log error but don't stop future checks, just wait for next cron
