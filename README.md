@@ -3,7 +3,7 @@ Contributors: ToolTeek, dinethchamuditha
 Tags: woocommerce, virtual try-on, product visualization, e-commerce, fashion
 Requires at least: 5.6
 Tested up to: 6.9
-Stable tag: 1.2.1
+Stable tag: 1.2.3
 Requires PHP: 7.2
 WC requires at least: 5.0
 WC tested up to: 10.3
@@ -96,6 +96,19 @@ Yes. Theme color, primary color, and custom CSS options are available in setting
 
 == Changelog ==
 
+= 1.2.3 =
+* Fix: Resolved a critical "Scroll Lock" conflict that caused the page interface to freeze on certain themes (e.g., Minimog) when interacting with Cart or Search drawers.
+* Update: Replaced aggressive inline-style scroll locking with a passive "Class-Based" system (tryloom-scroll-lock) to prevent interference with theme navigation.
+* Fix: Corrected a Z-Index layering issue where the plugin container could block clicks on underlying buttons even when closed.
+* Improvement: Added a "Safety Net" script to force-release any scroll locks immediately upon page load.
+* Improvement: Optimized CSS pointer-events to ensure the plugin is completely "transparent" to mouse clicks when not in use.
+
+= 1.2.2 =
+* Fix: Optimized asset loading logic to prevent script execution on non-product pages.
+* Update: Refactored wp_footer hooks with strict conditional checks for enhanced theme compatibility.
+* Fix: Resolved a JavaScript execution conflict that affected navigation menus on certain premium themes.
+* Improvement: Added defensive null-checks to the core initialization script to prevent global execution errors.
+
 = 1.2.1 =
 * Update: Migrated to new backend infrastructure for service continuity.
 * Fix: Updated all API endpoints to match new configuration.
@@ -148,6 +161,13 @@ Yes. Theme color, primary color, and custom CSS options are available in setting
 * Initial release: Core virtual try-on functionality, admin settings, user account integration, and API support.
 
 == Upgrade Notice ==
+
+= 1.2.3 =
+Critical Update: Fixes a major conflict where the website scroll or buttons (Cart/Search) could freeze on Product Pages. Recommended for all users immediately.
+
+-= 1.2.2 = 
+Maintenance Update: Fixes a theme compatibility conflict involving navigation menus and optimizes site-wide performance by strictly isolating plugin assets to WooCommerce pages. Highly recommended for users of Minimog and other Elementor-based themes.
+
 
 = 1.2.1 =
 Critical Maintenance: Updates API endpoints for the new backend provider. Required for continued service operation.

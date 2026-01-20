@@ -278,6 +278,11 @@ class Tryloom_Frontend
 			return;
 		}
 
+		// Only render popup on product pages or account pages.
+		if (!is_product() && !is_account_page()) {
+			return;
+		}
+
 		// Check if subscription ended
 		$subscription_ended = get_option('tryloom_subscription_ended', 'no');
 		if ('yes' === $subscription_ended) {

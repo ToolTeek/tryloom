@@ -4,6 +4,18 @@
  * @package WooCommerce_Try_On
  */
 
+/**
+ * Scroll Lock Class
+ * Used to prevent body scrolling when popup/lightbox is open.
+ * Uses a class instead of inline styles to avoid conflicts with theme scripts.
+ */
+body.tryloom-scroll-lock {
+    overflow: hidden !important;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+
 :root {
     /* Colors - Light Theme (Default) */
     --tryloom-bg-primary: #ffffff;
@@ -258,8 +270,9 @@
 }
 
 .tryloom-popup-close:hover {
-    transform: rotate(90deg) scale(1.2);
+    transform: rotate(90deg) scale(1);
     color: var(--tryloom-close-hover);
+    background: transparent
 }
 
 .tryloom-popup-body {

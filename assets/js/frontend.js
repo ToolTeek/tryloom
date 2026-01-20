@@ -703,7 +703,7 @@
 				if (imgSrc) {
 					$('.tryloom-lightbox-content img').attr('src', imgSrc);
 					$('.tryloom-lightbox').addClass('open');
-					$('body').css('overflow', 'hidden'); // Prevent scrolling
+					$('body').addClass('tryloom-scroll-lock'); // Prevent scrolling
 				}
 			});
 
@@ -717,7 +717,7 @@
 				if (imgSrc) {
 					$('.tryloom-lightbox-content img').attr('src', imgSrc);
 					$('.tryloom-lightbox').addClass('open');
-					$('body').css('overflow', 'hidden');
+					$('body').addClass('tryloom-scroll-lock');
 				}
 			});
 
@@ -725,7 +725,7 @@
 			$(document).on('click', '.tryloom-lightbox-close, .tryloom-lightbox', function (e) {
 				if (e.target === this) {
 					$('.tryloom-lightbox').removeClass('open');
-					$('body').css('overflow', 'auto'); // Re-enable scrolling
+					$('body').removeClass('tryloom-scroll-lock'); // Re-enable scrolling
 				}
 			});
 
@@ -733,7 +733,7 @@
 			$(document).on('keyup', function (e) {
 				if (e.keyCode === 27) { // Escape key
 					$('.tryloom-lightbox').removeClass('open');
-					$('body').css('overflow', 'auto'); // Re-enable scrolling
+					$('body').removeClass('tryloom-scroll-lock'); // Re-enable scrolling
 				}
 			});
 		},
@@ -745,7 +745,7 @@
 		 */
 		openPopup: function (productId) {
 			// Disable page scrolling
-			$('body').css('overflow', 'hidden');
+			$('body').addClass('tryloom-scroll-lock');
 
 			// Get the popup element
 			var popup = $('#tryloom-popup');
@@ -840,7 +840,7 @@
 			popup.removeClass('open');
 
 			// Re-enable page scrolling
-			$('body').css('overflow', 'auto');
+			$('body').removeClass('tryloom-scroll-lock');
 		},
 
 		/**
