@@ -3,7 +3,7 @@ Contributors: ToolTeek, dinethchamuditha
 Tags: woocommerce, virtual try-on, product visualization, e-commerce, fashion
 Requires at least: 5.6
 Tested up to: 6.9
-Stable tag: 1.2.3
+Stable tag: 1.2.5
 Requires PHP: 7.2
 WC requires at least: 5.0
 WC tested up to: 10.3
@@ -96,7 +96,11 @@ Yes. Theme color, primary color, and custom CSS options are available in setting
 
 == Changelog ==
 
-= 1.2.3 =
+= 1.2.5 =
+* Fix: Critical fix for theme compatibility - Added pointer-events: none to hidden popup container to prevent blocking clicks on theme elements (cart drawer, login modal, search popup, etc.) when plugin is active but popup is not open.
+* Fix: Resolves "page freeze" issue where users couldn't click navigation icons after installing the plugin.
+
+= 1.2.4 =
 * Fix: Resolved a critical "Scroll Lock" conflict that caused the page interface to freeze on certain themes (e.g., Minimog) when interacting with Cart or Search drawers.
 * Update: Replaced aggressive inline-style scroll locking with a passive "Class-Based" system (tryloom-scroll-lock) to prevent interference with theme navigation.
 * Fix: Corrected a Z-Index layering issue where the plugin container could block clicks on underlying buttons even when closed.
@@ -162,7 +166,10 @@ Yes. Theme color, primary color, and custom CSS options are available in setting
 
 == Upgrade Notice ==
 
-= 1.2.3 =
+= 1.2.5 =
+Critical Update: Fixes an issue where the hidden plugin popup could block clicks on theme elements like Cart, Login, and Search icons. Recommended for all users.
+
+= 1.2.4 =
 Critical Update: Fixes a major conflict where the website scroll or buttons (Cart/Search) could freeze on Product Pages. Recommended for all users immediately.
 
 -= 1.2.2 = 

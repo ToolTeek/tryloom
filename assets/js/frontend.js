@@ -64,6 +64,11 @@
 		defaultPhotoUrl: null,
 
 		/**
+		 * Saved scroll position before scroll lock (for iOS Safari).
+		 */
+		savedScrollPosition: 0,
+
+		/**
 		 * Initialize.
 		 */
 		init: function () {
@@ -701,6 +706,8 @@
 				var imgSrc = $(this).attr('src');
 
 				if (imgSrc) {
+					// Save scroll position before locking
+					TryloomUI.savedScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
 					$('.tryloom-lightbox-content img').attr('src', imgSrc);
 					$('.tryloom-lightbox').addClass('open');
 					$('body').addClass('tryloom-scroll-lock'); // Prevent scrolling
@@ -715,6 +722,8 @@
 				var imgSrc = $(this).attr('href') || $(this).find('img').attr('src');
 
 				if (imgSrc) {
+					// Save scroll position before locking
+					TryloomUI.savedScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
 					$('.tryloom-lightbox-content img').attr('src', imgSrc);
 					$('.tryloom-lightbox').addClass('open');
 					$('body').addClass('tryloom-scroll-lock');
@@ -726,6 +735,10 @@
 				if (e.target === this) {
 					$('.tryloom-lightbox').removeClass('open');
 					$('body').removeClass('tryloom-scroll-lock'); // Re-enable scrolling
+					// Restore scroll position
+					if (TryloomUI.savedScrollPosition) {
+						window.scrollTo(0, TryloomUI.savedScrollPosition);
+					}
 				}
 			});
 
@@ -734,6 +747,10 @@
 				if (e.keyCode === 27) { // Escape key
 					$('.tryloom-lightbox').removeClass('open');
 					$('body').removeClass('tryloom-scroll-lock'); // Re-enable scrolling
+					// Restore scroll position
+					if (TryloomUI.savedScrollPosition) {
+						window.scrollTo(0, TryloomUI.savedScrollPosition);
+					}
 				}
 			});
 		},
@@ -744,6 +761,9 @@
 		 * @param {number} productId Product ID.
 		 */
 		openPopup: function (productId) {
+			// Save scroll position before locking
+			this.savedScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+
 			// Disable page scrolling
 			$('body').addClass('tryloom-scroll-lock');
 
@@ -841,6 +861,11 @@
 
 			// Re-enable page scrolling
 			$('body').removeClass('tryloom-scroll-lock');
+
+			// Restore scroll position (for iOS Safari compatibility)
+			if (this.savedScrollPosition) {
+				window.scrollTo(0, this.savedScrollPosition);
+			}
 		},
 
 		/**

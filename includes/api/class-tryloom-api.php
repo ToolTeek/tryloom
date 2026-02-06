@@ -268,7 +268,7 @@ class Tryloom_API
 			'user_photo' => $user_photo_base64,
 			'product_image' => $product_image_base64,
 			'store_domain' => wp_parse_url(site_url(), PHP_URL_HOST),
-			'plugin_version' => defined('TRYLOOM_VERSION') ? TRYLOOM_VERSION : '1.2.3',
+			'plugin_version' => defined('TRYLOOM_VERSION') ? TRYLOOM_VERSION : '1.2.5',
 			'method' => $try_on_method,
 			'instance_id' => $this->get_instance_id(),
 		);

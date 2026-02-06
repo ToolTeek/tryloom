@@ -496,7 +496,7 @@ class Tryloom_Frontend
 			'tryloom-frontend',
 			TRYLOOM_PLUGIN_URL . 'assets/css/frontend.css',
 			array(),
-			time() // Force reload
+			TRYLOOM_VERSION
 		);
 
 		// Add custom CSS.
