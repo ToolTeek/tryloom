@@ -65,9 +65,8 @@ class Tryloom_Frontend
 		// Handle scheduled image deletion.
 		add_action('tryloom_delete_generated_image', array($this, 'delete_generated_image'), 10, 2);
 
-		// Add filter to prevent try-on images from appearing in media library.
-		add_filter('ajax_query_attachments_args', array($this, 'exclude_try_on_images_from_media_library'));
-		add_filter('pre_get_posts', array($this, 'exclude_try_on_images_from_media_library_query'));
+		// Note: Media library filters removed for performance.
+		// Images are protected by unpredictable 32-char filenames instead.
 	}
 
 	/**
@@ -627,34 +626,87 @@ class Tryloom_Frontend
 	}
 
 	/**
-	 * Create custom directory for try-on images.
+	 * Create custom directory for try-on images with date-based subfolders.
 	 *
-	 * @return string Path to custom directory.
+	 * @return string Path to custom directory (with date subfolder).
 	 */
 	private function create_custom_directory()
 	{
 		$upload_dir = wp_upload_dir();
-		$custom_dir = $upload_dir['basedir'] . '/tryloom';
+		$base_dir = $upload_dir['basedir'] . '/tryloom';
 
-		// Create directory if it doesn't exist
-		if (!file_exists($custom_dir)) {
-			wp_mkdir_p($custom_dir);
+		// Create base directory if it doesn't exist
+		if (!file_exists($base_dir)) {
+			wp_mkdir_p($base_dir);
+			$this->create_directory_protection($base_dir, true);
 		}
 
-		// Create .htaccess file to prevent direct access
-		$htaccess_file = $custom_dir . '/.htaccess';
-		if (!file_exists($htaccess_file)) {
-			$htaccess_content = "Order Deny,Allow\nDeny from all";
-			file_put_contents($htaccess_file, $htaccess_content);
+		// Create date-based subfolder (YYYY/MM) to prevent folder bloat
+		$year = gmdate('Y');
+		$month = gmdate('m');
+		$date_dir = $base_dir . '/' . $year . '/' . $month;
+
+		if (!file_exists($date_dir)) {
+			wp_mkdir_p($date_dir);
+			// Add silence file to year folder
+			$this->create_directory_protection($base_dir . '/' . $year, false);
+			// Add silence file to month folder
+			$this->create_directory_protection($date_dir, false);
 		}
 
-		// Create index.php to prevent directory listing
-		$index_file = $custom_dir . '/index.php';
+		return $date_dir;
+	}
+
+	/**
+	 * Create directory protection files (.htaccess and index.php).
+	 *
+	 * @param string $dir_path     Directory path.
+	 * @param bool   $include_htaccess Whether to include .htaccess (only for root).
+	 */
+	private function create_directory_protection($dir_path, $include_htaccess = false)
+	{
+		// Create index.php to prevent directory listing (Silence is golden)
+		$index_file = $dir_path . '/index.php';
 		if (!file_exists($index_file)) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Simple file creation
 			file_put_contents($index_file, "<?php\n// Silence is golden.");
 		}
 
-		return $custom_dir;
+		// Create .htaccess only in root folder to block PHP execution but allow image access
+		if ($include_htaccess) {
+			$htaccess_file = $dir_path . '/.htaccess';
+			if (!file_exists($htaccess_file)) {
+				$htaccess_content = "# Block PHP execution in this folder (security)\n";
+				$htaccess_content .= "<Files *.php>\n";
+				$htaccess_content .= "deny from all\n";
+				$htaccess_content .= "</Files>\n";
+				$htaccess_content .= "\n";
+				$htaccess_content .= "# Allow the silence index.php file\n";
+				$htaccess_content .= "<Files index.php>\n";
+				$htaccess_content .= "allow from all\n";
+				$htaccess_content .= "</Files>\n";
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Simple file creation
+				file_put_contents($htaccess_file, $htaccess_content);
+			}
+		}
+	}
+
+	/**
+	 * Generate a secure random filename (32-char hex string).
+	 *
+	 * @param string $extension File extension (e.g., 'png').
+	 * @return string Random filename like 'a3f8d1b6c4e29a7b1f3e5d8c2a4b6e9f.png'
+	 */
+	private function generate_secure_filename($extension = 'png')
+	{
+		// Generate 16 random bytes = 32 hex characters
+		if (function_exists('random_bytes')) {
+			$random = bin2hex(random_bytes(16));
+		} else {
+			// Fallback for older PHP versions
+			$random = wp_generate_password(32, false, false);
+		}
+		return strtolower($random) . '.' . $extension;
 	}
 
 	/**
@@ -1072,13 +1124,16 @@ class Tryloom_Frontend
 				wp_send_json_error(array('message' => __('Failed to decode generated image.', 'tryloom')));
 			}
 
-			// Create a unique filename.
-			$product_name_slug = sanitize_title($product->get_name());
-			$filename = 'tryloom-' . $user_id . '-' . $product_name_slug . '-' . time() . '.png';
+			// Create a secure random filename (32-char hex for unguessable URLs)
+			$filename = $this->generate_secure_filename('png');
 
-			// Create custom directory for try-on images
+			// Create custom directory with date-based subfolders
 			$custom_dir = $this->create_custom_directory();
-			$custom_dir_url = wp_upload_dir()['baseurl'] . '/tryloom';
+
+			// Build the URL path based on current date structure
+			$year = gmdate('Y');
+			$month = gmdate('m');
+			$custom_dir_url = wp_upload_dir()['baseurl'] . '/tryloom/' . $year . '/' . $month;
 
 			// Initialize filesystem API if needed.
 			global $wp_filesystem;
@@ -1105,9 +1160,8 @@ class Tryloom_Frontend
 				wp_send_json_error(array('message' => __('Generated image file is not readable.', 'tryloom')));
 			}
 
-			// Get the URL for the custom directory file (protected URL with nonce)
-			$image_nonce = wp_create_nonce('tryloom_image_access');
-			$generated_image_url = home_url('?tryloom_image=' . urlencode($filename) . '&_wpnonce=' . urlencode($image_nonce));
+			// Build direct URL - the 32-char random filename IS the security (unguessable)
+			$generated_image_url = $custom_dir_url . '/' . $filename;
 
 			// Save try-on history and create attachment based on history setting.
 			$enable_history = get_option('tryloom_enable_history', 'yes');

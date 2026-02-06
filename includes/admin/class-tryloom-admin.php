@@ -1223,33 +1223,23 @@ class Tryloom_Admin
 	 */
 	public function dashboard_widget_callback()
 	{
-		global $wpdb;
+		// Try to get cached statistics first (3 hour cache).
+		$stats = get_transient('tryloom_dashboard_stats');
 
-		// Get total try-ons in the last hour.
-		$table_name = $wpdb->prefix . 'tryloom_history';
-		$hour_ago = gmdate('Y-m-d H:i:s', strtotime('-1 hour'));
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
-		$total_hour = $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . esc_sql($table_name) . ' WHERE created_at > %s', $hour_ago));
+		if (false === $stats) {
+			// Cache miss - fetch fresh data from database.
+			$stats = $this->fetch_dashboard_stats();
 
-		// Get total try-ons in the last day.
-		$day_ago = gmdate('Y-m-d H:i:s', strtotime('-1 day'));
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
-		$total_day = $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . esc_sql($table_name) . ' WHERE created_at > %s', $day_ago));
+			// Cache for 3 hours.
+			set_transient('tryloom_dashboard_stats', $stats, 3 * HOUR_IN_SECONDS);
+		}
 
-		// Get total try-ons in the last week.
-		$week_ago = gmdate('Y-m-d H:i:s', strtotime('-1 week'));
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
-		$total_week = $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . esc_sql($table_name) . ' WHERE created_at > %s', $week_ago));
-
-		// Get total try-ons all time.
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
-		$total_all = $wpdb->get_var('SELECT COUNT(*) FROM ' . esc_sql($table_name));
-
-		// Get top products.
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
-		$top_products = $wpdb->get_results(
-			'SELECT product_id, COUNT(*) as count FROM ' . esc_sql($table_name) . ' GROUP BY product_id ORDER BY count DESC LIMIT 5'
-		);
+		// Extract cached values.
+		$total_hour = $stats['total_hour'];
+		$total_day = $stats['total_day'];
+		$total_week = $stats['total_week'];
+		$total_all = $stats['total_all'];
+		$top_products = $stats['top_products'];
 
 		// Display statistics.
 		?>
@@ -1292,6 +1282,52 @@ class Tryloom_Admin
 			</a>
 		</p>
 		<?php
+	}
+
+	/**
+	 * Fetch dashboard statistics from database.
+	 * This is called only when the transient cache is empty.
+	 *
+	 * @return array Statistics data.
+	 */
+	private function fetch_dashboard_stats()
+	{
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . 'tryloom_history';
+
+		// Get total try-ons in the last hour.
+		$hour_ago = gmdate('Y-m-d H:i:s', strtotime('-1 hour'));
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+		$total_hour = $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . esc_sql($table_name) . ' WHERE created_at > %s', $hour_ago));
+
+		// Get total try-ons in the last day.
+		$day_ago = gmdate('Y-m-d H:i:s', strtotime('-1 day'));
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+		$total_day = $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . esc_sql($table_name) . ' WHERE created_at > %s', $day_ago));
+
+		// Get total try-ons in the last week.
+		$week_ago = gmdate('Y-m-d H:i:s', strtotime('-1 week'));
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+		$total_week = $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . esc_sql($table_name) . ' WHERE created_at > %s', $week_ago));
+
+		// Get total try-ons all time.
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+		$total_all = $wpdb->get_var('SELECT COUNT(*) FROM ' . esc_sql($table_name));
+
+		// Get top products.
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+		$top_products = $wpdb->get_results(
+			'SELECT product_id, COUNT(*) as count FROM ' . esc_sql($table_name) . ' GROUP BY product_id ORDER BY count DESC LIMIT 5'
+		);
+
+		return array(
+			'total_hour' => $total_hour,
+			'total_day' => $total_day,
+			'total_week' => $total_week,
+			'total_all' => $total_all,
+			'top_products' => $top_products,
+		);
 	}
 
 	/**
