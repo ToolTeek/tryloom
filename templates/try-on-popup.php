@@ -10,56 +10,20 @@ defined('ABSPATH') || exit;
 // phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound,WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 // Template variables and WooCommerce hooks are acceptable in template files.
 
-// Get settings.
-$settings = get_option('tryloom_settings', array());
-$theme = get_option('tryloom_theme_color', 'light');
-$primary_color = get_option('tryloom_primary_color', '#552FBC'); // Force direct use, not from settings array
-$watermark = isset($settings['watermark']) ? wp_get_attachment_url($settings['watermark']) : '';
-$save_photos = isset($settings['save_photos']) ? $settings['save_photos'] : 'yes';
+// Get settings (these may be passed from add_try_on_popup, but we need them for shortcode usage too).
+$theme = isset($theme_color) ? $theme_color : get_option('tryloom_theme_color', 'light');
+$primary_color = isset($primary_color) ? $primary_color : get_option('tryloom_primary_color', '#552FBC');
+$watermark = isset($watermark) ? $watermark : get_option('tryloom_brand_watermark', '');
+if ($watermark && is_numeric($watermark)) {
+    $watermark = wp_get_attachment_url($watermark);
+}
 $retry_button = get_option('tryloom_retry_button', 'yes');
 
-// Get current user.
-$current_user = wp_get_current_user();
-$user_id = $current_user->ID;
-$default_photo = false;
-
-// Check if user has default photo.
-if ($user_id) {
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'tryloom_user_photos';
-
-    // First try to get permanent default (manually_set_default = 1).
-    // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
-    $default_photo = $wpdb->get_row($wpdb->prepare(
-        'SELECT * FROM ' . esc_sql($table_name) . ' WHERE user_id = %d AND is_default = 1 AND manually_set_default = 1 LIMIT 1',
-        $user_id
-    ));
-
-    // If no permanent default, get temp default (manually_set_default = 0).
-    if (!$default_photo) {
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
-        $default_photo = $wpdb->get_row($wpdb->prepare(
-            'SELECT * FROM ' . esc_sql($table_name) . ' WHERE user_id = %d AND is_default = 1 AND manually_set_default = 0 LIMIT 1',
-            $user_id
-        ));
-    }
-}
-
-// Get default photo URL.
-$default_photo_url = $default_photo ? $default_photo->image_url : '';
-
-// Refresh nonce for protected URLs (nonces expire, so we need fresh ones)
-if ($default_photo_url && strpos($default_photo_url, '?tryloom_image=') !== false) {
-    // Extract the image name and create a fresh nonce
-    $parsed = wp_parse_url($default_photo_url);
-    if (isset($parsed['query'])) {
-        parse_str($parsed['query'], $query_params);
-        if (isset($query_params['tryloom_image'])) {
-            $image_name = $query_params['tryloom_image'];
-            $fresh_nonce = wp_create_nonce('tryloom_image_access');
-            $default_photo_url = home_url('?tryloom_image=' . urlencode($image_name) . '&_wpnonce=' . urlencode($fresh_nonce));
-        }
-    }
+// Use passed $default_photo_url if available (from add_try_on_popup), otherwise it's empty.
+// This variable is already set by add_try_on_popup() with the optimized single query.
+// Images use direct URLs with UUID filenames for security (no PHP proxy needed).
+if (!isset($default_photo_url)) {
+    $default_photo_url = '';
 }
 ?>
 <div id="tryloom-popup" class="tryloom-popup tryloom-theme-<?php echo esc_attr($theme); ?>"

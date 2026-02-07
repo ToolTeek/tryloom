@@ -129,11 +129,7 @@ if ('yes' === $enable_history) {
                             </td>
                             <td>
                                 <?php
-                                // Add nonce to image URL if it's a tryloom protected image
-                                if (strpos($result_image, '?tryloom_image=') !== false && strpos($result_image, '_wpnonce=') === false) {
-                                    $image_nonce = wp_create_nonce('tryloom_image_access');
-                                    $result_image = $result_image . '&_wpnonce=' . urlencode($image_nonce);
-                                }
+                                // Images use direct URLs with UUID filenames for security (no PHP proxy needed).
                                 ?>
                                 <a href="<?php echo esc_url($result_image); ?>" target="_blank" class="tryloom-history-image">
                                     <img src="<?php echo esc_url($result_image); ?>"

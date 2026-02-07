@@ -892,22 +892,6 @@ class Tryloom_Admin
 			return false;
 		}
 
-		// If the URL is a protected URL, extract the filename and get path from custom directory
-		if (strpos($image_url, '?tryloom_image=') !== false) {
-			$parsed_url = wp_parse_url($image_url);
-			if (isset($parsed_url['query'])) {
-				parse_str($parsed_url['query'], $query_params);
-				if (isset($query_params['tryloom_image'])) {
-					$image_name = sanitize_file_name($query_params['tryloom_image']);
-					$upload_dir = wp_upload_dir();
-					$protected_image_path = $upload_dir['basedir'] . '/tryloom/' . $image_name;
-					if (file_exists($protected_image_path)) {
-						return $protected_image_path;
-					}
-				}
-			}
-		}
-
 		// Try to get attachment ID and file path
 		$attachment_id = attachment_url_to_postid($image_url);
 		if ($attachment_id) {
@@ -1084,7 +1068,7 @@ class Tryloom_Admin
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('All try-on history has been cleared successfully.', 'tryloom') . '</p></div>';
 		}
 
-		// Show subscription ended notice on all admin pages
+		// Show subscription ended notice on all admin pages (critical business notice).
 		$subscription_ended = get_option('tryloom_subscription_ended', 'no');
 		if ('yes' === $subscription_ended) {
 			echo '<div class="notice notice-error is-dismissible"><p>' .
@@ -1093,15 +1077,15 @@ class Tryloom_Admin
 				'</p></div>';
 		}
 
-		// Warning if Cron is not working
-		if (!wp_next_scheduled('tryloom_check_account_status') || !wp_next_scheduled('tryloom_cleanup_inactive_users')) {
-			echo '<div class="notice notice-warning is-dismissible"><p><strong>' . esc_html__('TryLoom System Warning:', 'tryloom') . '</strong> ' . esc_html__('Scheduled tasks (WP-Cron) do not appear to be running. This may prevent automatic history cleanup and account status checks.', 'tryloom') . '</p></div>';
-		}
-
-		// Only show conflict warnings on Try On settings page.
+		// Only show remaining notices on TryLoom settings page (performance optimization).
 		$screen = get_current_screen();
 		if (!$screen || ('toplevel_page_tryloom-settings' !== $screen->id && 'woocommerce_page_tryloom-settings' !== $screen->id)) {
 			return;
+		}
+
+		// Warning if Cron is not working (only on TryLoom page now).
+		if (!wp_next_scheduled('tryloom_check_account_status') || !wp_next_scheduled('tryloom_cleanup_inactive_users')) {
+			echo '<div class="notice notice-warning is-dismissible"><p><strong>' . esc_html__('TryLoom System Warning:', 'tryloom') . '</strong> ' . esc_html__('Scheduled tasks (WP-Cron) do not appear to be running. This may prevent automatic history cleanup and account status checks.', 'tryloom') . '</p></div>';
 		}
 
 		// Check for potential conflicts.
@@ -1161,9 +1145,10 @@ class Tryloom_Admin
 	 */
 	public function enqueue_admin_scripts($hook)
 	{
-		// if ('toplevel_page_tryloom-settings' !== $hook && 'woocommerce_page_tryloom-settings' !== $hook) {
-		// 	return;
-		// }
+		// Only load assets on TryLoom settings page.
+		if ('toplevel_page_tryloom-settings' !== $hook && 'woocommerce_page_tryloom-settings' !== $hook) {
+			return;
+		}
 
 		// Enqueue Font Awesome.
 		// Note: Using local bundle for compliance.
@@ -1349,17 +1334,19 @@ class Tryloom_Admin
 
 		// Get statistics.
 		global $wpdb;
-		$today = gmdate('Y-m-d');
-		$thirty_days_ago = gmdate('Y-m-d', strtotime('-30 days'));
-		$midnight = strtotime('today');
+		// Use datetime strings for index-friendly range queries (avoids DATE() function which disables indexes)
+		$today_start = gmdate('Y-m-d 00:00:00');
+		$today_end = gmdate('Y-m-d 00:00:00', strtotime('+1 day'));
+		$thirty_days_ago_start = gmdate('Y-m-d 00:00:00', strtotime('-30 days'));
 		$history_table = $wpdb->prefix . 'tryloom_history';
 
 		// Today's Active Users - Count distinct users who used try-on today.
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
 		$today_active_users = $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT COUNT(DISTINCT user_id) FROM ' . esc_sql($history_table) . ' WHERE DATE(created_at) = %s',
-				$today
+				'SELECT COUNT(DISTINCT user_id) FROM ' . esc_sql($history_table) . ' WHERE created_at >= %s AND created_at < %s',
+				$today_start,
+				$today_end
 			)
 		);
 
@@ -1367,8 +1354,9 @@ class Tryloom_Admin
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
 		$today_try_on_count = $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT COUNT(*) FROM ' . esc_sql($history_table) . ' WHERE DATE(created_at) = %s',
-				$today
+				'SELECT COUNT(*) FROM ' . esc_sql($history_table) . ' WHERE created_at >= %s AND created_at < %s',
+				$today_start,
+				$today_end
 			)
 		);
 
@@ -1376,8 +1364,8 @@ class Tryloom_Admin
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
 		$last_30_days_users = $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT COUNT(DISTINCT user_id) FROM ' . esc_sql($history_table) . ' WHERE DATE(created_at) >= %s',
-				$thirty_days_ago
+				'SELECT COUNT(DISTINCT user_id) FROM ' . esc_sql($history_table) . ' WHERE created_at >= %s',
+				$thirty_days_ago_start
 			)
 		);
 
@@ -1385,8 +1373,8 @@ class Tryloom_Admin
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
 		$last_30_days_count = $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT COUNT(*) FROM ' . esc_sql($history_table) . ' WHERE DATE(created_at) >= %s',
-				$thirty_days_ago
+				'SELECT COUNT(*) FROM ' . esc_sql($history_table) . ' WHERE created_at >= %s',
+				$thirty_days_ago_start
 			)
 		);
 		?>

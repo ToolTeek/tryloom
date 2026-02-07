@@ -59,14 +59,18 @@ class Tryloom_Frontend
 		add_action('wp_ajax_tryloom_get_product', array($this, 'ajax_get_product'));
 		add_action('wp_ajax_nopriv_tryloom_get_product', array($this, 'ajax_get_product'));
 
-		// Handle image access protection
-		add_action('init', array($this, 'protect_try_on_images'));
-
 		// Handle scheduled image deletion.
 		add_action('tryloom_delete_generated_image', array($this, 'delete_generated_image'), 10, 2);
 
-		// Note: Media library filters removed for performance.
-		// Images are protected by unpredictable 32-char filenames instead.
+		// Invalidate variations cache when product is updated.
+		add_action('save_post_product', array($this, 'invalidate_variations_cache'), 10, 1);
+		add_action('woocommerce_save_product_variation', array($this, 'invalidate_parent_variations_cache'), 10, 2);
+
+		// Hide TryLoom images from Media Library (admin only).
+		if (is_admin()) {
+			add_filter('ajax_query_attachments_args', array($this, 'exclude_try_on_images_from_media_library'));
+			add_action('pre_get_posts', array($this, 'exclude_try_on_images_from_media_library_query'));
+		}
 	}
 
 	/**
@@ -298,8 +302,7 @@ class Tryloom_Frontend
 		}
 
 		// Get settings.
-		$settings = get_option('tryloom_settings', array());
-		$theme_color = isset($settings['theme_color']) ? $settings['theme_color'] : 'light';
+		$theme_color = get_option('tryloom_theme_color', 'light');
 		$primary_color = get_option('tryloom_primary_color', '#552FBC');
 		$save_photos = get_option('tryloom_save_photos', 'yes');
 		$watermark = get_option('tryloom_brand_watermark', '');
@@ -342,6 +345,24 @@ class Tryloom_Frontend
 		// Ensure scripts are enqueued.
 		if (!wp_script_is('tryloom-frontend', 'enqueued')) {
 			$this->enqueue_scripts();
+		}
+
+		// Fetch default photo URL for template (same logic as add_try_on_popup).
+		$default_photo_url = '';
+		if (is_user_logged_in()) {
+			$user_id = get_current_user_id();
+			global $wpdb;
+			$table_name = $wpdb->prefix . 'tryloom_user_photos';
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
+			$default_photo = $wpdb->get_row(
+				$wpdb->prepare(
+					'SELECT image_url FROM ' . esc_sql($table_name) . ' WHERE user_id = %d AND is_default = 1 ORDER BY manually_set_default DESC, created_at DESC LIMIT 1',
+					$user_id
+				)
+			);
+			if ($default_photo) {
+				$default_photo_url = $default_photo->image_url;
+			}
 		}
 
 		ob_start();
@@ -433,16 +454,13 @@ class Tryloom_Frontend
 											</a>
 										</td>
 										<td>
-											<?php
-											$image_url_with_nonce = $this->add_nonce_to_image_url($history->generated_image_url);
-											?>
-											<a href="<?php echo esc_url($image_url_with_nonce); ?>" target="_blank">
-												<img src="<?php echo esc_url($image_url_with_nonce); ?>"
+											<a href="<?php echo esc_url($history->generated_image_url); ?>" target="_blank">
+												<img src="<?php echo esc_url($history->generated_image_url); ?>"
 													alt="<?php esc_attr_e('Try On Result', 'tryloom'); ?>" width="50" height="50" />
 											</a>
 										</td>
 										<td>
-											<a href="<?php echo esc_url($image_url_with_nonce); ?>" download class="button">
+											<a href="<?php echo esc_url($history->generated_image_url); ?>" download class="button">
 												<i class="fas fa-download"></i>
 											</a>
 											<a href="<?php echo esc_url(get_permalink($history->product_id)); ?>" class="button">
@@ -551,25 +569,6 @@ class Tryloom_Frontend
 	}
 
 	/**
-	 * Add nonce to tryloom image URL if missing.
-	 *
-	 * @param string $image_url The image URL.
-	 * @return string URL with nonce added.
-	 */
-	private function add_nonce_to_image_url($image_url)
-	{
-		if (strpos($image_url, '?tryloom_image=') !== false) {
-			// Check if nonce already exists
-			if (strpos($image_url, '_wpnonce=') === false) {
-				$image_nonce = wp_create_nonce('tryloom_image_access');
-				$separator = (strpos($image_url, '?') !== false) ? '&' : '?';
-				$image_url = $image_url . $separator . '_wpnonce=' . urlencode($image_nonce);
-			}
-		}
-		return $image_url;
-	}
-
-	/**
 	 * Get file path from URL using WordPress upload directory.
 	 *
 	 * @param string $image_url The URL of the image.
@@ -579,22 +578,6 @@ class Tryloom_Frontend
 	{
 		if (empty($image_url)) {
 			return false;
-		}
-
-		// If the URL is a protected URL, extract the filename and get path from custom directory
-		if (strpos($image_url, '?tryloom_image=') !== false) {
-			$parsed_url = wp_parse_url($image_url);
-			if (isset($parsed_url['query'])) {
-				parse_str($parsed_url['query'], $query_params);
-				if (isset($query_params['tryloom_image'])) {
-					$image_name = sanitize_file_name($query_params['tryloom_image']);
-					$upload_dir = wp_upload_dir();
-					$protected_image_path = $upload_dir['basedir'] . '/tryloom/' . $image_name;
-					if (file_exists($protected_image_path)) {
-						return $protected_image_path;
-					}
-				}
-			}
 		}
 
 		// Try to get attachment ID and file path
@@ -628,42 +611,46 @@ class Tryloom_Frontend
 	/**
 	 * Create custom directory for try-on images with date-based subfolders.
 	 *
-	 * @return string Path to custom directory (with date subfolder).
+	 * @return array Array with 'path' and 'url' keys for the custom directory.
 	 */
 	private function create_custom_directory()
 	{
 		$upload_dir = wp_upload_dir();
 		$base_dir = $upload_dir['basedir'] . '/tryloom';
+		$base_url = $upload_dir['baseurl'] . '/tryloom';
 
 		// Create base directory if it doesn't exist
 		if (!file_exists($base_dir)) {
 			wp_mkdir_p($base_dir);
-			$this->create_directory_protection($base_dir, true);
+			$this->create_directory_protection($base_dir);
 		}
 
 		// Create date-based subfolder (YYYY/MM) to prevent folder bloat
 		$year = gmdate('Y');
 		$month = gmdate('m');
 		$date_dir = $base_dir . '/' . $year . '/' . $month;
+		$date_url = $base_url . '/' . $year . '/' . $month;
 
 		if (!file_exists($date_dir)) {
 			wp_mkdir_p($date_dir);
 			// Add silence file to year folder
-			$this->create_directory_protection($base_dir . '/' . $year, false);
+			$this->create_directory_protection($base_dir . '/' . $year);
 			// Add silence file to month folder
-			$this->create_directory_protection($date_dir, false);
+			$this->create_directory_protection($date_dir);
 		}
 
-		return $date_dir;
+		return array(
+			'path' => $date_dir,
+			'url' => $date_url,
+		);
 	}
 
 	/**
-	 * Create directory protection files (.htaccess and index.php).
+	 * Create index.php to prevent directory listing.
 	 *
-	 * @param string $dir_path     Directory path.
-	 * @param bool   $include_htaccess Whether to include .htaccess (only for root).
+	 * @param string $dir_path Directory path.
 	 */
-	private function create_directory_protection($dir_path, $include_htaccess = false)
+	private function create_directory_protection($dir_path)
 	{
 		// Create index.php to prevent directory listing (Silence is golden)
 		$index_file = $dir_path . '/index.php';
@@ -671,24 +658,7 @@ class Tryloom_Frontend
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Simple file creation
 			file_put_contents($index_file, "<?php\n// Silence is golden.");
 		}
-
-		// Create .htaccess only in root folder to block PHP execution but allow image access
-		if ($include_htaccess) {
-			$htaccess_file = $dir_path . '/.htaccess';
-			if (!file_exists($htaccess_file)) {
-				$htaccess_content = "# Block PHP execution in this folder (security)\n";
-				$htaccess_content .= "<Files *.php>\n";
-				$htaccess_content .= "deny from all\n";
-				$htaccess_content .= "</Files>\n";
-				$htaccess_content .= "\n";
-				$htaccess_content .= "# Allow the silence index.php file\n";
-				$htaccess_content .= "<Files index.php>\n";
-				$htaccess_content .= "allow from all\n";
-				$htaccess_content .= "</Files>\n";
-				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Simple file creation
-				file_put_contents($htaccess_file, $htaccess_content);
-			}
-		}
+		// Note: No .htaccess is created. Security relies on UUID filenames.
 	}
 
 	/**
@@ -707,121 +677,6 @@ class Tryloom_Frontend
 			$random = wp_generate_password(32, false, false);
 		}
 		return strtolower($random) . '.' . $extension;
-	}
-
-	/**
-	 * Protect try-on images from direct access.
-	 */
-	public function protect_try_on_images()
-	{
-		// Check if we're requesting a try-on image
-		// Verify nonce for image protection GET request
-		if (isset($_GET['tryloom_image'])) {
-			// Verify nonce for image access
-			if (!isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'tryloom_image_access')) {
-				status_header(403);
-				wp_die(esc_html__('Invalid security token. Please refresh the page and try again.', 'tryloom'), esc_html__('Access Denied', 'tryloom'), array('response' => 403));
-			}
-
-			$image_name = sanitize_file_name(wp_unslash($_GET['tryloom_image']));
-			$user_id = get_current_user_id();
-
-			// Validate user is logged in
-			if (!is_user_logged_in()) {
-				if ('yes' === get_option('tryloom_enable_logging', 'no')) {
-					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-					error_log('[WooCommerce Try On] Image access denied: User not logged in for image: ' . $image_name);
-				}
-				status_header(403);
-				wp_die(esc_html__('You must be logged in to view this image.', 'tryloom'), esc_html__('Access Denied', 'tryloom'), array('response' => 403));
-			}
-
-			// Validate image name - must match tryloom-{userid}-{identifier}.{ext} pattern
-			// Allowed extensions: png, jpg, jpeg, webp
-			if (!$image_name || !preg_match('/^tryloom-\d+-.*\.(png|jpg|jpeg|webp)$/i', $image_name)) {
-				if ('yes' === get_option('tryloom_enable_logging', 'no')) {
-					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-					error_log('[WooCommerce Try On] Invalid image name format: ' . $image_name);
-				}
-				status_header(404);
-				wp_die(esc_html__('Invalid image request.', 'tryloom'), esc_html__('Not Found', 'tryloom'), array('response' => 404));
-			}
-
-			// Extract user ID from image name
-			$image_user_id = 0;
-			if (preg_match('/^tryloom-(\d+)-/', $image_name, $matches)) {
-				$image_user_id = (int) $matches[1];
-			}
-
-			// Check if user has permission to view this image
-			if ($user_id !== $image_user_id && !current_user_can('manage_options')) {
-				if ('yes' === get_option('tryloom_enable_logging', 'no')) {
-					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-					error_log('[WooCommerce Try On] Image access denied: User ' . $user_id . ' does not have permission for image: ' . $image_name . ' (owner: ' . $image_user_id . ')');
-				}
-				status_header(403);
-				wp_die(esc_html__('You do not have permission to view this image.', 'tryloom'), esc_html__('Access Denied', 'tryloom'), array('response' => 403));
-			}
-
-			// Check if image exists
-			$upload_dir = wp_upload_dir();
-			$image_path = $upload_dir['basedir'] . '/tryloom/' . $image_name;
-
-			if (!file_exists($image_path)) {
-				if ('yes' === get_option('tryloom_enable_logging', 'no')) {
-					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-					error_log('[WooCommerce Try On] Image file not found: ' . $image_path);
-				}
-				status_header(404);
-				wp_die(esc_html__('Image not found.', 'tryloom'), esc_html__('Not Found', 'tryloom'), array('response' => 404));
-			}
-
-			// Serve the image
-			global $wp_filesystem;
-			if (empty($wp_filesystem)) {
-				require_once ABSPATH . '/wp-admin/includes/file.php';
-				WP_Filesystem();
-			}
-
-			// Clear any output that might have been sent
-			if (!headers_sent()) {
-				// Determine Content-Type based on file extension
-				$ext = strtolower(pathinfo($image_name, PATHINFO_EXTENSION));
-				$mime_types = array(
-					'png' => 'image/png',
-					'jpg' => 'image/jpeg',
-					'jpeg' => 'image/jpeg',
-					'webp' => 'image/webp',
-				);
-				$content_type = isset($mime_types[$ext]) ? $mime_types[$ext] : 'image/png';
-
-				header('Content-Type: ' . $content_type);
-				header('Content-Length: ' . filesize($image_path));
-				header('Cache-Control: private, max-age=3600');
-			}
-
-			// Use readfile to output binary data directly (standard method for serving images)
-			// Use WP_Filesystem to output file content
-			global $wp_filesystem;
-			if (empty($wp_filesystem)) {
-				require_once ABSPATH . 'wp-admin/includes/file.php';
-				WP_Filesystem();
-			}
-
-			if ($wp_filesystem->exists($image_path)) {
-				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- Used for memory-efficient binary streaming of protected images.
-				readfile($image_path);
-				exit;
-			}
-
-			if ('yes' === get_option('tryloom_enable_logging', 'no')) {
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log('[WooCommerce Try On] Failed to read image file: ' . $image_path);
-			}
-			status_header(500);
-			wp_die(esc_html__('Failed to read image file.', 'tryloom'), esc_html__('Server Error', 'tryloom'), array('response' => 500));
-		}
-		// If not requesting a try-on image, continue with normal WordPress operation
 	}
 
 	/**
@@ -883,7 +738,9 @@ class Tryloom_Frontend
 		$user_id = get_current_user_id();
 
 		// Use custom directory
-		$upload_dir = $this->create_custom_directory();
+		$upload_result = $this->create_custom_directory();
+		$upload_dir = $upload_result['path'];
+		$upload_dir_url = $upload_result['url'];
 
 		// Create a protected filename pattern: tryloom-{userid}-upload-{timestamp}.{ext}
 		$file_ext = pathinfo($file['name'], PATHINFO_EXTENSION);
@@ -893,9 +750,8 @@ class Tryloom_Frontend
 		// Move uploaded file
 		// phpcs:ignore Generic.PHP.ForbiddenFunctions.Found
 		if (move_uploaded_file($file['tmp_name'], $new_file)) {
-			// Create protected URL with nonce (same system as generated images)
-			$image_nonce = wp_create_nonce('tryloom_image_access');
-			$file_url = home_url('?tryloom_image=' . urlencode($protected_filename) . '&_wpnonce=' . urlencode($image_nonce));
+			// Build direct URL - the random filename and date-based path provide security
+			$file_url = $upload_dir_url . '/' . $protected_filename;
 		} else {
 			wp_send_json_error(array('message' => __('Failed to save uploaded file.', 'tryloom')));
 		}
@@ -963,13 +819,11 @@ class Tryloom_Frontend
 	 */
 	public function ajax_generate_try_on()
 	{
-		// Increase limits for image processing
+		// Increase time limit for API call (image processing happens on Google's servers)
 		if (function_exists('set_time_limit')) {
-			// phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged -- Required for long-running image processing
-			@set_time_limit(300);
+			// phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged -- Required for API timeout
+			@set_time_limit(60);
 		}
-		// phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged -- Required for memory-intensive image processing
-		@ini_set('memory_limit', '512M');
 
 		try {
 			// Check if try-on is enabled.
@@ -1128,12 +982,9 @@ class Tryloom_Frontend
 			$filename = $this->generate_secure_filename('png');
 
 			// Create custom directory with date-based subfolders
-			$custom_dir = $this->create_custom_directory();
-
-			// Build the URL path based on current date structure
-			$year = gmdate('Y');
-			$month = gmdate('m');
-			$custom_dir_url = wp_upload_dir()['baseurl'] . '/tryloom/' . $year . '/' . $month;
+			$custom_result = $this->create_custom_directory();
+			$custom_dir = $custom_result['path'];
+			$custom_dir_url = $custom_result['url'];
 
 			// Initialize filesystem API if needed.
 			global $wp_filesystem;
@@ -1728,10 +1579,21 @@ class Tryloom_Frontend
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
 		$product_id = isset($_POST['product_id']) ? intval($_POST['product_id']) : 0;
+
+		// Try to get cached variations first (1 hour cache).
+		$cache_key = 'tryloom_variations_' . $product_id;
+		$cached_variations = get_transient($cache_key);
+
+		if (false !== $cached_variations) {
+			wp_send_json_success(array('variations' => $cached_variations));
+			return;
+		}
+
 		$product = wc_get_product($product_id);
 
 		if (!$product || !$product->is_type('variable')) {
 			wp_send_json_success(array('variations' => array()));
+			return;
 		}
 
 		$variations = array();
@@ -1750,7 +1612,37 @@ class Tryloom_Frontend
 			);
 		}
 
+		// Cache the variations for 1 hour.
+		set_transient($cache_key, $variations, HOUR_IN_SECONDS);
+
 		wp_send_json_success(array('variations' => $variations));
+	}
+
+	/**
+	 * Invalidate variations cache when a product is saved.
+	 *
+	 * @param int $product_id Product ID.
+	 */
+	public function invalidate_variations_cache($product_id)
+	{
+		delete_transient('tryloom_variations_' . $product_id);
+	}
+
+	/**
+	 * Invalidate parent product's variations cache when a variation is saved.
+	 *
+	 * @param int $variation_id Variation ID.
+	 * @param int $loop         Variation loop index (not used).
+	 */
+	public function invalidate_parent_variations_cache($variation_id, $loop = 0)
+	{
+		$variation = wc_get_product($variation_id);
+		if ($variation && $variation->is_type('variation')) {
+			$parent_id = $variation->get_parent_id();
+			if ($parent_id) {
+				delete_transient('tryloom_variations_' . $parent_id);
+			}
+		}
 	}
 
 	/**

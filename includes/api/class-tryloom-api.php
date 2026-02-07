@@ -92,31 +92,11 @@ class Tryloom_API
 
 		$url = $this->make_absolute_url($url);
 
-		// 1) Protected try-on URL
-		if (strpos($url, '?tryloom_image=') !== false) {
-			$parsed_url = wp_parse_url($url);
-			if (isset($parsed_url['query'])) {
-				parse_str($parsed_url['query'], $query_params);
-				if (isset($query_params['tryloom_image'])) {
-					$image_name = sanitize_file_name($query_params['tryloom_image']);
-					$upload_dir = wp_upload_dir();
-					$protected_image_path = $upload_dir['basedir'] . '/tryloom/' . $image_name;
-
-					// FIX: Directory Traversal Protection
-					$real_path = realpath($protected_image_path);
-					$real_base = realpath($upload_dir['basedir']);
-					if ($real_path && $real_base && strpos($real_path, $real_base) === 0 && file_exists($real_path)) {
-						return $real_path;
-					}
-				}
-			}
-		}
-
-		// 2) Normalize URLs (remove scheme) for comparison
+		// 1) Normalize URLs (remove scheme) for comparison
 		$url_no_scheme = preg_replace('/^https?:/', '', $url);
 		$url_no_scheme = strtok($url_no_scheme, '?'); // Remove query string
 
-		// 3) Attachment URL -> attached file path
+		// 2) Attachment URL -> attached file path
 		$attachment_id = attachment_url_to_postid($url);
 		if ($attachment_id) {
 			$file_path = get_attached_file($attachment_id);
@@ -320,7 +300,7 @@ class Tryloom_API
 				$stored_free_key = get_option('tryloom_free_platform_key', '');
 				$stored_paid_key = get_option('tryloom_platform_key', '');
 				if (empty($stored_free_key) && empty($stored_paid_key)) {
-					update_option('tryloom_free_trial_error', $error_message);
+					update_option('tryloom_free_trial_error', $error_message, false);
 
 					if ('yes' === get_option('tryloom_enable_logging', 'no')) {
 						// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
@@ -359,8 +339,8 @@ class Tryloom_API
 
 		// Update usage counter if provided
 		if (isset($response_data['used']) && isset($response_data['limit'])) {
-			update_option('tryloom_usage_used', absint($response_data['used']));
-			update_option('tryloom_usage_limit', absint($response_data['limit']));
+			update_option('tryloom_usage_used', absint($response_data['used']), false);
+			update_option('tryloom_usage_limit', absint($response_data['limit']), false);
 			if ('yes' === get_option('tryloom_enable_logging', 'no')) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 				error_log('[TryLoom] Usage updated: ' . $response_data['used'] . '/' . $response_data['limit']);
@@ -430,7 +410,7 @@ class Tryloom_API
 					wp_rand(0, 0xffff)
 				);
 			}
-			update_option('tryloom_instance_id', $instance_id);
+			update_option('tryloom_instance_id', $instance_id, false);
 		}
 
 		return $instance_id;
@@ -556,17 +536,17 @@ class Tryloom_API
 				update_option('tryloom_subscription_ended', 'no');
 
 				// Reset the 30-day cron counter so we can check again if it fails in future
-				update_option('tryloom_status_check_count', 0);
+				update_option('tryloom_status_check_count', 0, false);
 
 				// Clear error flags
 				delete_option('tryloom_free_trial_error');
 
 				// Update usage if available
 				if (isset($data['used'])) {
-					update_option('tryloom_usage_used', absint($data['used']));
+					update_option('tryloom_usage_used', absint($data['used']), false);
 				}
 				if (isset($data['limit'])) {
-					update_option('tryloom_usage_limit', absint($data['limit']));
+					update_option('tryloom_usage_limit', absint($data['limit']), false);
 				}
 
 				if ('yes' === get_option('tryloom_enable_logging', 'no')) {

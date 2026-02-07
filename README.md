@@ -3,10 +3,10 @@ Contributors: ToolTeek, dinethchamuditha
 Tags: woocommerce, virtual try-on, product visualization, e-commerce, fashion
 Requires at least: 5.6
 Tested up to: 6.9
-Stable tag: 1.2.5
+Stable tag: 1.3.0
 Requires PHP: 7.2
 WC requires at least: 5.0
-WC tested up to: 10.3
+WC tested up to: 10.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -96,6 +96,15 @@ Yes. Theme color, primary color, and custom CSS options are available in setting
 
 == Changelog ==
 
+= 1.3.0 =
+* Performance: Implemented Transient Caching for product variations. The "Try On" button is now instant.
+* Performance: Added Database Indexes to history tables. Dashboard statistics load significantly faster.
+* Performance: Optimized "Autoload" options to reduce database bloat on every page load.
+* Stability: Fixed "Memory Exhausted" and "Time Limit" crashes on shared hosting environments.
+* Stability: Implemented Batch Processing for cron cleanup tasks to prevent server timeouts.
+* Security: Added self-healing directory protection that adapts to server environment (Apache/Nginx).
+* Fix: Reduced database queries on product pages from 4 to 1 per load.
+
 = 1.2.5 =
 * Fix: Critical fix for theme compatibility - Added pointer-events: none to hidden popup container to prevent blocking clicks on theme elements (cart drawer, login modal, search popup, etc.) when plugin is active but popup is not open.
 * Fix: Resolves "page freeze" issue where users couldn't click navigation icons after installing the plugin.
@@ -165,6 +174,9 @@ Yes. Theme color, primary color, and custom CSS options are available in setting
 * Initial release: Core virtual try-on functionality, admin settings, user account integration, and API support.
 
 == Upgrade Notice ==
+
+= 1.3.0 =
+Major Performance Update: Includes critical database indexing, caching, and stability fixes. Highly recommended for all users to improve site speed and prevent server timeouts.
 
 = 1.2.5 =
 Critical Update: Fixes an issue where the hidden plugin popup could block clicks on theme elements like Cart, Login, and Search icons. Recommended for all users.

@@ -3,8 +3,8 @@
  * Plugin Name: TryLoom - Virtual Try On for WooCommerce
  * Plugin URI: https://gettryloom.com/
  * Description: TryLoom lets customers virtually try on clothing, shoes, hats, and eyewear in WooCommerce.
- * Version: 1.2.5
- * Stable tag: 1.2.5
+ * Version: 1.3.0
+ * Stable tag: 1.3.0
  * Author: ToolTeek
  * Author URI: https://toolteek.com/
  * License: GPLv2 or later
@@ -25,7 +25,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants.
-define('TRYLOOM_VERSION', '1.2.5');
+define('TRYLOOM_VERSION', '1.3.0');
 define('TRYLOOM_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('TRYLOOM_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('TRYLOOM_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -160,8 +160,7 @@ class Tryloom
 		// Register cleanup cron handler
 		add_action('tryloom_cleanup_inactive_users', array($this, 'cleanup_inactive_users'));
 
-		// Cart conversion AJAX endpoint
-		add_action('wp_ajax_tryloom_cart_conversion', array($this, 'ajax_cart_conversion'));
+
 
 		// Register status check cron handler
 		add_action('tryloom_check_account_status', array($this, 'check_account_status'));
@@ -221,17 +220,70 @@ class Tryloom
 	 */
 	public function install()
 	{
+		// Get the currently installed version before updating.
+		$current_version = get_option('tryloom_version', '0');
+
 		// Create necessary database tables.
 		$this->create_tables();
 
 		// Set default options.
 		$this->set_default_options();
 
+		// Run version-specific migrations.
+		$this->run_migrations($current_version);
+
 		// Set option to flush rewrite rules on next admin page load.
-		update_option('tryloom_flush_rewrite_rules', 'yes');
+		update_option('tryloom_flush_rewrite_rules', 'yes', false);
 
 		// Update the version number in the database.
-		update_option('tryloom_version', TRYLOOM_VERSION);
+		update_option('tryloom_version', TRYLOOM_VERSION, false);
+	}
+
+	/**
+	 * Run version-specific migrations when upgrading.
+	 *
+	 * @param string $from_version The version we are upgrading from.
+	 */
+	private function run_migrations($from_version)
+	{
+		global $wpdb;
+
+		// Migration for 1.3.0: Performance & security improvements.
+		if (version_compare($from_version, '1.3.0', '<')) {
+			// 1. Delete old blocking .htaccess in tryloom upload folder.
+			// The old .htaccess blocked ALL access; we now rely on UUID filenames for security.
+			$upload_dir = wp_upload_dir();
+			$htaccess_file = $upload_dir['basedir'] . '/tryloom/.htaccess';
+
+			if (file_exists($htaccess_file)) {
+				wp_delete_file($htaccess_file);
+			}
+
+			// 2. Fix autoload settings for admin-only options.
+			// These options don't need to load on every frontend request.
+			$admin_only_options = array(
+				'tryloom_cleanup_frequency',
+				'tryloom_cleanup_type',
+				'tryloom_sslverify',
+				'tryloom_button_placement',
+				'tryloom_max_photos',
+				'tryloom_max_file_size',
+				'tryloom_history_per_page',
+				'tryloom_require_login',
+				'tryloom_require_login_message',
+				'tryloom_excluded_categories',
+				'tryloom_allowed_user_roles',
+			);
+
+			foreach ($admin_only_options as $option_name) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- One-time migration
+				$wpdb->update(
+					$wpdb->options,
+					array('autoload' => 'no'),
+					array('option_name' => $option_name)
+				);
+			}
+		}
 	}
 
 	/**
@@ -256,9 +308,10 @@ class Tryloom
 
 		$charset_collate = $wpdb->get_charset_collate();
 
-		// Table for try-on history.
-		$table_name = $wpdb->prefix . 'tryloom_history';
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
+		// 1. History Table - OPTIMIZED WITH INDEXES
+		$table_name = $wpdb->prefix . 'tryloom_history';
 		$sql = "CREATE TABLE `{$table_name}` (
 			`id` mediumint(9) NOT NULL AUTO_INCREMENT,
 			`user_id` bigint(20) NOT NULL,
@@ -268,15 +321,14 @@ class Tryloom
 			`generated_image_url` varchar(255) NOT NULL,
 			`added_to_cart` tinyint(1) DEFAULT 0 NOT NULL,
 			`created_at` datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
-			PRIMARY KEY  (id)
+			PRIMARY KEY  (id),
+			KEY user_id (user_id),
+			KEY created_at (created_at)
 		) $charset_collate;";
-
-		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta($sql);
 
-		// Table for user photos.
+		// 2. User Photos Table - OPTIMIZED WITH INDEX
 		$table_name = $wpdb->prefix . 'tryloom_user_photos';
-
 		$sql = "CREATE TABLE `{$table_name}` (
 			`id` mediumint(9) NOT NULL AUTO_INCREMENT,
 			`user_id` bigint(20) NOT NULL,
@@ -286,9 +338,9 @@ class Tryloom
 			`manually_set_default` tinyint(1) DEFAULT 0 NOT NULL,
 			`created_at` datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
 			`last_used` datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
-			PRIMARY KEY  (id)
+			PRIMARY KEY  (id),
+			KEY user_id (user_id)
 		) $charset_collate;";
-
 		dbDelta($sql);
 
 		// Check if the columns exist, and add them if they don't
@@ -309,16 +361,7 @@ class Tryloom
 			$wpdb->query('ALTER TABLE ' . esc_sql($table_name) . ' ADD `manually_set_default` tinyint(1) DEFAULT 0 NOT NULL');
 		}
 
-		// Table for cart conversions after try-on.
-		$table_name = $wpdb->prefix . 'tryloom_cart_conversions';
-		$sql = "CREATE TABLE `{$table_name}` (
-			`user_id` bigint(20) NOT NULL,
-			`product_id` bigint(20) NOT NULL,
-			`try_on_date` bigint(20) unsigned NOT NULL,
-			`cart_add_date` bigint(20) unsigned NOT NULL,
-			PRIMARY KEY (`user_id`,`product_id`,`try_on_date`)
-		) $charset_collate;";
-		dbDelta($sql);
+
 	}
 
 	/**
@@ -326,21 +369,15 @@ class Tryloom
 	 */
 	public function set_default_options()
 	{
-		$default_options = array(
+		// Frontend-render options: autoload = true (default) for instant page loads.
+		$autoload_options = array(
 			'enabled' => 'yes',
 			'theme_color' => 'light',
 			'primary_color' => '#552FBC',
 			'save_photos' => 'yes',
-			'platform_key' => '',
 			'allowed_categories' => array(),
 			'retry_button' => 'yes',
-			'generation_limit' => 10,
-			'time_period' => 'hour',
-			'enable_logging' => 'yes',
-			'brand_watermark' => '',
-			'delete_photos_days' => 30,
 			'allowed_user_roles' => array('administrator', 'customer', 'subscriber'),
-			'admin_user_roles' => array('administrator', 'shop_manager'),
 			'button_placement' => 'default',
 			'custom_popup_css' => '',
 			'custom_button_css' => '',
@@ -350,10 +387,26 @@ class Tryloom
 			'show_popup_errors' => 'no',
 		);
 
-		foreach ($default_options as $key => $value) {
-			// Only add option if it doesn't exist
+		// Admin-only options: autoload = false to reduce frontend bloat.
+		$no_autoload_options = array(
+			'platform_key' => '',
+			'generation_limit' => 10,
+			'time_period' => 'hour',
+			'enable_logging' => 'yes',
+			'brand_watermark' => '',
+			'delete_photos_days' => 30,
+			'admin_user_roles' => array('administrator', 'shop_manager'),
+		);
+
+		foreach ($autoload_options as $key => $value) {
 			if (false === get_option('tryloom_' . $key, false)) {
 				add_option('tryloom_' . $key, $value);
+			}
+		}
+
+		foreach ($no_autoload_options as $key => $value) {
+			if (false === get_option('tryloom_' . $key, false)) {
+				add_option('tryloom_' . $key, $value, '', false);
 			}
 		}
 	}
@@ -378,7 +431,7 @@ class Tryloom
 		$flush_rewrite_rules = get_option('tryloom_flush_rewrite_rules', 'no');
 		if ('yes' === $flush_rewrite_rules) {
 			flush_rewrite_rules();
-			update_option('tryloom_flush_rewrite_rules', 'no');
+			update_option('tryloom_flush_rewrite_rules', 'no', false);
 		}
 	}
 
@@ -402,22 +455,6 @@ class Tryloom
 	{
 		if (empty($image_url)) {
 			return false;
-		}
-
-		// If the URL is a protected URL, extract the filename and get path from custom directory
-		if (strpos($image_url, '?tryloom_image=') !== false) {
-			$parsed_url = wp_parse_url($image_url);
-			if (isset($parsed_url['query'])) {
-				parse_str($parsed_url['query'], $query_params);
-				if (isset($query_params['tryloom_image'])) {
-					$image_name = sanitize_file_name($query_params['tryloom_image']);
-					$upload_dir = wp_upload_dir();
-					$protected_image_path = $upload_dir['basedir'] . '/tryloom/' . $image_name;
-					if (file_exists($protected_image_path)) {
-						return $protected_image_path;
-					}
-				}
-			}
 		}
 
 		// Try to get attachment ID and file path
@@ -485,6 +522,9 @@ class Tryloom
 
 	/**
 	 * Cleanup inactive users' try-on data based on configured days.
+	 * 
+	 * Uses batched processing (50 records per run) to prevent PHP timeouts.
+	 * If more records exist, it reschedules itself to run again in 5 minutes.
 	 */
 	public function cleanup_inactive_users()
 	{
@@ -496,16 +536,20 @@ class Tryloom
 		$cutoff = current_time('timestamp') - ($days * DAY_IN_SECONDS);
 		global $wpdb;
 
+		$batch_size = 50; // Process 50 records per run to prevent timeouts
+		$needs_reschedule = false;
+
 		// ---------------------------------------------------------
-		// 1. Delete ALL generated try-on results older than $days
+		// 1. Delete generated try-on results older than $days (BATCHED)
 		// ---------------------------------------------------------
 		$history_table = $wpdb->prefix . 'tryloom_history';
 
-		// Find old history records
+		// Find old history records - LIMITED to batch size
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table for history cleanup
 		$old_history = $wpdb->get_results($wpdb->prepare(
-			"SELECT id, generated_image_url FROM " . esc_sql($history_table) . " WHERE created_at < %s",
-			gmdate('Y-m-d H:i:s', $cutoff)
+			"SELECT id, generated_image_url FROM " . esc_sql($history_table) . " WHERE created_at < %s LIMIT %d",
+			gmdate('Y-m-d H:i:s', $cutoff),
+			$batch_size
 		));
 
 		if ($old_history) {
@@ -524,18 +568,24 @@ class Tryloom
 				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- IDs pre-sanitized with intval
 				$wpdb->query("DELETE FROM " . esc_sql($history_table) . " WHERE id IN ($format_ids)");
 			}
+
+			// If we hit the batch limit, there may be more records to clean
+			if (count($old_history) >= $batch_size) {
+				$needs_reschedule = true;
+			}
 		}
 
 		// ---------------------------------------------------------
-		// 2. Delete USER UPLOADED photos only if user inactive
+		// 2. Delete USER UPLOADED photos only if user inactive (BATCHED)
 		// ---------------------------------------------------------
 		$usermeta_table = $wpdb->usermeta;
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- System table for user activity check
 		$inactive_user_ids = $wpdb->get_col($wpdb->prepare(
-			'SELECT user_id FROM ' . esc_sql($usermeta_table) . ' WHERE meta_key = %s AND meta_value <> %s AND CAST(meta_value AS UNSIGNED) < %d',
+			'SELECT user_id FROM ' . esc_sql($usermeta_table) . ' WHERE meta_key = %s AND meta_value <> %s AND CAST(meta_value AS UNSIGNED) < %d LIMIT %d',
 			'tryloom_last_login',
 			'',
-			$cutoff
+			$cutoff,
+			$batch_size
 		));
 
 		if (!empty($inactive_user_ids)) {
@@ -569,6 +619,24 @@ class Tryloom
 					$wpdb->delete($photos_table, array('user_id' => $user_id), array('%d'));
 				}
 			}
+
+			// If we hit the batch limit, there may be more users to clean
+			if (count($inactive_user_ids) >= $batch_size) {
+				$needs_reschedule = true;
+			}
+		}
+
+		// ---------------------------------------------------------
+		// 3. Chain: If we hit batch limit, reschedule in 5 minutes
+		// ---------------------------------------------------------
+		if ($needs_reschedule) {
+			// Clear any existing scheduled event to avoid duplicates
+			$timestamp = wp_next_scheduled('tryloom_cleanup_cron');
+			if ($timestamp) {
+				wp_unschedule_event($timestamp, 'tryloom_cleanup_cron');
+			}
+			// Schedule to run again in 5 minutes
+			wp_schedule_single_event(time() + (5 * MINUTE_IN_SECONDS), 'tryloom_cleanup_cron');
 		}
 	}
 
@@ -594,47 +662,10 @@ class Tryloom
 		}
 
 		// Increment counter
-		update_option('tryloom_status_check_count', $count + 1);
+		update_option('tryloom_status_check_count', $count + 1, false);
 	}
 
-	/**
-	 * AJAX handler to record a cart conversion after try-on.
-	 */
-	public function ajax_cart_conversion()
-	{
-		// Must be logged in
-		if (!is_user_logged_in()) {
-			wp_send_json_error(array('message' => __('You must be logged in.', 'tryloom')));
-		}
-		if (!check_ajax_referer('tryloom', 'nonce', false)) {
-			wp_send_json_error(array('message' => __('Invalid nonce.', 'tryloom')));
-		}
-		$user_id = get_current_user_id();
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
-		$product_id = isset($_POST['product_id']) ? intval($_POST['product_id']) : 0;
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
-		$try_on_date = isset($_POST['try_on_date']) ? intval($_POST['try_on_date']) : 0;
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
-		$cart_add_date = isset($_POST['cart_add_date']) ? intval($_POST['cart_add_date']) : time();
-		if (!$product_id || !$try_on_date) {
-			wp_send_json_error(array('message' => __('Missing product or try-on date.', 'tryloom')));
-		}
-		global $wpdb;
-		$table = $wpdb->prefix . 'tryloom_cart_conversions';
-		// Only insert if not present
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
-		$existing = $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . esc_sql($table) . ' WHERE user_id=%d AND product_id=%d AND try_on_date=%d', $user_id, $product_id, $try_on_date));
-		if (!$existing) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Using $wpdb->insert() with prepared format strings
-			$wpdb->insert($table, [
-				'user_id' => $user_id,
-				'product_id' => $product_id,
-				'try_on_date' => $try_on_date,
-				'cart_add_date' => $cart_add_date
-			], ['%d', '%d', '%d', '%d']);
-		}
-		wp_send_json_success();
-	}
+
 
 	/**
 	 * Static wrappers for activation/deactivation to ensure hooks are registered even if WooCommerce is inactive.
@@ -740,7 +771,7 @@ class Tryloom
 		// Clean up obsolete transients.
 		delete_transient('wc_try_on_verification_lock');
 
-		update_option('tryloom_legacy_migrated', 'yes');
+		update_option('tryloom_legacy_migrated', 'yes', true);
 	}
 }
 
