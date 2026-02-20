@@ -120,6 +120,7 @@ class Tryloom_Admin
 		register_setting('tryloom-settings-group', 'tryloom_delete_photos_days', array('sanitize_callback' => 'absint', 'capability' => 'manage_options'));
 		register_setting('tryloom-settings-group', 'tryloom_allowed_user_roles', array('sanitize_callback' => array($this, 'sanitize_array'), 'capability' => 'manage_options'));
 		register_setting('tryloom-settings-group', 'tryloom_enable_history', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group', 'tryloom_role_limits', array('sanitize_callback' => array($this, 'sanitize_role_limits_array'), 'capability' => 'manage_options'));
 
 		// Register advanced settings.
 		register_setting('tryloom-settings-group', 'tryloom_enable_logging', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
@@ -330,6 +331,38 @@ class Tryloom_Admin
 
 
 	/**
+	 * Sanitize role limits array.
+	 *
+	 * @param array $input Input array.
+	 * @return array
+	 */
+	public function sanitize_role_limits_array($input)
+	{
+		if (!is_array($input)) {
+			return array();
+		}
+
+		$sanitized_input = array();
+
+		foreach ($input as $role_key => $limit) {
+			// Ensure role key is safe (alphanumeric and underscores usually)
+			$safe_key = sanitize_key($role_key);
+
+			// If explicitly left blank, don't save. It falls back to global.
+			if (trim($limit) === '') {
+				continue;
+			}
+
+			// Save the numeric limit. Allowing 0 explicitly blocks the role.
+			$sanitized_input[$safe_key] = absint($limit);
+		}
+
+		return $sanitized_input;
+	}
+
+
+
+	/**
 	 * Sanitize platform key.
 	 * Also clears free trial ended flag if paid key is added.
 	 *
@@ -379,6 +412,36 @@ class Tryloom_Admin
 	public function user_section_callback()
 	{
 		echo '<p>' . esc_html__('Control how user photos, limits, and history are managed.', 'tryloom') . '</p>';
+
+		// Render the Advanced Role Limits accordion here since it relates to User Limits
+		$roles = wp_roles()->get_names();
+		$role_limits = get_option('tryloom_role_limits', array());
+		?>
+		<details style="margin-top: 20px; border: 1px solid #ccd0d4; padding: 15px; background: #fff;">
+			<summary style="font-weight: 600; font-size: 14px; cursor: pointer; outline: none;">
+				<?php esc_html_e('Advanced: Role-Based Limits (Optional)', 'tryloom'); ?>
+			</summary>
+			<div style="margin-top: 15px;">
+				<p class="description">
+					<?php esc_html_e('Override the base generation limit for specific roles. Leave blank to use the global limit. Users with multiple roles will receive the highest limit they qualify for.', 'tryloom'); ?>
+				</p>
+				<table class="form-table" role="presentation">
+					<tbody>
+						<?php foreach ($roles as $role_key => $role_name): ?>
+							<tr>
+								<th scope="row"><label><?php echo esc_html(translate_user_role($role_name)); ?></label></th>
+								<td>
+									<input type="number" name="tryloom_role_limits[<?php echo esc_attr($role_key); ?>]"
+										value="<?php echo isset($role_limits[$role_key]) ? esc_attr($role_limits[$role_key]) : ''; ?>"
+										min="0" step="1" placeholder="<?php esc_attr_e('Default', 'tryloom'); ?>" />
+								</td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+			</div>
+		</details>
+		<?php
 	}
 
 	/**
@@ -409,7 +472,7 @@ class Tryloom_Admin
 	 */
 	public function try_on_method_callback()
 	{
-		$value = get_option('tryloom_try_on_method', 'auto');
+		$value = get_option('tryloom_try_on_method', 'tryon');
 		?>
 		<div class="tryloom-radio-group">
 			<label class="tryloom-radio-label">

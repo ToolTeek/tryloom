@@ -875,42 +875,70 @@ class Tryloom_Frontend
 
 			// Check if user has reached generation limit.
 			$user_id = get_current_user_id();
+			$user = get_userdata($user_id);
+
+			// 1. Get global default limit
 			$generation_limit = absint(get_option('tryloom_generation_limit', 10));
+
+			// 2. Check for Role-Based Overrides
+			$role_limits = get_option('tryloom_role_limits', array());
+
+			if (!empty($role_limits) && $user && !empty($user->roles)) {
+				$highest_role_limit = -1; // Keep track of the highest limit found
+
+				foreach ($user->roles as $role) {
+					if (isset($role_limits[$role])) {
+						$role_limit = absint($role_limits[$role]);
+						if ($role_limit > $highest_role_limit) {
+							$highest_role_limit = $role_limit;
+						}
+					}
+				}
+
+				// If we found a valid override, apply it
+				if ($highest_role_limit >= 0) {
+					$generation_limit = $highest_role_limit;
+				}
+			}
+
 			$time_period = get_option('tryloom_time_period', 'hour');
 
 			if ($generation_limit > 0) {
-				global $wpdb;
-				$table_name = $wpdb->prefix . 'tryloom_history';
+				// Get current usage from user meta
+				$usage_count = (int) get_user_meta($user_id, 'tryloom_usage_count', true);
+				$last_reset = get_user_meta($user_id, 'tryloom_last_reset_date', true);
 
-				// Calculate time period.
+				// Calculate what the date/time string should be for the current period
+				$current_period_identifier = '';
 				switch ($time_period) {
 					case 'hour':
-						$time_ago = gmdate('Y-m-d H:i:s', strtotime('-1 hour'));
+						// E.g. "2026-02-20 10" (resets at the top of each hour)
+						$current_period_identifier = wp_date('Y-m-d H');
 						break;
 					case 'day':
-						$time_ago = gmdate('Y-m-d H:i:s', strtotime('-1 day'));
+						// E.g. "2026-02-20" (resets at local midnight)
+						$current_period_identifier = wp_date('Y-m-d');
 						break;
 					case 'week':
-						$time_ago = gmdate('Y-m-d H:i:s', strtotime('-1 week'));
+						// E.g. "2026-08" (Year and week number)
+						$current_period_identifier = wp_date('Y-W');
 						break;
 					case 'month':
-						$time_ago = gmdate('Y-m-d H:i:s', strtotime('-1 month'));
+						// E.g. "2026-02"
+						$current_period_identifier = wp_date('Y-m');
 						break;
 					default:
-						$time_ago = gmdate('Y-m-d H:i:s', strtotime('-1 hour'));
+						$current_period_identifier = wp_date('Y-m-d H');
 				}
 
-				// Count generations in the time period.
-				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
-				$count = $wpdb->get_var(
-					$wpdb->prepare(
-						'SELECT COUNT(*) FROM ' . esc_sql($table_name) . ' WHERE user_id = %d AND created_at > %s',
-						$user_id,
-						$time_ago
-					)
-				);
+				// If the period identifier doesn't match the last reset, reset the counter
+				if ($last_reset !== $current_period_identifier) {
+					$usage_count = 0;
+					update_user_meta($user_id, 'tryloom_last_reset_date', $current_period_identifier);
+					update_user_meta($user_id, 'tryloom_usage_count', $usage_count);
+				}
 
-				if ($count >= $generation_limit) {
+				if ($usage_count >= $generation_limit) {
 					wp_send_json_error(array('message' => __('You have reached your generation limit. Please try again later.', 'tryloom')));
 				}
 			}
@@ -1098,6 +1126,12 @@ class Tryloom_Frontend
 				);
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 				error_log('[WooCommerce Try On] ' . $log_message);
+			}
+
+			// Increment usage limit after a successful generation
+			if ($generation_limit > 0) {
+				$current_usage = (int) get_user_meta($user_id, 'tryloom_usage_count', true);
+				update_user_meta($user_id, 'tryloom_usage_count', $current_usage + 1);
 			}
 
 			// Generate custom filename.
