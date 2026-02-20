@@ -174,8 +174,7 @@ class Tryloom_Frontend
 			// Output button.
 			?>
 			<button type="button" class="<?php echo esc_attr($button_classes); ?> tryloom-button"
-				data-product-id="<?php echo esc_attr($product->get_id()); ?>"
-				style="background-color: <?php echo esc_attr($primary_color); ?>; color: #fff;">
+				data-product-id="<?php echo esc_attr($product->get_id()); ?>">
 				<?php esc_html_e('Virtual Try On', 'tryloom'); ?>
 			</button>
 			<?php
@@ -264,8 +263,7 @@ class Tryloom_Frontend
 		ob_start();
 		?>
 		<button type="button" class="<?php echo esc_attr($button_classes); ?> tryloom-button"
-			data-product-id="<?php echo esc_attr($product_id); ?>"
-			style="background-color: <?php echo esc_attr($primary_color); ?>; color: #fff;">
+			data-product-id="<?php echo esc_attr($product_id); ?>">
 			<?php esc_html_e('Virtual Try On', 'tryloom'); ?>
 		</button>
 		<?php
@@ -521,6 +519,11 @@ class Tryloom_Frontend
 			// Escaping LATE: wp_strip_all_tags called directly inside the output function
 			wp_add_inline_style('tryloom-frontend', wp_strip_all_tags($raw_css));
 		}
+
+		// Inject dynamic primary color via CSS variable at :root level
+		$primary_color = get_option('tryloom_primary_color', '#552FBC');
+		$root_css = ":root { --tryloom-primary-color: " . esc_attr($primary_color) . "; }";
+		wp_add_inline_style('tryloom-frontend', $root_css);
 
 		// Enqueue scripts.
 		wp_enqueue_script(

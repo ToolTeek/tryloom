@@ -10,17 +10,17 @@
 	$(document).ready(function () {
 
 		// Initialize color picker with default color (Bug R2-9).
-		$('.tryloom-color-picker').wpColorPicker({
+		$('.tryloom-admin__color-picker').wpColorPicker({
 			defaultColor: '#552FBC'
 		});
 
 		// Initialize media uploader.
-		$('.tryloom-media-upload').on('click', function (e) {
+		$('.tryloom-admin__media-upload').on('click', function (e) {
 			e.preventDefault();
 
 			var button = $(this);
-			var container = button.closest('.tryloom-media-uploader');
-			var preview = container.find('.tryloom-media-preview');
+			var container = button.closest('.tryloom-admin__media-uploader');
+			var preview = container.find('.tryloom-admin__media-preview');
 			var input = container.find('input[type="hidden"]');
 
 			var frame = wp.media({
@@ -33,7 +33,7 @@
 
 			frame.on('select', function () {
 				var attachment = frame.state().get('selection').first().toJSON();
-				preview.html('<img src="' + attachment.url + '" alt="" style="max-width: 100%;" />');
+				preview.html('<img src="' + attachment.url + '" alt="" class="tryloom-admin__preview-img" />');
 				input.val(attachment.id);
 			});
 
@@ -41,12 +41,12 @@
 		});
 
 		// Remove media.
-		$('.tryloom-media-remove').on('click', function (e) {
+		$('.tryloom-admin__media-remove').on('click', function (e) {
 			e.preventDefault();
 
 			var button = $(this);
-			var container = button.closest('.tryloom-media-uploader');
-			var preview = container.find('.tryloom-media-preview');
+			var container = button.closest('.tryloom-admin__media-uploader');
+			var preview = container.find('.tryloom-admin__media-preview');
 			var input = container.find('input[type="hidden"]');
 
 			preview.html('');

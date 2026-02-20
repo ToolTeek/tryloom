@@ -26,150 +26,163 @@ if (!isset($default_photo_url)) {
     $default_photo_url = '';
 }
 ?>
-<div id="tryloom-popup" class="tryloom-popup tryloom-theme-<?php echo esc_attr($theme); ?>"
-    style="display: none; --tryloom-primary-color: <?php echo esc_attr($primary_color); ?>;">
-    <div class="tryloom-popup-content">
-        <div class="tryloom-popup-header">
-            <h3><?php esc_html_e('AI Fitting Room', 'tryloom'); ?></h3>
-            <button class="tryloom-popup-close">&times;</button>
-        </div>
+<!-- TryLoom Specificity Wrapper -->
+<div id="tryloom-popup-wrap">
+    <div class="tryloom-popup tryloom-popup--theme-<?php echo esc_attr($theme); ?>" id="tryloom-popup"
+        aria-hidden="true" role="dialog" aria-labelledby="tryloom-popup-title"
+        data-primary-color="<?php echo esc_attr($primary_color); ?>">
+        <div class="tryloom-popup__content">
+            <div class="tryloom-popup__header">
+                <h3 id="tryloom-popup-title" class="tryloom-popup__title">
+                    <?php esc_html_e('AI Fitting Room', 'tryloom'); ?></h3>
+                <button class="tryloom-popup__close-btn"
+                    aria-label="<?php esc_attr_e('Close', 'tryloom'); ?>">&times;</button>
+            </div>
 
-        <div class="tryloom-popup-body">
-            <!-- Step 1: Upload and Select Variation -->
-            <div class="tryloom-step tryloom-step-1 is-active">
-                <div class="tryloom-upload">
-                    <h4><?php esc_html_e('Your Photo', 'tryloom'); ?></h4>
-                    <div class="tryloom-upload-area">
-                        <div class="tryloom-upload-preview">
-                            <?php if ($default_photo_url): ?>
-                                <div class="tryloom-preview">
-                                    <img src="<?php echo esc_url($default_photo_url); ?>"
-                                        alt="<?php esc_attr_e('Your Photo', 'tryloom'); ?>" />
-                                </div>
-                            <?php else: ?>
-                                <div class="tryloom-upload-placeholder">
-                                    <img src="<?php echo esc_url(plugin_dir_url(dirname(__FILE__)) . 'assets/img/tryloom_upload_placeholder.png'); ?>"
-                                        alt="<?php esc_attr_e('Upload', 'tryloom'); ?>" width="80" height="80" />
-                                    <p class="tryloom-upload-title"><?php esc_html_e('Upload your photo', 'tryloom'); ?></p>
-                                    <p class="tryloom-upload-subtitle">
-                                        <?php esc_html_e('or drag and drop here.', 'tryloom'); ?>
-                                    </p>
+            <div class="tryloom-popup__body">
+                <!-- Step 1: Upload and Select Variation -->
+                <div class="tryloom-popup__step tryloom-popup__step--1 is-active">
+                    <div class="tryloom-popup__upload-section">
+                        <h4 class="tryloom-popup__section-title"><?php esc_html_e('Your Photo', 'tryloom'); ?></h4>
+                        <div class="tryloom-popup__upload-area">
+                            <div class="tryloom-popup__upload-preview">
+                                <?php if ($default_photo_url): ?>
+                                    <div class="tryloom-popup__preview-container">
+                                        <img src="<?php echo esc_url($default_photo_url); ?>"
+                                            alt="<?php esc_attr_e('Your Photo', 'tryloom'); ?>"
+                                            class="tryloom-popup__preview-image" />
+                                    </div>
+                                <?php else: ?>
+                                    <div class="tryloom-popup__upload-placeholder">
+                                        <img src="<?php echo esc_url(plugin_dir_url(dirname(__FILE__)) . 'assets/img/tryloom_upload_placeholder.png'); ?>"
+                                            alt="<?php esc_attr_e('Upload', 'tryloom'); ?>" width="80" height="80"
+                                            class="tryloom-popup__upload-icon" />
+                                        <p class="tryloom-popup__upload-title">
+                                            <?php esc_html_e('Upload your photo', 'tryloom'); ?></p>
+                                        <p class="tryloom-popup__upload-subtitle">
+                                            <?php esc_html_e('or drag and drop here.', 'tryloom'); ?>
+                                        </p>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="file" id="tryloom-file" accept="image/*" class="tryloom-popup__hidden-file-input">
+
+                    <?php if ('yes' !== get_option('tryloom_hide_variations', 'no')): ?>
+                        <div class="tryloom-popup__variations-section">
+                            <h4 class="tryloom-popup__section-title">
+                                <?php esc_html_e('Select Product Variation', 'tryloom'); ?></h4>
+                            <div class="tryloom-popup__variations-container">
+                                <p class="tryloom-popup__loading-msg">
+                                    <?php esc_html_e('Loading variations...', 'tryloom'); ?></p>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <div class="tryloom-popup__actions">
+                        <?php
+                        // Get Add to Cart button classes.
+                        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+                        $button_classes = apply_filters('tryloom_product_single_add_to_cart_button_classes', 'button alt');
+                        ?>
+                        <button type="button"
+                            class="<?php echo esc_attr($button_classes); ?> tryloom-popup__generate-btn">
+                            <?php include TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-magic.php'; ?>
+                            <?php esc_html_e('See My Look', 'tryloom'); ?>
+                        </button>
+                    </div>
+                </div><!-- End tryloom-step-1 -->
+
+                <!-- Step 2: Result -->
+                <div class="tryloom-popup__step tryloom-popup__step--2">
+                    <div class="tryloom-popup__result">
+                        <div class="tryloom-popup__result-image-wrapper">
+                            <div class="tryloom-popup__result-loading" aria-hidden="true">
+                                <div class="tryloom-popup__spinner"></div>
+                            </div>
+                            <img src="" alt="<?php esc_attr_e('Try On Result', 'tryloom'); ?>"
+                                class="tryloom-popup__result-image">
+                            <?php if ($watermark): ?>
+                                <div class="tryloom-popup__watermark">
+                                    <img src="<?php echo esc_url($watermark); ?>"
+                                        alt="<?php esc_attr_e('Watermark', 'tryloom'); ?>"
+                                        class="tryloom-popup__watermark-img">
                                 </div>
                             <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
-                <input type="file" id="tryloom-file" accept="image/*" style="display: none;">
 
-                <?php if ('yes' !== get_option('tryloom_hide_variations', 'no')): ?>
-                    <div class="tryloom-variations">
-                        <h4><?php esc_html_e('Select Product Variation', 'tryloom'); ?></h4>
-                        <div class="tryloom-variations-container">
-                            <p class="tryloom-loading"><?php esc_html_e('Loading variations...', 'tryloom'); ?></p>
-                        </div>
-                    </div>
-                <?php endif; ?>
-
-                <div class="tryloom-actions">
-                    <?php
-                    // Get Add to Cart button classes.
-                    // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
-                    $button_classes = apply_filters('tryloom_product_single_add_to_cart_button_classes', 'button alt');
-                    ?>
-                    <button type="button" class="<?php echo esc_attr($button_classes); ?> tryloom-generate"
-                        style="background-color: <?php echo esc_attr($primary_color); ?>; color: #fff;">
-                        <?php include TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-magic.php'; ?>
-                        <?php esc_html_e('See My Look', 'tryloom'); ?>
-                    </button>
-                </div>
-            </div><!-- End tryloom-step-1 -->
-
-            <!-- Step 2: Result -->
-            <div class="tryloom-step tryloom-step-2">
-                <div class="tryloom-result">
-                    <div class="tryloom-result-image">
-                        <div class="tryloom-result-loading" aria-hidden="true">
-                            <div class="tryloom-spinner"></div>
-                        </div>
-                        <img src="" alt="<?php esc_attr_e('Try On Result', 'tryloom'); ?>">
-                        <?php if ($watermark): ?>
-                            <div class="tryloom-watermark">
-                                <img src="<?php echo esc_url($watermark); ?>"
-                                    alt="<?php esc_attr_e('Watermark', 'tryloom'); ?>">
-                            </div>
-                        <?php endif; ?>
-
-                        <!-- Image action icons (using inline SVG for reliability) -->
-                        <div class="tryloom-image-actions">
-                            <a href="#" class="tryloom-icon-button tryloom-download-icon" download
-                                title="<?php esc_attr_e('Download', 'tryloom'); ?>">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                    <polyline points="7 10 12 15 17 10"></polyline>
-                                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                                </svg>
-                            </a>
-                            <?php if ('yes' === $retry_button): ?>
-                                <button type="button" class="tryloom-icon-button tryloom-retry-icon"
-                                    title="<?php esc_attr_e('Try Again', 'tryloom'); ?>">
+                            <!-- Image action icons (using inline SVG for reliability) -->
+                            <div class="tryloom-popup__image-actions">
+                                <a href="#" class="tryloom-popup__icon-button tryloom-popup__download-icon" download
+                                    title="<?php esc_attr_e('Download', 'tryloom'); ?>">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                         stroke-linejoin="round">
-                                        <polyline points="23 4 23 10 17 10"></polyline>
-                                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <polyline points="7 10 12 15 17 10"></polyline>
+                                        <line x1="12" y1="15" x2="12" y2="3"></line>
                                     </svg>
-                                </button>
-                            <?php endif; ?>
+                                </a>
+                                <?php if ('yes' === $retry_button): ?>
+                                    <button type="button" class="tryloom-popup__icon-button tryloom-popup__retry-icon"
+                                        title="<?php esc_attr_e('Try Again', 'tryloom'); ?>">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <polyline points="23 4 23 10 17 10"></polyline>
+                                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                                        </svg>
+                                    </button>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <div class="tryloom-popup__result-actions">
+                            <?php
+                            // Get Add to Cart button classes.
+                            $button_classes = apply_filters('tryloom_product_single_add_to_cart_button_classes', 'button alt');
+                            ?>
+                            <button type="button"
+                                class="<?php echo esc_attr($button_classes); ?> tryloom-popup__add-to-cart-btn">
+                                <?php include TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-shopping-cart.php'; ?>
+                                <?php esc_html_e('Looks Good', 'tryloom'); ?>
+                            </button>
                         </div>
                     </div>
-
-                    <div class="tryloom-result-actions">
-                        <?php
-                        // Get Add to Cart button classes.
-                        $button_classes = apply_filters('tryloom_product_single_add_to_cart_button_classes', 'button alt');
-                        ?>
-                        <button type="button" class="<?php echo esc_attr($button_classes); ?> tryloom-add-to-cart"
-                            style="background-color: <?php echo esc_attr($primary_color); ?>; color: #fff;">
-                            <?php include TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-shopping-cart.php'; ?>
-                            <?php esc_html_e('Looks Good', 'tryloom'); ?>
-                        </button>
+                </div>
+                <!-- Step 3: Limit Exceeded -->
+                <div class="tryloom-popup__step tryloom-popup__step--3">
+                    <div class="tryloom-popup__limit-exceeded">
+                        <span class="tryloom-popup__alert-icon">
+                            <?php
+                            $lock_icon = file_get_contents(TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-lock.php');
+                            echo str_replace(array('width="24"', 'height="24"'), array('width="48"', 'height="48"'), $lock_icon);
+                            ?>
+                        </span>
+                        <h4 class="tryloom-popup__alert-title"><?php esc_html_e('Limit Exceeded', 'tryloom'); ?></h4>
+                        <p class="tryloom-popup__alert-msg">
+                            <?php esc_html_e('You have reached your total allowed try-ons.', 'tryloom'); ?></p>
+                        <p class="tryloom-popup__reset-time">
+                            <?php esc_html_e('Usage resets:', 'tryloom'); ?> <span></span>
+                        </p>
+                        <a href="#" class="tryloom-popup__upsell-btn button alt tryloom-popup__reset-btn">
+                            <?php esc_html_e('Upgrade Plan', 'tryloom'); ?>
+                        </a>
                     </div>
                 </div>
-            </div>
-            <!-- Step 3: Limit Exceeded -->
-            <div class="tryloom-step tryloom-step-3">
-                <div class="tryloom-limit-exceeded">
-                    <span
-                        style="color: <?php echo esc_attr($primary_color); ?>; margin-bottom: 20px; display: inline-block;">
-                        <?php
-                        $lock_icon = file_get_contents(TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-lock.php');
-                        echo str_replace(array('width="24"', 'height="24"'), array('width="48"', 'height="48"'), $lock_icon);
-                        ?>
-                    </span>
-                    <h4><?php esc_html_e('Limit Exceeded', 'tryloom'); ?></h4>
-                    <p><?php esc_html_e('You have reached your total allowed try-ons.', 'tryloom'); ?></p>
-                    <p class="tryloom-reset-time" style="margin-top: 10px; font-weight: bold;">
-                        <?php esc_html_e('Usage resets:', 'tryloom'); ?> <span></span>
-                    </p>
-                    <a href="#" class="tryloom-upsell-button button alt"
-                        style="display: none; margin-top: 20px; background-color: <?php echo esc_attr($primary_color); ?>; color: #fff;">
-                        <?php esc_html_e('Upgrade Plan', 'tryloom'); ?>
-                    </a>
+                <!-- Loading Overlay INSIDE popup content -->
+                <div class="tryloom-popup__loading-overlay" style="display: none;">
+                    <div class="tryloom-popup__progress-container">
+                        <svg class="tryloom-popup__progress-ring" width="80" height="80">
+                            <circle class="tryloom-popup__progress-ring-bg" cx="40" cy="40" r="34" fill="none"
+                                stroke-width="6">
+                            </circle>
+                            <circle class="tryloom-popup__progress-ring-fill" cx="40" cy="40" r="34" fill="none"
+                                stroke-width="6" stroke-dasharray="214" stroke-dashoffset="214" stroke-linecap="round">
+                            </circle>
+                        </svg>
+                    </div>
+                    <p class="tryloom-popup__loading-status-msg"><?php esc_html_e('Processing...', 'tryloom'); ?></p>
                 </div>
-            </div>
-            <!-- Loading Overlay INSIDE popup content -->
-            <div class="tryloom-loading-overlay" style="display: none;">
-                <div class="tryloom-progress-ring-container">
-                    <svg class="tryloom-progress-ring" width="80" height="80">
-                        <circle class="tryloom-progress-ring-bg" cx="40" cy="40" r="34" fill="none" stroke-width="6">
-                        </circle>
-                        <circle class="tryloom-progress-ring-fill" cx="40" cy="40" r="34" fill="none" stroke-width="6"
-                            stroke-dasharray="214" stroke-dashoffset="214" stroke-linecap="round"></circle>
-                    </svg>
-                </div>
-                <p class="tryloom-loading-status"><?php esc_html_e('Processing...', 'tryloom'); ?></p>
             </div>
         </div>
-    </div>

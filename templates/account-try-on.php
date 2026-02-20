@@ -83,21 +83,21 @@ if ('yes' === $enable_history) {
 }
 ?>
 
-<div class="tryloom-account">
+<div id="tryloom-popup-wrap" class="tryloom-popup__account">
     <?php
     $enable_history = get_option('tryloom_enable_history', 'yes');
     if ('yes' === $enable_history): ?>
         <h2><?php esc_html_e('My Virtual Closet', 'tryloom'); ?></h2>
 
         <?php if (!empty($history)): ?>
-            <div class="tryloom-history-actions">
-                <button class="button tryloom-delete-all-history">
+            <div class="tryloom-popup__history-actions">
+                <button class="button tryloom-popup__delete-all-history">
                     <?php include TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-trash.php'; ?>
                     <?php esc_html_e('Delete All History', 'tryloom'); ?>
                 </button>
             </div>
 
-            <table class="tryloom-history-table">
+            <table class="tryloom-popup__history-table">
                 <thead>
                     <tr>
                         <th><?php esc_html_e('Date', 'tryloom'); ?></th>
@@ -131,23 +131,23 @@ if ('yes' === $enable_history) {
                                 <?php
                                 // Images use direct URLs with UUID filenames for security (no PHP proxy needed).
                                 ?>
-                                <a href="<?php echo esc_url($result_image); ?>" target="_blank" class="tryloom-history-image">
+                                <a href="<?php echo esc_url($result_image); ?>" target="_blank"
+                                    class="tryloom-popup__history-image">
                                     <img src="<?php echo esc_url($result_image); ?>"
                                         alt="<?php esc_attr_e('Try On Result', 'tryloom'); ?>" width="60" height="60">
                                 </a>
                             </td>
                             <td>
-                                <a href="<?php echo esc_url($result_image); ?>" download class="button"
-                                    title="<?php esc_attr_e('Download', 'tryloom'); ?>" style="min-width: auto; padding: 8px 12px;">
+                                <a href="<?php echo esc_url($result_image); ?>" download class="button tryloom-popup__account-btn"
+                                    title="<?php esc_attr_e('Download', 'tryloom'); ?>">
                                     <?php include TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-download.php'; ?>
                                 </a>
-                                <a href="<?php echo esc_url(get_permalink($item->product_id)); ?>" class="button"
-                                    title="<?php esc_attr_e('Try Again', 'tryloom'); ?>"
-                                    style="min-width: auto; padding: 8px 12px;">
+                                <a href="<?php echo esc_url(get_permalink($item->product_id)); ?>"
+                                    class="button tryloom-popup__account-btn" title="<?php esc_attr_e('Try Again', 'tryloom'); ?>">
                                     <?php include TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-redo.php'; ?>
                                 </a>
-                                <button class="button tryloom-delete-history" data-id="<?php echo esc_attr($item->id); ?>"
-                                    title="<?php esc_attr_e('Delete', 'tryloom'); ?>" style="min-width: auto; padding: 8px 12px;">
+                                <button class="button tryloom-popup__delete-history tryloom-popup__account-btn"
+                                    data-id="<?php echo esc_attr($item->id); ?>" title="<?php esc_attr_e('Delete', 'tryloom'); ?>">
                                     <?php include TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-trash.php'; ?>
                                 </button>
                             </td>
@@ -157,7 +157,7 @@ if ('yes' === $enable_history) {
             </table>
 
             <?php if ($total_pages > 1): ?>
-                <div class="tryloom-pagination">
+                <div class="tryloom-popup__pagination">
                     <?php
                     $base_url = remove_query_arg(array('history_page', '_wpnonce'));
                     $pagination_nonce = wp_create_nonce('tryloom_history_pagination');

@@ -3,9 +3,9 @@
  */
 
 /* Fix SVG sizes in admin buttons */
-.button svg,
-button svg,
-.tryloom-settings-container svg {
+#tryloom-admin-wrap .button svg,
+#tryloom-admin-wrap button svg,
+#tryloom-admin-wrap .tryloom-admin__settings-container svg {
     width: 20px;
     height: 20px;
     vertical-align: middle;
@@ -14,29 +14,29 @@ button svg,
 }
 
 /* Bottom stats row – match top postbox style */
-.tryloom-bottom-stats {
+#tryloom-admin-wrap .tryloom-admin__bottom-stats {
     display: flex;
     gap: 0;
     flex-wrap: wrap;
     margin-bottom: 20px;
 }
 
-.tryloom-bottom-stats>div {
+#tryloom-admin-wrap .tryloom-admin__bottom-stats>div {
     flex: 1;
     min-width: 300px;
 }
 
-.tryloom-bottom-stats .postbox {
+#tryloom-admin-wrap .tryloom-admin__bottom-stats .postbox {
     margin-bottom: 0;
     border: 1px solid #c3c4c7;
     box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
 }
 
-.tryloom-bottom-stats .postbox .inside {
+#tryloom-admin-wrap .tryloom-admin__bottom-stats .postbox .inside {
     padding: 15px 20px;
 }
 
-.tryloom-header {
+#tryloom-admin-wrap .tryloom-admin__header {
     background: #fff;
     padding: 20px;
     border-bottom: 1px solid #e5e5e5;
@@ -50,13 +50,13 @@ button svg,
     gap: 10px;
 }
 
-.tryloom-header-info p {
+#tryloom-admin-wrap .tryloom-admin__header-info p {
     font-size: 16px;
     margin: 0;
     font-weight: 500;
 }
 
-.tryloom-settings-container {
+#tryloom-admin-wrap .tryloom-admin__settings-container {
     background: #fff;
     padding: 20px;
     border: 1px solid #ccd0d4;
@@ -65,20 +65,20 @@ button svg,
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 }
 
-.tryloom-footer {
+#tryloom-admin-wrap .tryloom-admin__footer {
     border-top: 1px solid #eee;
     margin-top: 40px;
     padding-top: 20px;
 }
 
 /* Dashboard Widget */
-.tryloom-dashboard-widget {
+#tryloom-admin-wrap .tryloom-admin__dashboard-widget {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 15px;
 }
 
-.tryloom-stat-box {
+#tryloom-admin-wrap .tryloom-admin__stat-box {
     background: #f8f9fa;
     padding: 15px;
     border-radius: 4px;
@@ -86,7 +86,7 @@ button svg,
     text-align: center;
 }
 
-.tryloom-stat-box h4 {
+#tryloom-admin-wrap .tryloom-admin__stat-box h4 {
     margin: 0 0 10px 0;
     color: #646970;
     font-size: 13px;
@@ -94,21 +94,21 @@ button svg,
     letter-spacing: 0.5px;
 }
 
-.tryloom-stat-box .stat-number {
+#tryloom-admin-wrap .tryloom-admin__stat-box .stat-number {
     font-size: 24px;
     font-weight: 600;
     color: #552FBC;
     margin: 0 0 5px 0;
 }
 
-.tryloom-stat-box .description {
+#tryloom-admin-wrap .tryloom-admin__stat-box .description {
     font-size: 12px;
     color: #787c82;
     margin: 0;
 }
 
 /* Tooltip Styles */
-.tryloom-help-tip {
+#tryloom-admin-wrap .tryloom-admin__help-tip {
     position: relative;
     display: inline-flex;
     justify-content: center;
@@ -126,11 +126,11 @@ button svg,
     vertical-align: middle;
 }
 
-.tryloom-help-tip::before {
+#tryloom-admin-wrap .tryloom-admin__help-tip::before {
     content: "?";
 }
 
-.tryloom-tooltip-content {
+#tryloom-admin-wrap .tryloom-admin__tooltip-content {
     visibility: hidden;
     width: 200px;
     background-color: #1d2327;
@@ -152,7 +152,7 @@ button svg,
     pointer-events: none;
 }
 
-.tryloom-tooltip-content::after {
+#tryloom-admin-wrap .tryloom-admin__tooltip-content::after {
     content: "";
     position: absolute;
     top: 100%;
@@ -163,13 +163,13 @@ button svg,
     border-color: #1d2327 transparent transparent transparent;
 }
 
-.tryloom-help-tip:hover .tryloom-tooltip-content {
+#tryloom-admin-wrap .tryloom-admin__help-tip:hover .tryloom-admin__tooltip-content {
     visibility: visible;
     opacity: 1;
 }
 
 /* Tooltip Link */
-.tryloom-tooltip-content a {
+#tryloom-admin-wrap .tryloom-admin__tooltip-content a {
     color: #fff;
     text-decoration: underline;
     pointer-events: auto;
@@ -177,7 +177,7 @@ button svg,
 }
 
 /* Stats Styles (Settings Page) */
-.tryloom-daily-stats {
+#tryloom-admin-wrap .tryloom-admin__daily-stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 10px;
@@ -186,7 +186,7 @@ button svg,
     box-sizing: border-box;
 }
 
-.tryloom-stat-box {
+#tryloom-admin-wrap .tryloom-admin__daily-stat-box {
     background: #fff;
     padding: 20px;
     border-radius: 4px;
@@ -197,25 +197,25 @@ button svg,
 }
 
 /* Dashboard Widget Fixes (If used elsewhere with different class) */
-.tryloom-stats {
+#tryloom-admin-wrap .tryloom-admin__stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 15px;
 }
 
-.tryloom-stats-item {
+#tryloom-admin-wrap .tryloom-admin__stats-item {
     background: #f0f0f1;
     padding: 10px;
     border-radius: 4px;
     text-align: center;
 }
 
-.tryloom-stats-item h4 {
+#tryloom-admin-wrap .tryloom-admin__stats-item h4 {
     margin: 0 0 5px;
     font-size: 12px;
 }
 
-.tryloom-stats-number {
+#tryloom-admin-wrap .tryloom-admin__stats-number {
     font-size: 20px;
     font-weight: bold;
     color: #552FBC;
@@ -225,13 +225,13 @@ button svg,
 /* =============================================
    Bug 5: Subscription Button Styling
    ============================================= */
-.tryloom-header-actions {
+#tryloom-admin-wrap .tryloom-admin__header-actions {
     display: flex;
     gap: 10px;
     align-items: center;
 }
 
-.tryloom-header-actions .button {
+#tryloom-admin-wrap .tryloom-admin__header-actions .button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -245,25 +245,25 @@ button svg,
     cursor: pointer;
 }
 
-.tryloom-header-actions .button-primary {
+#tryloom-admin-wrap .tryloom-admin__header-actions .button-primary {
     background: #552FBC;
     color: #fff !important;
 }
 
-.tryloom-header-actions .button-primary:hover {
+#tryloom-admin-wrap .tryloom-admin__header-actions .button-primary:hover {
     background: #4325a0;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(85, 47, 188, 0.3);
 }
 
-.tryloom-header-actions .button-secondary,
-.tryloom-header-actions .button:not(.button-primary) {
+#tryloom-admin-wrap .tryloom-admin__header-actions .button-secondary,
+#tryloom-admin-wrap .tryloom-admin__header-actions .button:not(.button-primary) {
     background: #3c434a;
     color: #fff !important;
 }
 
-.tryloom-header-actions .button-secondary:hover,
-.tryloom-header-actions .button:not(.button-primary):hover {
+#tryloom-admin-wrap .tryloom-admin__header-actions .button-secondary:hover,
+#tryloom-admin-wrap .tryloom-admin__header-actions .button:not(.button-primary):hover {
     background: #2c3338;
     transform: translateY(-1px);
 }
@@ -271,12 +271,12 @@ button svg,
 /* =============================================
    Bug 6: Sticky Save Changes Button
    ============================================= */
-.tryloom-settings-form {
+#tryloom-admin-wrap .tryloom-admin__form {
     position: relative;
     padding-bottom: 80px;
 }
 
-.tryloom-settings-form .submit {
+#tryloom-admin-wrap .tryloom-admin__form .submit {
     position: sticky;
     margin-left: -20px;
     margin-right: -20px;
@@ -291,7 +291,7 @@ button svg,
     width: 100%;
 }
 
-.tryloom-settings-form #submit {
+#tryloom-admin-wrap .tryloom-admin__form #submit {
     background: #552FBC;
     border-color: #552FBC;
     color: #fff;
@@ -299,11 +299,143 @@ button svg,
     font-size: 14px;
     font-weight: 600;
     transition: all 0.2s ease;
-    margin: 10PX;
+    margin: 10px;
 }
 
-.tryloom-settings-form #submit:hover {
+#tryloom-admin-wrap .tryloom-admin__form #submit:hover {
     background: #4325a0;
     border-color: #4325a0;
     box-shadow: 0 4px 12px rgba(85, 47, 188, 0.3);
+}
+
+/* =============================================
+   Refactored Inline Styles Utilities
+   ============================================= */
+#tryloom-admin-wrap .tryloom-admin__settings-details {
+    margin-top: 5px;
+    border: 1px solid #ccd0d4;
+    padding: 15px;
+    background: #fff;
+    max-width: 600px;
+}
+
+#tryloom-admin-wrap .tryloom-admin__settings-summary {
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+}
+
+#tryloom-admin-wrap .tryloom-admin__settings-desc-box {
+    margin-top: 15px;
+}
+
+#tryloom-admin-wrap .tryloom-admin__settings-th {
+    padding-left: 0;
+    padding-bottom: 5px;
+}
+
+#tryloom-admin-wrap .tryloom-admin__settings-td {
+    padding-bottom: 5px;
+}
+
+#tryloom-admin-wrap .tryloom-admin__select-wide {
+    width: 400px;
+}
+
+#tryloom-admin-wrap .tryloom-admin__italic-hint {
+    margin-left: 10px;
+    font-style: italic;
+    color: #666;
+}
+
+#tryloom-admin-wrap .tryloom-admin__shortcode-list {
+    list-style: disc;
+    padding-left: 20px;
+}
+
+/* Admin Dashboard Widget Styles */
+#tryloom-admin-wrap .tryloom-admin__postbox-half {
+    width: 50%;
+}
+
+#tryloom-admin-wrap .tryloom-admin__stat-row {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+    padding: 15px 0;
+}
+
+#tryloom-admin-wrap .tryloom-admin__stat-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: #646970;
+}
+
+#tryloom-admin-wrap .tryloom-admin__stat-value {
+    margin: 5px 0 0;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+#tryloom-admin-wrap .tryloom-admin__stat-divider {
+    border-left: 1px solid #dcdcde;
+    margin: 0 15px;
+}
+
+#tryloom-admin-wrap .tryloom-admin__clear {
+    clear: both;
+}
+
+#tryloom-admin-wrap .tryloom-admin__usage-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+}
+
+#tryloom-admin-wrap .tryloom-admin__usage-desc {
+    margin: 0;
+    margin-right: 15px;
+}
+
+#tryloom-admin-wrap .tryloom-admin__usage-val {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #2271b1;
+    white-space: nowrap;
+}
+
+#tryloom-admin-wrap .tryloom-admin__usage-sub {
+    color: #646970;
+    font-size: 16px;
+}
+
+#tryloom-admin-wrap .tryloom-admin__sub-flex {
+    display: flex;
+    align-items: center;
+    min-height: 52px;
+}
+
+#tryloom-admin-wrap .tryloom-admin__sub-actions {
+    margin: 0;
+}
+
+#tryloom-admin-wrap .tryloom-admin__margin-right-10 {
+    margin-right: 10px;
+}
+
+#tryloom-admin-wrap .tryloom-admin__privacy-quote {
+    background: #f4f4f4;
+    padding: 12px 16px;
+    border-left: 4px solid var(--tryloom-primary-color, #552FBC);
+    border-radius: 4px;
+}
+
+#tryloom-admin-wrap .tryloom-admin__preview-img {
+    max-width: 100%;
+    height: auto;
 }

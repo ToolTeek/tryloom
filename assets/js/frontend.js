@@ -98,7 +98,7 @@
 		 */
 		initPopup: function () {
 			// Close popup.
-			$(document).on('click', '.tryloom-popup-close, .tryloom-close-popup', function () {
+			$(document).on('click', '.tryloom-popup__close-btn, .tryloom-close-popup', function () {
 				TryloomUI.closePopup();
 			});
 
@@ -110,25 +110,25 @@
 			});
 
 			// Generate button - disable initially
-			$('.tryloom-generate').prop('disabled', true);
+			$('.tryloom-popup__generate-btn').prop('disabled', true);
 
 			// Generate button.
-			$(document).on('click', '.tryloom-generate', function () {
+			$(document).on('click', '.tryloom-popup__generate-btn', function () {
 				TryloomUI.generateTryOn();
 			});
 
 			// Retry button.
-			$(document).on('click', '.tryloom-retry', function () {
+			$(document).on('click', '.tryloom-popup__retry-btn', function () {
 				TryloomUI.handleRetry();
 			});
 
 			// Retry icon button.
-			$(document).on('click', '.tryloom-retry-icon', function () {
+			$(document).on('click', '.tryloom-popup__retry-icon', function () {
 				TryloomUI.handleRetry();
 			});
 
 			// Download button.
-			$(document).on('click', '.tryloom-download', function (e) {
+			$(document).on('click', '.tryloom-popup__download-icon', function (e) {
 				e.preventDefault();
 				var downloadLink = $(this).attr('href');
 				var filename = $(this).attr('download') || 'try-on.png';
@@ -146,7 +146,7 @@
 			});
 
 			// Download icon button.
-			$(document).on('click', '.tryloom-download-icon', function (e) {
+			$(document).on('click', '.tryloom-popup__download-icon', function (e) {
 				e.preventDefault();
 				// Get download link from the icon itself or from the result image
 				var downloadLink = $(this).attr('href');
@@ -154,7 +154,7 @@
 
 				// If no href on icon, try to get from result image
 				if (!downloadLink || downloadLink === '#') {
-					var resultImg = $('.tryloom-result-image img');
+					var resultImg = $('.tryloom-popup__result-image');
 					downloadLink = resultImg.attr('src');
 					if (downloadLink) {
 						// Extract filename from URL if possible
@@ -181,7 +181,7 @@
 			});
 
 			// Add to cart button - now just closes popup without adding to cart.
-			$(document).on('click', '.tryloom-add-to-cart', function () {
+			$(document).on('click', '.tryloom-popup__add-to-cart-btn', function () {
 				// Clear generation state.
 				TryloomUI.clearGenerationState();
 
@@ -197,7 +197,7 @@
 			var fileInput = $('#tryloom-file');
 
 			// Upload area click.
-			$(document).on('click', '.tryloom-upload-area', function (e) {
+			$(document).on('click', '.tryloom-popup__upload-area', function (e) {
 				e.preventDefault();
 				fileInput.trigger('click');
 			});
@@ -224,7 +224,7 @@
 			});
 
 			// Remove image button.
-			$(document).on('click', '.tryloom-remove-image', function (e) {
+			$(document).on('click', '.tryloom-popup__remove-image-btn', function (e) {
 				e.stopPropagation();
 				TryloomUI.uploadedFile = null;
 				TryloomUI.uploadedFileURL = null;
@@ -232,24 +232,24 @@
 				TryloomUI.originalUploadedFileURL = null;
 				TryloomUI.originalUploadedFilePreviewDataURL = null;
 				$('#tryloom-file').val('');
-				$('.tryloom-upload-preview').html(
-					'<div class="tryloom-upload-placeholder">' +
-					'<img src="' + tryloom_params.plugin_url + 'assets/img/tryloom_upload_placeholder.png" alt="Upload" width="80" height="80" />' +
-					'<p class="tryloom-upload-title">' + (tryloom_params.i18n.upload_your_photo || 'Upload your photo') + '</p>' +
-					'<p class="tryloom-upload-subtitle">' + (tryloom_params.i18n.drag_and_drop || 'or drag and drop here.') + '</p>' +
+				$('.tryloom-popup__upload-preview').html(
+					'<div class="tryloom-popup__upload-placeholder">' +
+					'<img src="' + tryloom_params.plugin_url + 'assets/img/tryloom_upload_placeholder.png" alt="Upload" width="80" height="80" class="tryloom-popup__upload-icon" />' +
+					'<p class="tryloom-popup__upload-title">' + (tryloom_params.i18n.upload_your_photo || 'Upload your photo') + '</p>' +
+					'<p class="tryloom-popup__upload-subtitle">' + (tryloom_params.i18n.drag_and_drop || 'or drag and drop here.') + '</p>' +
 					'</div>'
 				);
 
 				// Disable the generate button when image is removed
-				$('.tryloom-generate').prop('disabled', true);
+				$('.tryloom-popup__generate-btn').prop('disabled', true);
 			});
 
 			// Drag and drop.
-			var uploadArea = $('.tryloom-popup-content'); // Drop on the whole popup for better UX
+			var uploadArea = $('.tryloom-popup__content'); // Drop on the whole popup for better UX
 			uploadArea.on('dragover', function (e) {
 				e.preventDefault();
 				e.stopPropagation();
-				$('.tryloom-upload-area').addClass('dragover');
+				$('.tryloom-popup__upload-area').addClass('dragover');
 			});
 
 			uploadArea.on('dragleave', function (e) {
@@ -257,7 +257,7 @@
 				e.stopPropagation();
 				// Only remove class if leaving the popup content area
 				if (e.target === this) {
-					$('.tryloom-upload-area').removeClass('dragover');
+					$('.tryloom-popup__upload-area').removeClass('dragover');
 				}
 			});
 
@@ -266,7 +266,7 @@
 			uploadArea.on('drop', function (e) {
 				e.preventDefault();
 				e.stopPropagation();
-				$('.tryloom-upload-area').removeClass('dragover');
+				$('.tryloom-popup__upload-area').removeClass('dragover');
 
 				var file = e.originalEvent.dataTransfer.files[0];
 				if (file) {
@@ -285,7 +285,7 @@
 		 */
 		createRemoveButton: function () {
 			return $('<button>')
-				.addClass('tryloom-remove-image')
+				.addClass('tryloom-popup__remove-image-btn')
 				.attr('type', 'button')
 				.attr('title', tryloom_params.i18n.remove_image || 'Remove image')
 				.html('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>');
@@ -301,11 +301,11 @@
 				return;
 			}
 
-			var previewWrapper = $('<div>').addClass('tryloom-preview');
-			var img = $('<img>').attr('src', src);
+			var previewWrapper = $('<div>').addClass('tryloom-popup__preview-container');
+			var img = $('<img>').addClass('tryloom-popup__preview-image').attr('src', src);
 
 			previewWrapper.append(img).append(this.createRemoveButton());
-			$('.tryloom-upload-preview').html(previewWrapper);
+			$('.tryloom-popup__upload-preview').html(previewWrapper);
 		},
 
 		/**
@@ -319,9 +319,9 @@
 				this.renderUploadedPreview(previewSrc);
 				this.uploadedFileURL = this.originalUploadedFileURL;
 				this.uploadedFilePreviewDataURL = this.originalUploadedFilePreviewDataURL || previewSrc;
-				$('.tryloom-generate').prop('disabled', false);
-			} else if ($('.tryloom-preview img').length > 0) {
-				$('.tryloom-generate').prop('disabled', false);
+				$('.tryloom-popup__generate-btn').prop('disabled', false);
+			} else if ($('.tryloom-popup__preview-container img').length > 0) {
+				$('.tryloom-popup__generate-btn').prop('disabled', false);
 			}
 
 			this.showStep(1);
@@ -334,8 +334,7 @@
 		 * @param {string} [filename]
 		 */
 		setDownloadLinks: function (imageUrl, filename) {
-			var downloadBtn = $('.tryloom-download');
-			var downloadIcon = $('.tryloom-download-icon');
+			var downloadIcon = $('.tryloom-popup__download-icon');
 
 			if (imageUrl) {
 				// Bug R2-2: Ensure filename has a proper extension
@@ -355,18 +354,10 @@
 					}
 				}
 
-				downloadBtn
-					.attr('href', imageUrl)
-					.attr('download', downloadFilename)
-					.show();
 				downloadIcon
 					.attr('href', imageUrl)
 					.attr('download', downloadFilename);
 			} else {
-				downloadBtn
-					.hide()
-					.attr('href', '')
-					.removeAttr('download');
 				downloadIcon
 					.removeAttr('href')
 					.removeAttr('download');
@@ -377,8 +368,8 @@
 		 * Show spinner overlay while result image is loading.
 		 */
 		startResultImageLoading: function () {
-			var container = $('.tryloom-result-image');
-			var loader = container.find('.tryloom-result-loading');
+			var container = $('.tryloom-popup__result-image-wrapper');
+			var loader = container.find('.tryloom-popup__result-loading');
 
 			container.addClass('is-loading');
 			loader.addClass('is-active');
@@ -388,8 +379,8 @@
 		 * Hide spinner overlay after result image completes loading.
 		 */
 		finishResultImageLoading: function () {
-			var container = $('.tryloom-result-image');
-			var loader = container.find('.tryloom-result-loading');
+			var container = $('.tryloom-popup__result-image-wrapper');
+			var loader = container.find('.tryloom-popup__result-loading');
 
 			container.removeClass('is-loading');
 			loader.removeClass('is-active');
@@ -405,8 +396,8 @@
 		displayResultImage: function (imageUrl, filename, callbacks) {
 			callbacks = callbacks || {};
 
-			var container = $('.tryloom-result-image');
-			var resultImg = container.find('img');
+			var container = $('.tryloom-popup__result-image-wrapper');
+			var resultImg = container.find('img.tryloom-popup__result-image');
 			var self = this;
 
 			if (!container.length) {
@@ -522,7 +513,7 @@
 		 */
 		initAccountPage: function () {
 			// Upload new photo button.
-			$(document).on('click', '.tryloom-upload-photo-btn', function () {
+			$(document).on('click', '.tryloom-popup__upload-photo-btn', function () {
 				$('#tryloom-new-photo').trigger('click');
 			});
 
@@ -565,7 +556,7 @@
 			});
 
 			// Delete history item.
-			$(document).on('click', '.tryloom-delete-history', function () {
+			$(document).on('click', '.tryloom-popup__delete-history', function () {
 				var historyId = $(this).data('id');
 				var row = $(this).closest('tr');
 
@@ -586,11 +577,11 @@
 							row.fadeOut(300, function () {
 								$(this).remove();
 								// Check if table is empty.
-								if ($('.tryloom-history-table tbody tr').length === 0) {
-									$('.tryloom-history-table').replaceWith(
+								if ($('.tryloom-popup__history-table tbody tr').length === 0) {
+									$('.tryloom-popup__history-table').replaceWith(
 										'<p>' + tryloom_params.i18n.no_history + '</p>'
 									);
-									$('.tryloom-history-actions').remove();
+									$('.tryloom-popup__history-actions').remove();
 								}
 							});
 						}
@@ -599,7 +590,7 @@
 			});
 
 			// Delete all history.
-			$(document).on('click', '.tryloom-delete-all-history', function () {
+			$(document).on('click', '.tryloom-popup__delete-all-history', function () {
 				if (!confirm('Are you sure you want to delete ALL try-on history? This cannot be undone.')) {
 					return;
 				}
@@ -613,12 +604,12 @@
 					},
 					success: function (response) {
 						if (response.success) {
-							$('.tryloom-history-table').fadeOut(300, function () {
+							$('.tryloom-popup__history-table').fadeOut(300, function () {
 								$(this).replaceWith(
 									'<p>' + tryloom_params.i18n.no_history + '</p>'
 								);
 							});
-							$('.tryloom-history-actions').fadeOut(300, function () {
+							$('.tryloom-popup__history-actions').fadeOut(300, function () {
 								$(this).remove();
 							});
 						}
@@ -627,9 +618,9 @@
 			});
 
 			// Delete photo.
-			$(document).on('click', '.tryloom-delete', function () {
+			$(document).on('click', '.tryloom-popup__delete-photo-btn', function () {
 				var photoId = $(this).data('id');
-				var photoElement = $(this).closest('.tryloom-account-photo');
+				var photoElement = $(this).closest('.tryloom-popup__account-photo');
 
 				if (confirm('Are you sure you want to delete this photo?')) {
 					$.ajax({
@@ -652,9 +643,9 @@
 			});
 
 			// Set default photo.
-			$(document).on('click', '.tryloom-set-default', function () {
+			$(document).on('click', '.tryloom-popup__set-default-btn', function () {
 				var photoId = $(this).data('id');
-				var photoElement = $(this).closest('.tryloom-account-photo');
+				var photoElement = $(this).closest('.tryloom-popup__account-photo');
 
 				$.ajax({
 					url: tryloom_params.ajax_url,
@@ -667,13 +658,13 @@
 					success: function (response) {
 						if (response.success) {
 							// Remove default class from all photos.
-							$('.tryloom-account-photo').removeClass('is-default');
-							$('.tryloom-default-label').remove();
-							$('.tryloom-set-default').show();
+							$('.tryloom-popup__account-photo').removeClass('is-default');
+							$('.tryloom-popup__default-label').remove();
+							$('.tryloom-popup__set-default-btn').show();
 
 							// Add default class to selected photo.
 							photoElement.addClass('is-default');
-							photoElement.find('.tryloom-set-default').hide().after('<span class="tryloom-default-label">Default Photo</span>');
+							photoElement.find('.tryloom-popup__set-default-btn').hide().after('<span class="tryloom-popup__default-label">Default Photo</span>');
 						}
 					}
 				});
@@ -685,21 +676,21 @@
 		 */
 		initLightbox: function () {
 			// Create lightbox HTML
-			var lightboxHTML = '<div class="tryloom-lightbox">' +
-				'<span class="tryloom-lightbox-close">&times;</span>' +
-				'<div class="tryloom-lightbox-content">' +
+			var lightboxHTML = '<div class="tryloom-popup__lightbox">' +
+				'<span class="tryloom-popup__lightbox-close-btn">&times;</span>' +
+				'<div class="tryloom-popup__lightbox-content">' +
 				'<img src="" alt="Zoomed Image">' +
 				'</div>' +
 				'</div>';
 
-			$('body').append(lightboxHTML);
+			$('#tryloom-popup-wrap').append(lightboxHTML);
 
 			// Open lightbox when clicking directly on result image
-			$(document).on('click', '.tryloom-result-image img', function (e) {
+			$(document).on('click', '.tryloom-popup__result-image', function (e) {
 				e.preventDefault();
 				e.stopPropagation();
 
-				if ($(e.target).closest('.tryloom-image-actions').length) {
+				if ($(e.target).closest('.tryloom-popup__image-actions').length) {
 					return;
 				}
 
@@ -708,14 +699,14 @@
 				if (imgSrc) {
 					// Save scroll position before locking
 					TryloomUI.savedScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
-					$('.tryloom-lightbox-content img').attr('src', imgSrc);
-					$('.tryloom-lightbox').addClass('open');
+					$('.tryloom-popup__lightbox-content img').attr('src', imgSrc);
+					$('.tryloom-popup__lightbox').addClass('open');
 					$('body').addClass('tryloom-scroll-lock'); // Prevent scrolling
 				}
 			});
 
 			// Open lightbox for history table links
-			$(document).on('click', '.tryloom-history-image', function (e) {
+			$(document).on('click', '.tryloom-popup__history-image', function (e) {
 				e.preventDefault();
 				e.stopPropagation();
 
@@ -724,16 +715,16 @@
 				if (imgSrc) {
 					// Save scroll position before locking
 					TryloomUI.savedScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
-					$('.tryloom-lightbox-content img').attr('src', imgSrc);
-					$('.tryloom-lightbox').addClass('open');
+					$('.tryloom-popup__lightbox-content img').attr('src', imgSrc);
+					$('.tryloom-popup__lightbox').addClass('open');
 					$('body').addClass('tryloom-scroll-lock');
 				}
 			});
 
 			// Close lightbox when clicking close button or outside image
-			$(document).on('click', '.tryloom-lightbox-close, .tryloom-lightbox', function (e) {
+			$(document).on('click', '.tryloom-popup__lightbox-close-btn, .tryloom-popup__lightbox', function (e) {
 				if (e.target === this) {
-					$('.tryloom-lightbox').removeClass('open');
+					$('.tryloom-popup__lightbox').removeClass('open');
 					$('body').removeClass('tryloom-scroll-lock'); // Re-enable scrolling
 					// Restore scroll position
 					if (TryloomUI.savedScrollPosition) {
@@ -745,7 +736,7 @@
 			// Close lightbox with Escape key
 			$(document).on('keyup', function (e) {
 				if (e.keyCode === 27) { // Escape key
-					$('.tryloom-lightbox').removeClass('open');
+					$('.tryloom-popup__lightbox').removeClass('open');
 					$('body').removeClass('tryloom-scroll-lock'); // Re-enable scrolling
 					// Restore scroll position
 					if (TryloomUI.savedScrollPosition) {
@@ -800,7 +791,7 @@
 				}
 
 				if (savedState.imageUrl) {
-					$('.tryloom-add-to-cart')
+					$('.tryloom-popup__add-to-cart-btn')
 						.data('product-id', savedState.productId)
 						.data('variation-id', savedState.variationId);
 
@@ -820,13 +811,13 @@
 					return;
 				} else if (savedState.generating) {
 					// Show loading state if generation is still in progress
-					$('.tryloom-loading-overlay').show();
-					$('.tryloom-loading-overlay p').text('Generation in progress...');
+					$('.tryloom-popup__loading-overlay').show();
+					$('.tryloom-popup__loading-overlay p').text('Generation in progress...');
 
 					var previewSource = this.originalUploadedFilePreviewDataURL || this.originalUploadedFileURL || this.uploadedFilePreviewDataURL || this.uploadedFileURL;
 					if (previewSource) {
 						this.renderUploadedPreview(previewSource);
-						$('.tryloom-generate').prop('disabled', false);
+						$('.tryloom-popup__generate-btn').prop('disabled', false);
 					}
 
 					// Show step 1 with loading
@@ -838,7 +829,7 @@
 			// Reset popup.
 			this.resetPopup();
 
-			var defaultPhotoImg = $('.tryloom-upload-preview .tryloom-preview img');
+			var defaultPhotoImg = $('.tryloom-popup__upload-preview .tryloom-popup__preview-image');
 			if (defaultPhotoImg.length > 0) {
 				this.setDefaultPhotoState(defaultPhotoImg.attr('src'));
 			} else {
@@ -887,9 +878,9 @@
 
 			// Reset upload area if no default photo is present in the original HTML.
 			// The default photo is loaded via PHP, so we check if the preview div is empty.
-			if (!$('.tryloom-upload-preview .tryloom-preview').length) {
-				$('.tryloom-upload-preview').html(
-					'<div class="tryloom-upload-placeholder">' +
+			if (!$('.tryloom-popup__upload-preview .tryloom-popup__preview-container').length) {
+				$('.tryloom-popup__upload-preview').html(
+					'<div class="tryloom-popup__upload-placeholder">' +
 					'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="64" height="64"><path fill="none" d="M0 0h24v24H0z"/><path d="M21 15v3h3v2h-3v3h-2v-3h-3v-2h3v-3h2zm.008-12c.548 0 .992.445.992.993v9.349A5.99 5.99 0 0 0 20 13V5H4v13.586l3.293-3.293a1 1 0 0 1 1.414 0L12 18.586l2.293-2.293a1 1 0 0 1 1.414 0l.293.293V13a5.99 5.99 0 0 0-2 .341V9a1 1 0 0 1 1-1h5zm-9.489 4.99a3.5 3.5 0 1 1-3.5 3.5 3.5 3.5 0 0 1 3.5-3.5zM4.003 3h16.995c.55 0 .997.446.997.996V13h-2V5H4v13.589l3.294-3.291a1 1 0 0 1 1.32-.084l.094.084 3.292 3.292 1.968-1.968a5.942 5.942 0 0 0 1.173 1.423l-3.141 3.141a1 1 0 0 1-1.32.084l-.094-.084L8 18.585l-5.293 5.294A1 1 0 0 1 1.999 24a.993.993 0 0 1-.996-.996V3.996A.996.996 0 0 1 1.997 3h.006z" fill="rgba(128,128,128,0.5)"/></svg>' +
 					'<p>' + tryloom_params.i18n.upload_image + '</p>' +
 					'</div>'
@@ -897,7 +888,7 @@
 			}
 
 			// Reset variations.
-			$('.tryloom-variations-container').html('<p class="tryloom-loading">' + tryloom_params.i18n.loading_variations + '</p>');
+			$('.tryloom-popup__variations-container').html('<p class="tryloom-popup__loading-msg">' + tryloom_params.i18n.loading_variations + '</p>');
 
 			// Abort any ongoing requests when closing/resetting popup
 			if (this.variationXhr) {
@@ -910,7 +901,7 @@
 			}
 
 			// In case the user resets during generation, remove the scroll lock class to re-enable scrolling
-			$('.tryloom-popup-body').removeClass('is-generating');
+			$('.tryloom-popup__body').removeClass('is-generating');
 
 			// Reset save photo checkbox.
 			$('#tryloom-save-photo').prop('checked', false);
@@ -925,10 +916,10 @@
 			// Reset result image state.
 			this.setDownloadLinks(null);
 			this.finishResultImageLoading();
-			$('.tryloom-result-image img').attr('src', '');
+			$('.tryloom-popup__result-image').attr('src', '');
 
 			// Disable generate button
-			$('.tryloom-generate').prop('disabled', true);
+			$('.tryloom-popup__generate-btn').prop('disabled', true);
 
 			// Show step 1.
 			this.showStep(1);
@@ -940,8 +931,8 @@
 		 * @param {number} step Step number.
 		 */
 		showStep: function (step) {
-			$('.tryloom-step').removeClass('is-active');
-			$('.tryloom-step-' + step).addClass('is-active');
+			$('.tryloom-popup__step').removeClass('is-active');
+			$('.tryloom-popup__step--' + step).addClass('is-active');
 		},
 
 		/**
@@ -965,8 +956,8 @@
 			}
 
 			var self = this;
-			var container = $('.tryloom-variations-container');
-			container.html('<p class="tryloom-loading">' + tryloom_params.i18n.loading_variations + '</p>');
+			var container = $('.tryloom-popup__variations-container');
+			container.html('<p class="tryloom-popup__loading-msg">' + tryloom_params.i18n.loading_variations + '</p>');
 
 			this.variationXhr = $.ajax({
 				url: tryloom_params.ajax_url,
@@ -989,13 +980,13 @@
 							var variationTitle = variation.image.title;
 							var variationAttributes = variation.attributes ? JSON.stringify(variation.attributes).replace(/"/g, '&quot;') : '{}';
 
-							var variationHtml = '<div class="tryloom-variation" data-variation-id="' + variationId + '" data-product-id="' + productId + '" data-attributes="' + variationAttributes + '">' +
-								'<div class="tryloom-variation-image">' +
+							var variationHtml = '<div class="tryloom-popup__variation" data-variation-id="' + variationId + '" data-product-id="' + productId + '" data-attributes="' + variationAttributes + '">' +
+								'<div class="tryloom-popup__variation-image">' +
 								'<img src="' + variationImage + '" alt="' + variationTitle + '" />' +
 								'</div>' +
-								'<div class="tryloom-variation-details">' +
-								'<div class="tryloom-variation-name">' + variationName + '</div>' +
-								'<div class="tryloom-variation-price">' + (variation.price_html || '') + '</div>' +
+								'<div class="tryloom-popup__variation-details">' +
+								'<div class="tryloom-popup__variation-name">' + variationName + '</div>' +
+								'<div class="tryloom-popup__variation-price">' + (variation.price_html || '') + '</div>' +
 								'</div>' +
 								'</div>';
 
@@ -1003,11 +994,11 @@
 						});
 
 						// Select first variation by default.
-						$('.tryloom-variation').first().addClass('selected');
+						$('.tryloom-popup__variation').first().addClass('selected');
 
 						// Variation click.
-						$('.tryloom-variation').on('click', function () {
-							$('.tryloom-variation').removeClass('selected');
+						$('.tryloom-popup__variation').on('click', function () {
+							$('.tryloom-popup__variation').removeClass('selected');
 							$(this).addClass('selected');
 						});
 					} else {
@@ -1028,13 +1019,13 @@
 									var productImage = product.image || '';
 									var productPriceHtml = product.price_html || '';
 
-									var productHtml = '<div class="tryloom-variation selected" data-variation-id="0" data-product-id="' + productId + '">' +
-										'<div class="tryloom-variation-image">' +
+									var productHtml = '<div class="tryloom-popup__variation selected" data-variation-id="0" data-product-id="' + productId + '">' +
+										'<div class="tryloom-popup__variation-image">' +
 										'<img src="' + productImage + '" alt="' + productName + '" />' +
 										'</div>' +
-										'<div class="tryloom-variation-details">' +
-										'<div class="tryloom-variation-name">' + productName + '</div>' +
-										'<div class="tryloom-variation-price">' + productPriceHtml + '</div>' +
+										'<div class="tryloom-popup__variation-details">' +
+										'<div class="tryloom-popup__variation-name">' + productName + '</div>' +
+										'<div class="tryloom-popup__variation-price">' + productPriceHtml + '</div>' +
 										'</div>' +
 										'</div>';
 
@@ -1115,10 +1106,10 @@
 		 */
 		uploadFile: function (file) {
 			// Show upload progress overlay
-			var uploadArea = $('.tryloom-upload-area');
-			var progressHTML = '<div class="tryloom-upload-progress-overlay">' +
-				'<div class="tryloom-spinner"></div>' +
-				'<p class="tryloom-progress-text">Uploading...</p>' +
+			var uploadArea = $('.tryloom-popup__upload-area');
+			var progressHTML = '<div class="tryloom-popup__upload-progress-overlay">' +
+				'<div class="tryloom-popup__spinner"></div>' +
+				'<p class="tryloom-popup__progress-text">Uploading...</p>' +
 				'</div>';
 
 			uploadArea.append(progressHTML);
@@ -1146,14 +1137,14 @@
 							if (evt.lengthComputable) {
 								var percentComplete = Math.round((evt.loaded / evt.total) * 100);
 								var dashOffset = 226 - (226 * percentComplete / 100);
-								$('.tryloom-progress-circle-fill').css('stroke-dashoffset', dashOffset);
-								$('.tryloom-progress-percent').text(percentComplete + '%');
+								$('.tryloom-popup__progress-ring-fill').css('stroke-dashoffset', dashOffset);
+								$('.tryloom-popup__progress-percent').text(percentComplete + '%');
 							}
 						}, false);
 						return xhr;
 					},
 					success: function (response) {
-						$('.tryloom-upload-progress-overlay').fadeOut(300, function () {
+						$('.tryloom-popup__upload-progress-overlay').fadeOut(300, function () {
 							$(this).remove();
 						});
 
@@ -1168,17 +1159,17 @@
 
 
 							// Enable the generate button after successful upload
-							$('.tryloom-generate').prop('disabled', false);
+							$('.tryloom-popup__generate-btn').prop('disabled', false);
 						} else {
 							TryloomUI.showErrorPopup(response.data.message || tryloom_params.i18n.error);
 						}
 					},
 					error: function () {
-						$('.tryloom-upload-progress-overlay').fadeOut(300, function () {
+						$('.tryloom-popup__upload-progress-overlay').fadeOut(300, function () {
 							$(this).remove();
 						});
 						// Disable generate button on upload error
-						$('.tryloom-generate').prop('disabled', true);
+						$('.tryloom-popup__generate-btn').prop('disabled', true);
 						TryloomUI.showErrorPopup(tryloom_params.i18n.error);
 					}
 				});
@@ -1191,7 +1182,7 @@
 		generateTryOn: function () {
 			// Check if file is uploaded or using default photo.
 			var hasUploadedFile = TryloomUI.uploadedFileURL !== null;
-			var hasDefaultPhoto = $('.tryloom-preview img').length > 0 && !hasUploadedFile;
+			var hasDefaultPhoto = $('.tryloom-popup__preview-container img').length > 0 && !hasUploadedFile;
 
 			if (!hasUploadedFile && !hasDefaultPhoto) {
 				alert(tryloom_params.i18n.upload_image);
@@ -1204,7 +1195,7 @@
 
 			var isHidden = tryloom_params.hide_variations === '1' || tryloom_params.hide_variations === true || tryloom_params.hide_variations === 'true';
 			if (!isHidden) {
-				var selectedVariation = $('.tryloom-variation.selected');
+				var selectedVariation = $('.tryloom-popup__variation.selected');
 				if (!selectedVariation.length) {
 					alert(tryloom_params.i18n.select_variant);
 					return;
@@ -1224,13 +1215,13 @@
 			});
 
 			// Reset Progress (Show overlay)
-			$('.tryloom-loading-overlay').show();
+			$('.tryloom-popup__loading-overlay').show();
 			// Bug R2-7: Add scroll lock class to prevent scrolling during generation
-			$('.tryloom-popup-body').addClass('is-generating');
+			$('.tryloom-popup__body').addClass('is-generating');
 
 			// Reset circular progress (r=34, circumference = 2*PI*34 ≈ 214)
 			var circumference = 214;
-			$('.tryloom-progress-ring-fill').css('stroke-dashoffset', circumference);
+			$('.tryloom-popup__progress-ring-fill').css('stroke-dashoffset', circumference);
 
 			// Dynamic Loading Messages
 			var loopMessages = [
@@ -1241,7 +1232,7 @@
 			];
 
 			// Set initial text
-			$('.tryloom-loading-status').text(loopMessages[0].text);
+			$('.tryloom-popup__loading-status-msg').text(loopMessages[0].text);
 			var startTime = new Date().getTime();
 
 			// Clear previous intervals
@@ -1267,7 +1258,7 @@
 			// Update progress ring UI (no percentage text)
 			function updateProgressUI(percent) {
 				var offset = circumference - (percent / 100) * circumference;
-				$('.tryloom-progress-ring-fill').css('stroke-dashoffset', offset);
+				$('.tryloom-popup__progress-ring-fill').css('stroke-dashoffset', offset);
 			}
 
 			// Start progress animation
@@ -1289,7 +1280,7 @@
 				// Find the appropriate message for the current elapsed time
 				for (var i = loopMessages.length - 1; i >= 0; i--) {
 					if (elapsed >= loopMessages[i].time) {
-						$('.tryloom-loading-status').text(loopMessages[i].text);
+						$('.tryloom-popup__loading-status-msg').text(loopMessages[i].text);
 						break;
 					}
 				}
@@ -1332,12 +1323,12 @@
 							TryloomUI.completeProgress();
 						}
 						// Finalize loading state
-						$('.tryloom-loading-status').text(tryloom_params.i18n.success_message || 'Complete!');
+						$('.tryloom-popup__loading-status-msg').text(tryloom_params.i18n.success_message || 'Complete!');
 
 						// Slight delay to show 100% before hiding
 						setTimeout(function () {
-							$('.tryloom-loading-overlay').hide();
-							$('.tryloom-popup-body').removeClass('is-generating');
+							$('.tryloom-popup__loading-overlay').hide();
+							$('.tryloom-popup__body').removeClass('is-generating');
 							// ... proceed to result ...
 							// Save generation state with result.
 							TryloomUI.saveGenerationState({
@@ -1352,7 +1343,7 @@
 							});
 
 							// Set add to cart button data.
-							$('.tryloom-add-to-cart')
+							$('.tryloom-popup__add-to-cart-btn')
 								.data('product-id', response.data.product_id)
 								.data('variation-id', response.data.variation_id);
 
@@ -1365,8 +1356,8 @@
 						}, 800); // Wait for 100% animation
 					} else {
 						// Error
-						$('.tryloom-loading-overlay').hide();
-						$('.tryloom-popup-body').removeClass('is-generating');
+						$('.tryloom-popup__loading-overlay').hide();
+						$('.tryloom-popup__body').removeClass('is-generating');
 						console.error('Generation failed:', response.data);
 
 						TryloomUI.clearGenerationState();
@@ -1374,16 +1365,16 @@
 						if (response.data && response.data.error_code === 'limit_exceeded') {
 							// Populate Step 3
 							if (response.data.reset_time) {
-								$('.tryloom-reset-time span').text(response.data.reset_time);
-								$('.tryloom-reset-time').show();
+								$('.tryloom-popup__reset-time span').text(response.data.reset_time);
+								$('.tryloom-popup__reset-time').show();
 							} else {
-								$('.tryloom-reset-time').hide();
+								$('.tryloom-popup__reset-time').hide();
 							}
 
 							if (response.data.upsell_url) {
-								$('.tryloom-upsell-button').attr('href', response.data.upsell_url).show();
+								$('.tryloom-popup__upsell-btn').attr('href', response.data.upsell_url).show();
 							} else {
-								$('.tryloom-upsell-button').hide();
+								$('.tryloom-popup__upsell-btn').hide();
 							}
 
 							// Show step 3
@@ -1401,8 +1392,8 @@
 					console.error('AJAX Error:', status, error);
 
 					// Hide loading overlay.
-					$('.tryloom-loading-overlay').hide();
-					$('.tryloom-popup-body').removeClass('is-generating');
+					$('.tryloom-popup__loading-overlay').hide();
+					$('.tryloom-popup__body').removeClass('is-generating');
 
 					// Clear generation state on error.
 					TryloomUI.clearGenerationState();
@@ -1473,10 +1464,10 @@
 				}
 
 				// Show a notification that generation is in progress
-				var notification = $('<div class="tryloom-generation-notification" style="position: fixed; top: 20px; right: 20px; background: #667eea; color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); z-index: 999999; font-weight: 600;">' +
-					'<p style="margin: 0 0 10px 0;">Generation in progress...</p>' +
-					'<button class="tryloom-check-result" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600;">Check Result</button>' +
-					'<button class="tryloom-dismiss-notification" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600; margin-left: 10px;">Dismiss</button>' +
+				var notification = $('<div class="tryloom-generation-notification">' +
+					'<p>Generation in progress...</p>' +
+					'<button class="tryloom-notification-btn tryloom-check-result">Check Result</button>' +
+					'<button class="tryloom-notification-btn tryloom-dismiss-notification tryloom-notification-dismiss">Dismiss</button>' +
 					'</div>');
 
 				$('body').append(notification);
