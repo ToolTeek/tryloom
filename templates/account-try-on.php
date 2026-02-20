@@ -92,7 +92,7 @@ if ('yes' === $enable_history) {
         <?php if (!empty($history)): ?>
             <div class="tryloom-history-actions">
                 <button class="button tryloom-delete-all-history">
-                    <i class="fas fa-trash"></i>
+                    <?php include TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-trash.php'; ?>
                     <?php esc_html_e('Delete All History', 'tryloom'); ?>
                 </button>
             </div>
@@ -139,16 +139,16 @@ if ('yes' === $enable_history) {
                             <td>
                                 <a href="<?php echo esc_url($result_image); ?>" download class="button"
                                     title="<?php esc_attr_e('Download', 'tryloom'); ?>" style="min-width: auto; padding: 8px 12px;">
-                                    <i class="fas fa-download"></i>
+                                    <?php include TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-download.php'; ?>
                                 </a>
                                 <a href="<?php echo esc_url(get_permalink($item->product_id)); ?>" class="button"
                                     title="<?php esc_attr_e('Try Again', 'tryloom'); ?>"
                                     style="min-width: auto; padding: 8px 12px;">
-                                    <i class="fas fa-redo"></i>
+                                    <?php include TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-redo.php'; ?>
                                 </a>
                                 <button class="button tryloom-delete-history" data-id="<?php echo esc_attr($item->id); ?>"
                                     title="<?php esc_attr_e('Delete', 'tryloom'); ?>" style="min-width: auto; padding: 8px 12px;">
-                                    <i class="fas fa-trash"></i>
+                                    <?php include TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-trash.php'; ?>
                                 </button>
                             </td>
                         </tr>

@@ -112,6 +112,7 @@ class Tryloom_Admin
 		register_setting('tryloom-settings-group', 'tryloom_custom_popup_css', array('sanitize_callback' => 'wp_strip_all_tags', 'capability' => 'manage_options'));
 		register_setting('tryloom-settings-group', 'tryloom_custom_button_css', array('sanitize_callback' => 'wp_strip_all_tags', 'capability' => 'manage_options'));
 		register_setting('tryloom-settings-group', 'tryloom_custom_account_css', array('sanitize_callback' => 'wp_strip_all_tags', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group', 'tryloom_hide_variations', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
 
 		// Register user settings.
 		register_setting('tryloom-settings-group', 'tryloom_save_photos', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
@@ -121,6 +122,7 @@ class Tryloom_Admin
 		register_setting('tryloom-settings-group', 'tryloom_allowed_user_roles', array('sanitize_callback' => array($this, 'sanitize_array'), 'capability' => 'manage_options'));
 		register_setting('tryloom-settings-group', 'tryloom_enable_history', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
 		register_setting('tryloom-settings-group', 'tryloom_role_limits', array('sanitize_callback' => array($this, 'sanitize_role_limits_array'), 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group', 'tryloom_limit_upsell_url', array('sanitize_callback' => 'esc_url_raw', 'capability' => 'manage_options'));
 
 		// Register advanced settings.
 		register_setting('tryloom-settings-group', 'tryloom_enable_logging', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
@@ -196,6 +198,14 @@ class Tryloom_Admin
 		);
 
 		add_settings_field(
+			'tryloom_hide_variations',
+			__('Hide Variations', 'tryloom'),
+			array($this, 'hide_variations_callback'),
+			'tryloom-settings',
+			'tryloom_appearance_section'
+		);
+
+		add_settings_field(
 			'tryloom_custom_popup_css',
 			__('Custom Popup CSS', 'tryloom'),
 			array($this, 'custom_popup_css_callback'),
@@ -237,6 +247,14 @@ class Tryloom_Admin
 		);
 
 		add_settings_field(
+			'tryloom_role_limits',
+			__('Advanced Limits', 'tryloom'),
+			array($this, 'role_limits_callback'),
+			'tryloom-settings',
+			'tryloom_user_section'
+		);
+
+		add_settings_field(
 			'tryloom_time_period',
 			__('Time Period', 'tryloom'),
 			array($this, 'time_period_callback'),
@@ -264,6 +282,14 @@ class Tryloom_Admin
 			'tryloom_enable_history',
 			__('Enable History', 'tryloom'),
 			array($this, 'enable_history_callback'),
+			'tryloom-settings',
+			'tryloom_user_section'
+		);
+
+		add_settings_field(
+			'tryloom_limit_upsell_url',
+			__('Limit Exceeded Upsell URL', 'tryloom'),
+			array($this, 'limit_upsell_url_callback'),
 			'tryloom-settings',
 			'tryloom_user_section'
 		);
@@ -412,14 +438,19 @@ class Tryloom_Admin
 	public function user_section_callback()
 	{
 		echo '<p>' . esc_html__('Control how user photos, limits, and history are managed.', 'tryloom') . '</p>';
+	}
 
-		// Render the Advanced Role Limits accordion here since it relates to User Limits
+	/**
+	 * Role Limits callback.
+	 */
+	public function role_limits_callback()
+	{
 		$roles = wp_roles()->get_names();
 		$role_limits = get_option('tryloom_role_limits', array());
 		?>
-		<details style="margin-top: 20px; border: 1px solid #ccd0d4; padding: 15px; background: #fff;">
-			<summary style="font-weight: 600; font-size: 14px; cursor: pointer; outline: none;">
-				<?php esc_html_e('Advanced: Role-Based Limits (Optional)', 'tryloom'); ?>
+		<details style="margin-top: 5px; border: 1px solid #ccd0d4; padding: 15px; background: #fff; max-width: 600px;">
+			<summary style="font-weight: 500; font-size: 14px; cursor: pointer; outline: none;">
+				<?php esc_html_e('Show Role-Based Limits', 'tryloom'); ?>
 			</summary>
 			<div style="margin-top: 15px;">
 				<p class="description">
@@ -429,8 +460,10 @@ class Tryloom_Admin
 					<tbody>
 						<?php foreach ($roles as $role_key => $role_name): ?>
 							<tr>
-								<th scope="row"><label><?php echo esc_html(translate_user_role($role_name)); ?></label></th>
-								<td>
+								<th scope="row" style="padding-left: 0; padding-bottom: 5px;">
+									<label><?php echo esc_html(translate_user_role($role_name)); ?></label>
+								</th>
+								<td style="padding-bottom: 5px;">
 									<input type="number" name="tryloom_role_limits[<?php echo esc_attr($role_key); ?>]"
 										value="<?php echo isset($role_limits[$role_key]) ? esc_attr($role_limits[$role_key]) : ''; ?>"
 										min="0" step="1" placeholder="<?php esc_attr_e('Default', 'tryloom'); ?>" />
@@ -441,6 +474,9 @@ class Tryloom_Admin
 				</table>
 			</div>
 		</details>
+		<p class="description">
+			<?php esc_html_e('Optional: Provide unique limits based on user role. This will override the global limit above.', 'tryloom'); ?>
+		</p>
 		<?php
 	}
 
@@ -630,6 +666,24 @@ class Tryloom_Admin
 		<?php
 	}
 
+	/**
+	 * Hide variations callback.
+	 */
+	public function hide_variations_callback()
+	{
+		$hide_variations = get_option('tryloom_hide_variations', 'no');
+		?>
+		<select name="tryloom_hide_variations">
+			<option value="yes" <?php selected($hide_variations, 'yes'); ?>><?php esc_html_e('Yes', 'tryloom'); ?></option>
+			<option value="no" <?php selected($hide_variations, 'no'); ?>><?php esc_html_e('No', 'tryloom'); ?></option>
+		</select>
+		<p class="description">
+			<?php esc_html_e('If yes, the variation selector is hidden and standard main image testing is defaulted.', 'tryloom'); ?>
+		</p>
+		<?php
+	}
+
+
 
 	/**
 	 * Save photos callback.
@@ -654,7 +708,7 @@ class Tryloom_Admin
 		?>
 		<div style="margin-top: 15px;">
 			<button type="button" id="tryloom_delete_photos_btn" class="button button-secondary" <?php echo !$has_photos ? 'disabled' : ''; ?>>
-				<i class="fas fa-trash"></i>
+				<?php include TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-trash.php'; ?>
 				<?php esc_html_e('Delete Saved User Photos', 'tryloom'); ?>
 			</button>
 			<span style="margin-left: 10px; font-style: italic; color: #666;">
@@ -749,6 +803,21 @@ class Tryloom_Admin
 			?>
 		</select>
 		<p class="description"><?php esc_html_e('Select which user roles can use the Try-On feature.', 'tryloom'); ?></p>
+		<?php
+	}
+
+	/**
+	 * Limit upsell url callback.
+	 */
+	public function limit_upsell_url_callback()
+	{
+		$limit_upsell_url = get_option('tryloom_limit_upsell_url', '');
+		?>
+		<input type="url" name="tryloom_limit_upsell_url" value="<?php echo esc_attr($limit_upsell_url); ?>"
+			class="regular-text" placeholder="https://" />
+		<p class="description">
+			<?php esc_html_e('URL to redirect users or link to when they reach their generation limit (e.g., pricing page).', 'tryloom'); ?>
+		</p>
 		<?php
 	}
 
@@ -898,7 +967,7 @@ class Tryloom_Admin
 		</p>
 		<div style="margin-top: 15px;">
 			<button type="button" id="tryloom_clear_history_btn" class="button button-secondary" <?php echo !$has_history ? 'disabled' : ''; ?>>
-				<i class="fas fa-trash"></i>
+				<?php include TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-trash.php'; ?>
 				<?php esc_html_e('Clear All History', 'tryloom'); ?>
 			</button>
 			<span style="margin-left: 10px; font-style: italic; color: #666;">
@@ -1213,14 +1282,7 @@ class Tryloom_Admin
 			return;
 		}
 
-		// Enqueue Font Awesome.
-		// Note: Using local bundle for compliance.
-		wp_enqueue_style(
-			'font-awesome',
-			TRYLOOM_PLUGIN_URL . 'assets/lib/font-awesome/css/all.min.css',
-			array(),
-			'6.4.0'
-		);
+
 
 		// Enqueue WooCommerce Admin Styles (for SelectWoo/Select2).
 		wp_enqueue_style('woocommerce_admin_styles');
@@ -1379,11 +1441,6 @@ class Tryloom_Admin
 	}
 
 	/**
-	 * Handler for starting free trial (admin_post action).
-	 */
-	/* start_free_trial method removed */
-
-	/**
 	 * Settings page.
 	 */
 	public function settings_page()
@@ -1444,69 +1501,132 @@ class Tryloom_Admin
 		<div class="wrap tryloom-settings">
 			<h1><?php esc_html_e('TryLoom Settings  - Virtual Try On for WooCommerce', 'tryloom'); ?></h1>
 
-			<!-- Statistics Grid -->
-			<div class="tryloom-daily-stats">
-				<div class="tryloom-stat-box">
-					<h3><?php esc_html_e("Today's Active Users", 'tryloom'); ?></h3>
-					<p class="stat-number"><?php echo esc_html($today_active_users); ?></p>
-				</div>
-				<div class="tryloom-stat-box">
-					<h3><?php esc_html_e("Today's Try-On Uses", 'tryloom'); ?></h3>
-					<p class="stat-number"><?php echo esc_html($today_try_on_count); ?></p>
-				</div>
-			</div>
+			<!-- Statistics Grid (Native WP Styling) -->
+			<div id="dashboard-widgets-wrap">
+				<div id="dashboard-widgets" class="metabox-holder">
+					<div class="postbox-container" style="width: 50%;">
+						<div class="meta-box-sortables ui-sortable">
+							<div class="postbox">
+								<div class="postbox-header">
+									<h2 class="hndle"><span><?php esc_html_e("Today's Performance", 'tryloom'); ?></span></h2>
+								</div>
+								<div class="inside"
+									style="display: flex; justify-content: space-around; text-align: center; padding: 15px 0;">
+									<div>
+										<h3 style="margin: 0; font-size: 14px; font-weight: 500; color: #646970;">
+											<?php esc_html_e('Active Users', 'tryloom'); ?>
+										</h3>
+										<p style="margin: 5px 0 0; font-size: 24px; font-weight: 600; line-height: 1;">
+											<?php echo esc_html($today_active_users); ?>
+										</p>
+									</div>
+									<div style="border-left: 1px solid #dcdcde; margin: 0 15px;"></div>
+									<div>
+										<h3 style="margin: 0; font-size: 14px; font-weight: 500; color: #646970;">
+											<?php esc_html_e('Try-On Uses', 'tryloom'); ?>
+										</h3>
+										<p style="margin: 5px 0 0; font-size: 24px; font-weight: 600; line-height: 1;">
+											<?php echo esc_html($today_try_on_count); ?>
+										</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
 
-			<div class="tryloom-daily-stats" style="margin-top: 10px;">
-				<div class="tryloom-stat-box">
-					<h3><?php esc_html_e('Last 30 Days Active Users', 'tryloom'); ?></h3>
-					<p class="stat-number"><?php echo esc_html($last_30_days_users); ?></p>
-				</div>
-				<div class="tryloom-stat-box">
-					<h3><?php esc_html_e('Last 30 Days Try-On Uses', 'tryloom'); ?></h3>
-					<p class="stat-number"><?php echo esc_html($last_30_days_count); ?></p>
-				</div>
-			</div>
-
-			<?php
-			// Display usage counter if available
-			$usage_used = get_option('tryloom_usage_used', null);
-			$usage_limit = get_option('tryloom_usage_limit', null);
-			if (null !== $usage_used && null !== $usage_limit) {
-				?>
-				<div class="tryloom-daily-stats" style="margin-top: 10px;">
-					<div class="tryloom-stat-box">
-						<h3><?php esc_html_e('Usage Counter', 'tryloom'); ?></h3>
-						<p class="stat-number"><?php echo esc_html($usage_used); ?> / <?php echo esc_html($usage_limit); ?></p>
-						<p class="description">
-							<?php esc_html_e('Your current Try-On usage compared to your monthly (or plan-based) limit.', 'tryloom'); ?>
-						</p>
+					<div class="postbox-container" style="width: 50%;">
+						<div class="meta-box-sortables ui-sortable">
+							<div class="postbox">
+								<div class="postbox-header">
+									<h2 class="hndle"><span><?php esc_html_e("Last 30 Days", 'tryloom'); ?></span></h2>
+								</div>
+								<div class="inside"
+									style="display: flex; justify-content: space-around; text-align: center; padding: 15px 0;">
+									<div>
+										<h3 style="margin: 0; font-size: 14px; font-weight: 500; color: #646970;">
+											<?php esc_html_e('Active Users', 'tryloom'); ?>
+										</h3>
+										<p style="margin: 5px 0 0; font-size: 24px; font-weight: 600; line-height: 1;">
+											<?php echo esc_html($last_30_days_users); ?>
+										</p>
+									</div>
+									<div style="border-left: 1px solid #dcdcde; margin: 0 15px;"></div>
+									<div>
+										<h3 style="margin: 0; font-size: 14px; font-weight: 500; color: #646970;">
+											<?php esc_html_e('Try-On Uses', 'tryloom'); ?>
+										</h3>
+										<p style="margin: 5px 0 0; font-size: 24px; font-weight: 600; line-height: 1;">
+											<?php echo esc_html($last_30_days_count); ?>
+										</p>
+									</div>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
-				<?php
-			}
-			?>
+			</div>
 
-			<?php
-			// Check if free or paid key exists
-			$paid_key = get_option('tryloom_platform_key', '');
-			$free_key = get_option('tryloom_free_platform_key', '');
-			$show_start_free_button = empty($paid_key) && empty($free_key);
-			// Removed nonce generation for start free trial
-			?>
-			<div class="tryloom-header">
-				<div class="tryloom-header-info">
-					<p><?php esc_html_e('Explore Subscription Plans for TryLoom', 'tryloom'); ?></p>
+			<div style="clear: both;"></div>
+
+			<div id="dashboard-widgets" class="metabox-holder tryloom-bottom-stats">
+				<div class="postbox-container" style="width: 50%;">
+					<?php
+					// Display usage counter if available
+					$usage_used = get_option('tryloom_usage_used', null);
+					$usage_limit = get_option('tryloom_usage_limit', null);
+					if (null !== $usage_used && null !== $usage_limit) {
+						?>
+						<div class="meta-box-sortables ui-sortable">
+							<div class="postbox">
+								<div class="postbox-header">
+									<h2 class="hndle"><span><?php esc_html_e('Usage Counter', 'tryloom'); ?></span></h2>
+								</div>
+								<div class="inside"
+									style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0;">
+									<p class="description" style="margin: 0; margin-right: 15px;">
+										<?php esc_html_e('Your current Try-On usage compared to your monthly (or plan-based) limit.', 'tryloom'); ?>
+									</p>
+									<p style="margin: 0; font-size: 20px; font-weight: 600; color: #2271b1; white-space: nowrap;">
+										<?php echo esc_html($usage_used); ?> / <span
+											style="color: #646970; font-size: 16px;"><?php echo esc_html($usage_limit); ?></span>
+									</p>
+								</div>
+							</div>
+						</div>
+						<?php
+					}
+					?>
 				</div>
-				<div class="tryloom-header-actions">
-					<?php if ($show_start_free_button): ?>
-						<a href="https://gettryloom.com/my-account/" class="button button-primary" target="_blank"
-							style="margin-right: 10px;">
-							<?php esc_html_e('Start for Free', 'tryloom'); ?>
-						</a>
-					<?php endif; ?>
-					<a href="https://gettryloom.com/#pricing" class="button button-primary" target="_blank">
-						<?php esc_html_e('Subscription Options', 'tryloom'); ?>
-					</a>
+
+				<div class="postbox-container" style="width: 50%;">
+					<?php
+					// Check if free or paid key exists
+					$paid_key = get_option('tryloom_platform_key', '');
+					$free_key = get_option('tryloom_free_platform_key', '');
+					$show_start_free_button = empty($paid_key) && empty($free_key);
+					?>
+					<div class="meta-box-sortables ui-sortable">
+						<div class="postbox">
+							<div class="postbox-header">
+								<h2 class="hndle">
+									<span><?php esc_html_e('Explore Subscription Plans for TryLoom', 'tryloom'); ?></span>
+								</h2>
+							</div>
+							<div class="inside" style="display: flex; align-items: center; min-height: 52px;">
+								<div class="tryloom-header-actions" style="margin: 0;">
+									<?php if ($show_start_free_button): ?>
+										<a href="https://gettryloom.com/my-account/" class="button button-primary" target="_blank"
+											style="margin-right: 10px;">
+											<?php esc_html_e('Start for Free', 'tryloom'); ?>
+										</a>
+									<?php endif; ?>
+									<a href="https://gettryloom.com/#pricing" class="button button-primary" target="_blank">
+										<?php esc_html_e('Subscription Options', 'tryloom'); ?>
+									</a>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 

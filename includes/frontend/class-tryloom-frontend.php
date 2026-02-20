@@ -59,12 +59,13 @@ class Tryloom_Frontend
 		add_action('wp_ajax_tryloom_get_product', array($this, 'ajax_get_product'));
 		add_action('wp_ajax_nopriv_tryloom_get_product', array($this, 'ajax_get_product'));
 
-		// Handle scheduled image deletion.
-		add_action('tryloom_delete_generated_image', array($this, 'delete_generated_image'), 10, 2);
-
 		// Invalidate variations cache when product is updated.
 		add_action('save_post_product', array($this, 'invalidate_variations_cache'), 10, 1);
 		add_action('woocommerce_save_product_variation', array($this, 'invalidate_parent_variations_cache'), 10, 2);
+
+		// Invalidate variations cache on stock change.
+		add_action('woocommerce_product_set_stock', array($this, 'invalidate_cache_on_stock_change'), 10, 1);
+		add_action('woocommerce_variation_set_stock', array($this, 'invalidate_cache_on_stock_change'), 10, 1);
 
 		// Hide TryLoom images from Media Library (admin only).
 		if (is_admin()) {
@@ -423,7 +424,7 @@ class Tryloom_Frontend
 					<?php if (!empty($try_on_history)): ?>
 						<div class="tryloom-history-actions">
 							<button class="button tryloom-delete-all-history">
-								<i class="fas fa-trash"></i>
+								<?php include TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-trash.php'; ?>
 								<?php esc_html_e('Delete All History', 'tryloom'); ?>
 							</button>
 						</div>
@@ -461,13 +462,13 @@ class Tryloom_Frontend
 										</td>
 										<td>
 											<a href="<?php echo esc_url($history->generated_image_url); ?>" download class="button">
-												<i class="fas fa-download"></i>
+												<?php include TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-download.php'; ?>
 											</a>
 											<a href="<?php echo esc_url(get_permalink($history->product_id)); ?>" class="button">
-												<i class="fas fa-redo"></i>
+												<?php include TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-redo.php'; ?>
 											</a>
 											<button class="button tryloom-delete-history" data-id="<?php echo esc_attr($history->id); ?>">
-												<i class="fas fa-trash"></i>
+												<?php include TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-trash.php'; ?>
 											</button>
 										</td>
 									</tr>
@@ -499,14 +500,7 @@ class Tryloom_Frontend
 		}
 
 		// Enqueue Font Awesome.
-		// Enqueue Font Awesome.
-		// Note: Using local bundle for compliance.
-		wp_enqueue_style(
-			'font-awesome',
-			TRYLOOM_PLUGIN_URL . 'assets/lib/font-awesome/css/all.min.css',
-			array(),
-			'6.4.0'
-		);
+
 
 		// Enqueue styles.
 		wp_enqueue_style(
@@ -547,6 +541,8 @@ class Tryloom_Frontend
 				'primary_color' => get_option('tryloom_primary_color', '#552FBC'),
 				'show_popup_errors' => get_option('tryloom_show_popup_errors', 'no') === 'yes',
 				'save_photos_setting' => get_option('tryloom_save_photos', 'yes'),
+				'hide_variations' => get_option('tryloom_hide_variations', 'no') === 'yes',
+				'plugin_url' => TRYLOOM_PLUGIN_URL,
 				'store_name' => get_bloginfo('name'),
 				'i18n' => array(
 					'error' => __('An error occurred. Please try again.', 'tryloom'),
@@ -555,6 +551,8 @@ class Tryloom_Frontend
 					'no_history' => __('You haven\'t tried on any products yet.', 'tryloom'),
 					'click_or_drag' => __('Click or drag to upload', 'tryloom'),
 					'remove_image' => __('Remove image', 'tryloom'),
+					'upload_your_photo' => __('Upload your photo', 'tryloom'),
+					'drag_and_drop' => __('or drag and drop here.', 'tryloom'),
 					'loading_variations' => __('Loading variations...', 'tryloom'),
 					'loading_step_1' => __('Measuring your virtual avatar...', 'tryloom'),
 					'loading_step_2' => __('Selecting the fabric...', 'tryloom'),
@@ -779,6 +777,9 @@ class Tryloom_Frontend
 					$old_file_path = $this->get_file_path_from_url($existing_photo->image_url);
 					// Important: Don't delete the NEW file we just uploaded if URLs happen to collide (unlikely due to wp_unique_filename)
 					if ($old_file_path && file_exists($old_file_path) && $old_file_path !== $new_file) {
+						if (!function_exists('wp_delete_file')) {
+							require_once ABSPATH . 'wp-admin/includes/file.php';
+						}
 						wp_delete_file($old_file_path);
 					}
 				}
@@ -939,7 +940,13 @@ class Tryloom_Frontend
 				}
 
 				if ($usage_count >= $generation_limit) {
-					wp_send_json_error(array('message' => __('You have reached your generation limit. Please try again later.', 'tryloom')));
+					$upsell_url = get_option('tryloom_limit_upsell_url', '');
+					wp_send_json_error(array(
+						'message' => __('You have reached your generation limit.', 'tryloom'),
+						'error_code' => 'limit_exceeded',
+						'reset_time' => $current_period_identifier,
+						'upsell_url' => $upsell_url
+					));
 				}
 			}
 
@@ -1229,6 +1236,9 @@ class Tryloom_Frontend
 		// Delete the file using WordPress upload directory.
 		$file_path = $this->get_file_path_from_url($photo->image_url);
 		if ($file_path && file_exists($file_path)) {
+			if (!function_exists('wp_delete_file')) {
+				require_once ABSPATH . 'wp-admin/includes/file.php';
+			}
 			wp_delete_file($file_path);
 		}
 
@@ -1443,6 +1453,9 @@ class Tryloom_Frontend
 				// Delete from filesystem using WordPress upload directory
 				$file_path = $this->get_file_path_from_url($record->generated_image_url);
 				if ($file_path && file_exists($file_path)) {
+					if (!function_exists('wp_delete_file')) {
+						require_once ABSPATH . 'wp-admin/includes/file.php';
+					}
 					wp_delete_file($file_path);
 				}
 			}
@@ -1617,9 +1630,24 @@ class Tryloom_Frontend
 		// Try to get cached variations first (1 hour cache).
 		$cache_key = 'tryloom_variations_' . $product_id;
 		$cached_variations = get_transient($cache_key);
+		$variations_to_send = array();
 
-		if (false !== $cached_variations) {
-			wp_send_json_success(array('variations' => $cached_variations));
+		if (false !== $cached_variations && is_array($cached_variations)) {
+			// Hydrate the dynamic prices from cache
+			foreach ($cached_variations as $cached_var) {
+				$variation = wc_get_product($cached_var['variation_id']);
+				if (!$variation) {
+					continue;
+				}
+				$variations_to_send[] = array(
+					'variation_id' => $cached_var['variation_id'],
+					'variation_description' => wc_get_formatted_variation($variation, true, true, false),
+					'image' => $cached_var['image'],
+					'price_html' => $variation->get_price_html(),
+					'attributes' => $cached_var['attributes'],
+				);
+			}
+			wp_send_json_success(array('variations' => $variations_to_send));
 			return;
 		}
 
@@ -1630,14 +1658,34 @@ class Tryloom_Frontend
 			return;
 		}
 
-		$variations = array();
+		$variations_to_cache = array();
+		$seen_images = array();
+
 		foreach ($product->get_available_variations() as $variation_data) {
 			$variation = wc_get_product($variation_data['variation_id']);
 			if (!$variation) {
 				continue;
 			}
 
-			$variations[] = array(
+			// Feature 3: Visual variation deduplication filtering (by color/image)
+			$image_url = isset($variation_data['image']['url']) ? $variation_data['image']['url'] : (isset($variation_data['image']['src']) ? $variation_data['image']['src'] : '');
+
+			if (!empty($image_url)) {
+				if (in_array($image_url, $seen_images, true)) {
+					continue;
+				}
+				$seen_images[] = $image_url;
+			}
+
+			// Store raw immutable data in cache
+			$variations_to_cache[] = array(
+				'variation_id' => $variation_data['variation_id'],
+				'image' => $variation_data['image'],
+				'attributes' => $variation_data['attributes'],
+			);
+
+			// Store formatted dynamic data for immediate response
+			$variations_to_send[] = array(
 				'variation_id' => $variation_data['variation_id'],
 				'variation_description' => wc_get_formatted_variation($variation, true, true, false),
 				'image' => $variation_data['image'],
@@ -1646,10 +1694,10 @@ class Tryloom_Frontend
 			);
 		}
 
-		// Cache the variations for 1 hour.
-		set_transient($cache_key, $variations, HOUR_IN_SECONDS);
+		// Cache the raw immutable variations for 1 hour.
+		set_transient($cache_key, $variations_to_cache, HOUR_IN_SECONDS);
 
-		wp_send_json_success(array('variations' => $variations));
+		wp_send_json_success(array('variations' => $variations_to_send));
 	}
 
 	/**
@@ -1663,11 +1711,25 @@ class Tryloom_Frontend
 	}
 
 	/**
-	 * Invalidate parent product's variations cache when a variation is saved.
+	 * Invalidate parent product's variations cache when stock is updated.
 	 *
-	 * @param int $variation_id Variation ID.
-	 * @param int $loop         Variation loop index (not used).
+	 * @param WC_Product $product Product object.
 	 */
+	public function invalidate_cache_on_stock_change($product)
+	{
+		if ($product && is_a($product, 'WC_Product')) {
+			$product_id = $product->get_id();
+			if ($product->is_type('variation')) {
+				$parent_id = $product->get_parent_id();
+				if ($parent_id) {
+					delete_transient('tryloom_variations_' . $parent_id);
+				}
+			} else {
+				delete_transient('tryloom_variations_' . $product_id);
+			}
+		}
+	}
+
 	public function invalidate_parent_variations_cache($variation_id, $loop = 0)
 	{
 		$variation = wc_get_product($variation_id);
@@ -1717,27 +1779,6 @@ class Tryloom_Frontend
 		);
 
 		wp_send_json_success($product_data);
-	}
-
-	/**
-	 * Delete generated image file.
-	 * Called by scheduled event when history is disabled.
-	 *
-	 * @param string $image_url Image URL to delete.
-	 * @param int    $attachment_id Attachment ID (0 if not created).
-	 */
-	public function delete_generated_image($image_url, $attachment_id = 0)
-	{
-		// Delete the file using WordPress upload directory.
-		$file_path = $this->get_file_path_from_url($image_url);
-		if ($file_path && file_exists($file_path)) {
-			wp_delete_file($file_path);
-		}
-
-		// Delete attachment from media library if it exists.
-		if ($attachment_id > 0) {
-			wp_delete_attachment($attachment_id, true);
-		}
 	}
 
 	/**

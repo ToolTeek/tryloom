@@ -2,6 +2,40 @@
  * Admin Styles
  */
 
+/* Fix SVG sizes in admin buttons */
+.button svg,
+button svg,
+.tryloom-settings-container svg {
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+    margin-right: 8px;
+    margin-top: -2px;
+}
+
+/* Bottom stats row – match top postbox style */
+.tryloom-bottom-stats {
+    display: flex;
+    gap: 0;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.tryloom-bottom-stats>div {
+    flex: 1;
+    min-width: 300px;
+}
+
+.tryloom-bottom-stats .postbox {
+    margin-bottom: 0;
+    border: 1px solid #c3c4c7;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+}
+
+.tryloom-bottom-stats .postbox .inside {
+    padding: 15px 20px;
+}
+
 .tryloom-header {
     background: #fff;
     padding: 20px;

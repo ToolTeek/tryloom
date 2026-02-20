@@ -3,4 +3,4 @@
 *.log
 .env
 /node_modules
-CONTEXT.md
+/Plugin Architecture and Context

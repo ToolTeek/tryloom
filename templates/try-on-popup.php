@@ -36,7 +36,7 @@ if (!isset($default_photo_url)) {
 
         <div class="tryloom-popup-body">
             <!-- Step 1: Upload and Select Variation -->
-            <div class="tryloom-step tryloom-step-1">
+            <div class="tryloom-step tryloom-step-1 is-active">
                 <div class="tryloom-upload">
                     <h4><?php esc_html_e('Your Photo', 'tryloom'); ?></h4>
                     <div class="tryloom-upload-area">
@@ -61,12 +61,14 @@ if (!isset($default_photo_url)) {
                 </div>
                 <input type="file" id="tryloom-file" accept="image/*" style="display: none;">
 
-                <div class="tryloom-variations">
-                    <h4><?php esc_html_e('Select Product Variation', 'tryloom'); ?></h4>
-                    <div class="tryloom-variations-container">
-                        <p class="tryloom-loading"><?php esc_html_e('Loading variations...', 'tryloom'); ?></p>
+                <?php if ('yes' !== get_option('tryloom_hide_variations', 'no')): ?>
+                    <div class="tryloom-variations">
+                        <h4><?php esc_html_e('Select Product Variation', 'tryloom'); ?></h4>
+                        <div class="tryloom-variations-container">
+                            <p class="tryloom-loading"><?php esc_html_e('Loading variations...', 'tryloom'); ?></p>
+                        </div>
                     </div>
-                </div>
+                <?php endif; ?>
 
                 <div class="tryloom-actions">
                     <?php
@@ -76,14 +78,14 @@ if (!isset($default_photo_url)) {
                     ?>
                     <button type="button" class="<?php echo esc_attr($button_classes); ?> tryloom-generate"
                         style="background-color: <?php echo esc_attr($primary_color); ?>; color: #fff;">
-                        <i class="fas fa-magic"></i>
+                        <?php include TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-magic.php'; ?>
                         <?php esc_html_e('See My Look', 'tryloom'); ?>
                     </button>
                 </div>
             </div><!-- End tryloom-step-1 -->
 
             <!-- Step 2: Result -->
-            <div class="tryloom-step tryloom-step-2" style="display: none;">
+            <div class="tryloom-step tryloom-step-2">
                 <div class="tryloom-result">
                     <div class="tryloom-result-image">
                         <div class="tryloom-result-loading" aria-hidden="true">
@@ -130,10 +132,31 @@ if (!isset($default_photo_url)) {
                         ?>
                         <button type="button" class="<?php echo esc_attr($button_classes); ?> tryloom-add-to-cart"
                             style="background-color: <?php echo esc_attr($primary_color); ?>; color: #fff;">
-                            <i class="fas fa-shopping-cart"></i>
+                            <?php include TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-shopping-cart.php'; ?>
                             <?php esc_html_e('Looks Good', 'tryloom'); ?>
                         </button>
                     </div>
+                </div>
+            </div>
+            <!-- Step 3: Limit Exceeded -->
+            <div class="tryloom-step tryloom-step-3">
+                <div class="tryloom-limit-exceeded">
+                    <span
+                        style="color: <?php echo esc_attr($primary_color); ?>; margin-bottom: 20px; display: inline-block;">
+                        <?php
+                        $lock_icon = file_get_contents(TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-lock.php');
+                        echo str_replace(array('width="24"', 'height="24"'), array('width="48"', 'height="48"'), $lock_icon);
+                        ?>
+                    </span>
+                    <h4><?php esc_html_e('Limit Exceeded', 'tryloom'); ?></h4>
+                    <p><?php esc_html_e('You have reached your total allowed try-ons.', 'tryloom'); ?></p>
+                    <p class="tryloom-reset-time" style="margin-top: 10px; font-weight: bold;">
+                        <?php esc_html_e('Usage resets:', 'tryloom'); ?> <span></span>
+                    </p>
+                    <a href="#" class="tryloom-upsell-button button alt"
+                        style="display: none; margin-top: 20px; background-color: <?php echo esc_attr($primary_color); ?>; color: #fff;">
+                        <?php esc_html_e('Upgrade Plan', 'tryloom'); ?>
+                    </a>
                 </div>
             </div>
             <!-- Loading Overlay INSIDE popup content -->

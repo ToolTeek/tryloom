@@ -899,6 +899,19 @@
 			// Reset variations.
 			$('.tryloom-variations-container').html('<p class="tryloom-loading">' + tryloom_params.i18n.loading_variations + '</p>');
 
+			// Abort any ongoing requests when closing/resetting popup
+			if (this.variationXhr) {
+				this.variationXhr.abort();
+				this.variationXhr = null;
+			}
+			if (this.productXhr) {
+				this.productXhr.abort();
+				this.productXhr = null;
+			}
+
+			// In case the user resets during generation, remove the scroll lock class to re-enable scrolling
+			$('.tryloom-popup-body').removeClass('is-generating');
+
 			// Reset save photo checkbox.
 			$('#tryloom-save-photo').prop('checked', false);
 
@@ -927,9 +940,8 @@
 		 * @param {number} step Step number.
 		 */
 		showStep: function (step) {
-			$('.tryloom-step').fadeOut(200, function () {
-				$('.tryloom-step-' + step).fadeIn(300);
-			});
+			$('.tryloom-step').removeClass('is-active');
+			$('.tryloom-step-' + step).addClass('is-active');
 		},
 
 		/**
@@ -938,7 +950,25 @@
 		 * @param {number} productId Product ID.
 		 */
 		loadVariations: function (productId) {
-			$.ajax({
+			if (tryloom_params.hide_variations) {
+				return;
+			}
+
+			// Abort previous requests if user toggles popup rapidly
+			if (this.variationXhr) {
+				this.variationXhr.abort();
+				this.variationXhr = null;
+			}
+			if (this.productXhr) {
+				this.productXhr.abort();
+				this.productXhr = null;
+			}
+
+			var self = this;
+			var container = $('.tryloom-variations-container');
+			container.html('<p class="tryloom-loading">' + tryloom_params.i18n.loading_variations + '</p>');
+
+			this.variationXhr = $.ajax({
 				url: tryloom_params.ajax_url,
 				type: 'POST',
 				data: {
@@ -947,7 +977,6 @@
 					nonce: tryloom_params.nonce
 				},
 				success: function (response) {
-					var container = $('.tryloom-variations-container');
 					container.empty();
 
 					if (response.success && response.data.variations && response.data.variations.length > 0) {
@@ -983,7 +1012,7 @@
 						});
 					} else {
 						// Simple product.
-						$.ajax({
+						self.productXhr = $.ajax({
 							url: tryloom_params.ajax_url,
 							type: 'POST',
 							data: {
@@ -994,7 +1023,7 @@
 							success: function (response) {
 								if (response.success && response.data) {
 									var product = response.data;
-									var productId = product.id || productId;
+									productId = product.id || productId;
 									var productName = product.name || '';
 									var productImage = product.image || '';
 									var productPriceHtml = product.price_html || '';
@@ -1009,7 +1038,8 @@
 										'</div>' +
 										'</div>';
 
-									container.append(productHtml);
+									// FIX: Empty the container before appending the simple product to prevent duplicate stacking!
+									container.empty().append(productHtml);
 								} else {
 									container.html('<p>' + tryloom_params.i18n.select_variant + '</p>');
 								}
@@ -1168,16 +1198,20 @@
 				return;
 			}
 
-			// Check if variation is selected.
-			var selectedVariation = $('.tryloom-variation.selected');
-			if (!selectedVariation.length) {
-				alert(tryloom_params.i18n.select_variant);
-				return;
-			}
+			// Check if variation is selected, skip if variations are hidden.
+			var variationId = 0;
+			var productId = $('.tryloom-button').data('product-id');
 
-			// Get variation ID and product ID.
-			var variationId = selectedVariation.data('variation-id');
-			var productId = selectedVariation.data('product-id') || $('.tryloom-button').data('product-id');
+			var isHidden = tryloom_params.hide_variations === '1' || tryloom_params.hide_variations === true || tryloom_params.hide_variations === 'true';
+			if (!isHidden) {
+				var selectedVariation = $('.tryloom-variation.selected');
+				if (!selectedVariation.length) {
+					alert(tryloom_params.i18n.select_variant);
+					return;
+				}
+				variationId = selectedVariation.data('variation-id');
+				productId = selectedVariation.data('product-id') || productId;
+			}
 
 			// Save generation state.
 			TryloomUI.saveGenerationState({
@@ -1336,7 +1370,28 @@
 						console.error('Generation failed:', response.data);
 
 						TryloomUI.clearGenerationState();
-						TryloomUI.showErrorPopup(response.data.message || tryloom_params.i18n.error);
+
+						if (response.data && response.data.error_code === 'limit_exceeded') {
+							// Populate Step 3
+							if (response.data.reset_time) {
+								$('.tryloom-reset-time span').text(response.data.reset_time);
+								$('.tryloom-reset-time').show();
+							} else {
+								$('.tryloom-reset-time').hide();
+							}
+
+							if (response.data.upsell_url) {
+								$('.tryloom-upsell-button').attr('href', response.data.upsell_url).show();
+							} else {
+								$('.tryloom-upsell-button').hide();
+							}
+
+							// Show step 3
+							TryloomUI.showStep(3);
+						} else {
+							var errorMsg = (response.data && response.data.message) ? response.data.message : tryloom_params.i18n.error;
+							TryloomUI.showErrorPopup(errorMsg);
+						}
 					}
 				},
 				error: function (xhr, status, error) {

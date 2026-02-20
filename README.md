@@ -250,5 +250,5 @@ Because AI image generation requires significant computational resources, it can
 == Credits ==
 
 Developed by **ToolTeek**.  
-Icons from **Font Awesome** (MIT/SIL OFL/CC BY 4.0 Licensed).  
 Powered by the **TryLoom API**.
+Icons provided by **Lucide** (https://lucide.dev) under the ISC License. 
