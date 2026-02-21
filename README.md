@@ -3,7 +3,7 @@ Contributors: ToolTeek, dinethchamuditha
 Tags: woocommerce, virtual try-on, product visualization, e-commerce, fashion
 Requires at least: 5.6
 Tested up to: 6.9
-Stable tag: 1.3.0
+Stable tag: 1.4.0
 Requires PHP: 7.2
 WC requires at least: 5.0
 WC tested up to: 10.4
@@ -96,6 +96,22 @@ Yes. Theme color, primary color, and custom CSS options are available in setting
 
 == Changelog ==
 
+= 1.4.0 =
+
+* Performance: Overhauled the generation limit engine to use lightweight user metadata instead of heavy database queries, making load times lightning fast for high-volume stores.
+* Performance: Completely removed heavy Font Awesome dependencies. All UI icons are now ultra-lightweight, zero-dependency inline SVGs to significantly boost PageSpeed scores.
+* Performance: Rebuilt the variation caching engine to prevent wp_options database bloat and strictly isolate price caching, eliminating potential wholesale pricing leaks.
+* New: Introduced a Role-Based Limitations engine. Administrators can now assign custom generation limits to specific user roles (e.g., VIP, Wholesale).
+* New: Added an admin toggle to completely hide the variation selector for streamlined, zero-query Try-On experiences.
+* Improvement: Added a smart UI filter that visually deduplicates product variations sharing the exact same thumbnail image.
+* Update: Completely refactored the frontend popup utilizing strict BEM CSS architecture and CSS Grid, ensuring perfectly smooth crossfade transitions and zero conflicts with aggressive WooCommerce themes.
+* Update: Modernized the admin dashboard statistics layout with a custom, responsive grid architecture for a cleaner backend aesthetic.
+* Security: Closed a loophole that allowed users to bypass generation limits by disabling the history feature.
+* Fix: Calibrated generation limit resets to mathematically synchronize with the specific WordPress local timezone settings rather than strict UTC.
+* Fix: Integrated directly with WooCommerce native stock hooks to automatically clear variation caches when inventory runs out, preventing "ghost" variations.
+* Fix: Resolved a JavaScript race condition that caused duplicate variations to load when rapidly opening and closing the popup.
+* Fix: Cleaned up PHP background warnings during file deletion processes and purged deprecated hook registrations.
+
 = 1.3.0 =
 * Performance: Implemented Transient Caching for product variations. The "Try On" button is now instant.
 * Performance: Added Database Indexes to history tables. Dashboard statistics load significantly faster.
@@ -174,6 +190,9 @@ Yes. Theme color, primary color, and custom CSS options are available in setting
 * Initial release: Core virtual try-on functionality, admin settings, user account integration, and API support.
 
 == Upgrade Notice ==
+
+= 1.4.0 =
+Major Architecture & Performance Update: This release drastically improves plugin speed by removing heavy CSS libraries and overhauling the database query engine. It introduces a bulletproof BEM CSS architecture to prevent theme styling conflicts, adds a new revenue-driving Upsell screen for users who hit their limits, and enables custom generation limits by user role. Highly recommended for all users to maximize site speed and UI stability.
 
 = 1.3.0 =
 Major Performance Update: Includes critical database indexing, caching, and stability fixes. Highly recommended for all users to improve site speed and prevent server timeouts.

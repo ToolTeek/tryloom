@@ -13,27 +13,43 @@
     margin-top: -2px;
 }
 
-/* Bottom stats row – match top postbox style */
-#tryloom-admin-wrap .tryloom-admin__bottom-stats {
-    display: flex;
-    gap: 0;
-    flex-wrap: wrap;
+/* Stats Grid Layout */
+#tryloom-admin-wrap .tryloom-admin__stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: auto auto;
+    gap: 20px;
     margin-bottom: 20px;
 }
 
-#tryloom-admin-wrap .tryloom-admin__bottom-stats>div {
-    flex: 1;
-    min-width: 300px;
-}
-
-#tryloom-admin-wrap .tryloom-admin__bottom-stats .postbox {
-    margin-bottom: 0;
+#tryloom-admin-wrap .tryloom-admin__stat-card {
+    background: #fff;
     border: 1px solid #c3c4c7;
     box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
-#tryloom-admin-wrap .tryloom-admin__bottom-stats .postbox .inside {
-    padding: 15px 20px;
+#tryloom-admin-wrap .tryloom-admin__stat-card-header {
+    border-bottom: 1px solid #c3c4c7;
+    padding: 10px 15px;
+    background-color: #f9f9f9;
+}
+
+#tryloom-admin-wrap .tryloom-admin__stat-card-header h2 {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: 600;
+}
+
+#tryloom-admin-wrap .tryloom-admin__stat-card-body {
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
 }
 
 #tryloom-admin-wrap .tryloom-admin__header {
@@ -354,16 +370,12 @@
     padding-left: 20px;
 }
 
-/* Admin Dashboard Widget Styles */
-#tryloom-admin-wrap .tryloom-admin__postbox-half {
-    width: 50%;
-}
-
+/* Stats Inside Cards */
 #tryloom-admin-wrap .tryloom-admin__stat-row {
-    display: flex;
+    flex-direction: row;
     justify-content: space-around;
     text-align: center;
-    padding: 15px 0;
+    width: 100%;
 }
 
 #tryloom-admin-wrap .tryloom-admin__stat-title {
@@ -390,10 +402,8 @@
 }
 
 #tryloom-admin-wrap .tryloom-admin__usage-flex {
-    display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 15px 0;
+    width: 100%;
 }
 
 #tryloom-admin-wrap .tryloom-admin__usage-desc {
@@ -415,9 +425,8 @@
 }
 
 #tryloom-admin-wrap .tryloom-admin__sub-flex {
-    display: flex;
-    align-items: center;
-    min-height: 52px;
+    justify-content: flex-start;
+    width: 100%;
 }
 
 #tryloom-admin-wrap .tryloom-admin__sub-actions {
@@ -438,4 +447,58 @@
 #tryloom-admin-wrap .tryloom-admin__preview-img {
     max-width: 100%;
     height: auto;
+}
+
+/* Tooltips */
+#tryloom-admin-wrap .tryloom-admin__help-tip {
+    display: inline-block;
+    margin-left: 5px;
+    color: #646970;
+    cursor: help;
+    position: relative;
+    font-size: 0;
+}
+
+#tryloom-admin-wrap .tryloom-admin__help-tip::after {
+    content: "\f223";
+    /* Dashicons help icon */
+    font-family: dashicons;
+    font-size: 16px;
+    vertical-align: middle;
+}
+
+#tryloom-admin-wrap .tryloom-admin__tooltip-content {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e1e1e;
+    color: #fff;
+    padding: 10px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: normal;
+    width: max-content;
+    max-width: 250px;
+    z-index: 10000;
+    margin-bottom: 8px;
+    font-weight: normal;
+    text-align: center;
+}
+
+#tryloom-admin-wrap .tryloom-admin__tooltip-content::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: #1e1e1e transparent transparent transparent;
+}
+
+#tryloom-admin-wrap .tryloom-admin__help-tip:hover .tryloom-admin__tooltip-content {
+    display: block;
 }

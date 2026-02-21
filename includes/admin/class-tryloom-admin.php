@@ -514,8 +514,8 @@ class Tryloom_Admin
 			<label class="tryloom-radio-label">
 				<input type="radio" name="tryloom_try_on_method" value="auto" <?php checked($value, 'auto'); ?>>
 				<?php esc_html_e('Auto', 'tryloom'); ?>
-				<span class="tryloom-help-tip">
-					<span class="tryloom-tooltip-content">
+				<span class="tryloom-admin__help-tip">
+					<span class="tryloom-admin__tooltip-content">
 						<?php esc_html_e('Smart AI automatically selects the best mode for customer photo to ensure quality and usability.', 'tryloom'); ?>
 						<br><a href="https://gettryloom.com/studio-vs-try-on-mode-guide/"
 							target="_blank"><?php esc_html_e('Learn more', 'tryloom'); ?></a>
@@ -526,8 +526,8 @@ class Tryloom_Admin
 			<label class="tryloom-radio-label">
 				<input type="radio" name="tryloom_try_on_method" value="tryon" <?php checked($value, 'tryon'); ?>>
 				<?php esc_html_e('Try-On', 'tryloom'); ?>
-				<span class="tryloom-help-tip">
-					<span class="tryloom-tooltip-content">
+				<span class="tryloom-admin__help-tip">
+					<span class="tryloom-admin__tooltip-content">
 						<?php esc_html_e('Fastest option. Creates high-quality, studio-lit images with professional lighting and background.', 'tryloom'); ?>
 						<br><a href="https://gettryloom.com/studio-vs-try-on-mode-guide/"
 							target="_blank"><?php esc_html_e('Learn more', 'tryloom'); ?></a>
@@ -538,8 +538,8 @@ class Tryloom_Admin
 			<label class="tryloom-radio-label">
 				<input type="radio" name="tryloom_try_on_method" value="studio" <?php checked($value, 'studio'); ?>>
 				<?php esc_html_e('Studio', 'tryloom'); ?>
-				<span class="tryloom-help-tip">
-					<span class="tryloom-tooltip-content">
+				<span class="tryloom-admin__help-tip">
+					<span class="tryloom-admin__tooltip-content">
 						<?php esc_html_e('Maximum realism. Preserves exact facial features, fabric textures and background.', 'tryloom'); ?>
 						<br><a href="https://gettryloom.com/studio-vs-try-on-mode-guide/"
 							target="_blank"><?php esc_html_e('Learn more', 'tryloom'); ?></a>
@@ -644,7 +644,7 @@ class Tryloom_Admin
 		$primary_color = get_option('tryloom_primary_color', '#552FBC');
 		?>
 		<input type="text" name="tryloom_primary_color" value="<?php echo esc_attr($primary_color); ?>"
-			class="tryloom-color-picker" data-default-color="#552FBC" />
+			class="tryloom-admin__color-picker" data-default-color="#552FBC" />
 		<p class="description">
 			<?php esc_html_e('Set the main color used for Try-On buttons and UI highlights.', 'tryloom'); ?>
 		</p>
@@ -1500,134 +1500,95 @@ class Tryloom_Admin
 		?>
 		<div id="tryloom-admin-wrap" class="wrap tryloom-admin">
 			<h1 class="tryloom-admin__title">
-				<?php esc_html_e('TryLoom Settings  - Virtual Try On for WooCommerce', 'tryloom'); ?></h1>
+				<?php esc_html_e('TryLoom Settings  - Virtual Try On for WooCommerce', 'tryloom'); ?>
+			</h1>
 
-			<!-- Statistics Grid (Native WP Styling) -->
-			<div id="dashboard-widgets-wrap">
-				<div id="dashboard-widgets" class="metabox-holder">
-					<div class="postbox-container tryloom-postbox-half">
-						<div class="meta-box-sortables ui-sortable">
-							<div class="postbox">
-								<div class="postbox-header">
-									<h2 class="hndle"><span><?php esc_html_e("Today's Performance", 'tryloom'); ?></span></h2>
-								</div>
-								<div class="inside tryloom-stat-row">
-									<div>
-										<h3 class="tryloom-stat-title">
-											<?php esc_html_e('Active Users', 'tryloom'); ?>
-										</h3>
-										<p class="tryloom-stat-value">
-											<?php echo esc_html($today_active_users); ?>
-										</p>
-									</div>
-									<div class="tryloom-stat-divider"></div>
-									<div>
-										<h3 class="tryloom-stat-title">
-											<?php esc_html_e('Try-On Uses', 'tryloom'); ?>
-										</h3>
-										<p class="tryloom-stat-value">
-											<?php echo esc_html($today_try_on_count); ?>
-										</p>
-									</div>
-								</div>
-							</div>
-						</div>
+			<!-- Statistics Grid -->
+			<div class="tryloom-admin__stats-grid">
+				<!-- Box 1: Today's Performance -->
+				<div class="tryloom-admin__stat-card">
+					<div class="tryloom-admin__stat-card-header">
+						<h2><?php esc_html_e("Today's Performance", 'tryloom'); ?></h2>
 					</div>
-
-					<div class="postbox-container tryloom-postbox-half">
-						<div class="meta-box-sortables ui-sortable">
-							<div class="postbox">
-								<div class="postbox-header">
-									<h2 class="hndle"><span><?php esc_html_e("Last 30 Days", 'tryloom'); ?></span></h2>
-								</div>
-								<div class="inside tryloom-stat-row">
-									<div>
-										<h3 class="tryloom-stat-title">
-											<?php esc_html_e('Active Users', 'tryloom'); ?>
-										</h3>
-										<p class="tryloom-stat-value">
-											<?php echo esc_html($last_30_days_users); ?>
-										</p>
-									</div>
-									<div class="tryloom-stat-divider"></div>
-									<div>
-										<h3 class="tryloom-stat-title">
-											<?php esc_html_e('Try-On Uses', 'tryloom'); ?>
-										</h3>
-										<p class="tryloom-stat-value">
-											<?php echo esc_html($last_30_days_count); ?>
-										</p>
-									</div>
-								</div>
-							</div>
+					<div class="tryloom-admin__stat-card-body tryloom-admin__stat-row">
+						<div>
+							<h3 class="tryloom-admin__stat-title"><?php esc_html_e('Active Users', 'tryloom'); ?></h3>
+							<p class="tryloom-admin__stat-value"><?php echo esc_html($today_active_users); ?></p>
+						</div>
+						<div class="tryloom-admin__stat-divider"></div>
+						<div>
+							<h3 class="tryloom-admin__stat-title"><?php esc_html_e('Try-On Uses', 'tryloom'); ?></h3>
+							<p class="tryloom-admin__stat-value"><?php echo esc_html($today_try_on_count); ?></p>
 						</div>
 					</div>
 				</div>
-			</div>
 
-			<div class="tryloom-admin__clear"></div>
-
-			<div id="dashboard-widgets" class="metabox-holder tryloom-admin__bottom-stats">
-				<div class="postbox-container tryloom-postbox-half">
-					<?php
-					// Display usage counter if available
-					$usage_used = get_option('tryloom_usage_used', null);
-					$usage_limit = get_option('tryloom_usage_limit', null);
-					if (null !== $usage_used && null !== $usage_limit) {
-						?>
-						<div class="meta-box-sortables ui-sortable">
-							<div class="postbox">
-								<div class="postbox-header">
-									<h2 class="hndle"><span><?php esc_html_e('Usage Counter', 'tryloom'); ?></span></h2>
-								</div>
-								<div class="inside tryloom-usage-flex">
-									<p class="description tryloom-usage-desc">
-										<?php esc_html_e('Your current Try-On usage compared to your monthly (or plan-based) limit.', 'tryloom'); ?>
-									</p>
-									<p class="tryloom-usage-val">
-										<?php echo esc_html($usage_used); ?> / <span
-											class="tryloom-usage-sub"><?php echo esc_html($usage_limit); ?></span>
-									</p>
-								</div>
-							</div>
+				<!-- Box 2: Last 30 Days -->
+				<div class="tryloom-admin__stat-card">
+					<div class="tryloom-admin__stat-card-header">
+						<h2><?php esc_html_e("Last 30 Days", 'tryloom'); ?></h2>
+					</div>
+					<div class="tryloom-admin__stat-card-body tryloom-admin__stat-row">
+						<div>
+							<h3 class="tryloom-admin__stat-title"><?php esc_html_e('Active Users', 'tryloom'); ?></h3>
+							<p class="tryloom-admin__stat-value"><?php echo esc_html($last_30_days_users); ?></p>
 						</div>
-						<?php
-					}
-					?>
+						<div class="tryloom-admin__stat-divider"></div>
+						<div>
+							<h3 class="tryloom-admin__stat-title"><?php esc_html_e('Try-On Uses', 'tryloom'); ?></h3>
+							<p class="tryloom-admin__stat-value"><?php echo esc_html($last_30_days_count); ?></p>
+						</div>
+					</div>
 				</div>
 
-				<div class="postbox-container tryloom-postbox-half">
-					<?php
-					// Check if free or paid key exists
-					$paid_key = get_option('tryloom_platform_key', '');
-					$free_key = get_option('tryloom_free_platform_key', '');
-					$show_start_free_button = empty($paid_key) && empty($free_key);
-					?>
-					<div class="meta-box-sortables ui-sortable">
-						<div class="postbox">
-							<div class="postbox-header">
-								<h2 class="hndle">
-									<span><?php esc_html_e('Explore Subscription Plans for TryLoom', 'tryloom'); ?></span>
-								</h2>
-							</div>
-							<div class="inside tryloom-sub-flex">
-								<div class="tryloom-header-actions tryloom-sub-actions">
-									<?php if ($show_start_free_button): ?>
-										<a href="https://gettryloom.com/my-account/"
-											class="button button-primary tryloom-margin-right-10" target="_blank">
-											<?php esc_html_e('Start for Free', 'tryloom'); ?>
-										</a>
-									<?php endif; ?>
-									<a href="https://gettryloom.com/#pricing" class="button button-primary" target="_blank">
-										<?php esc_html_e('Subscription Options', 'tryloom'); ?>
-									</a>
-								</div>
-							</div>
+				<!-- Box 3: Usage Counter -->
+				<?php
+				$usage_used = get_option('tryloom_usage_used', null);
+				$usage_limit = get_option('tryloom_usage_limit', null);
+				if (null !== $usage_used && null !== $usage_limit) { ?>
+					<div class="tryloom-admin__stat-card">
+						<div class="tryloom-admin__stat-card-header">
+							<h2><?php esc_html_e('Usage Counter', 'tryloom'); ?></h2>
+						</div>
+						<div class="tryloom-admin__stat-card-body tryloom-admin__usage-flex">
+							<p class="description tryloom-admin__usage-desc">
+								<?php esc_html_e('Your current Try-On usage compared to your monthly (or plan-based) limit.', 'tryloom'); ?>
+							</p>
+							<p class="tryloom-admin__usage-val">
+								<?php echo esc_html($usage_used); ?> / <span
+									class="tryloom-admin__usage-sub"><?php echo esc_html($usage_limit); ?></span>
+							</p>
+						</div>
+					</div>
+				<?php } ?>
+
+				<!-- Box 4: Subscription Options -->
+				<?php
+				$paid_key = get_option('tryloom_platform_key', '');
+				$free_key = get_option('tryloom_free_platform_key', '');
+				$show_start_free_button = empty($paid_key) && empty($free_key);
+				?>
+				<div class="tryloom-admin__stat-card">
+					<div class="tryloom-admin__stat-card-header">
+						<h2><?php esc_html_e('Explore Subscription Plans for TryLoom', 'tryloom'); ?></h2>
+					</div>
+					<div class="tryloom-admin__stat-card-body tryloom-admin__sub-flex">
+						<div class="tryloom-admin__header-actions tryloom-admin__sub-actions">
+							<?php if ($show_start_free_button): ?>
+								<a href="https://gettryloom.com/my-account/"
+									class="button button-primary tryloom-admin__margin-right-10" target="_blank">
+									<?php esc_html_e('Start for Free', 'tryloom'); ?>
+								</a>
+							<?php endif; ?>
+							<a href="https://gettryloom.com/#pricing" class="button button-primary" target="_blank">
+								<?php esc_html_e('Subscription Options', 'tryloom'); ?>
+							</a>
 						</div>
 					</div>
 				</div>
 			</div>
 
+			<!-- Settings Form -->
 			<form method="post" action="options.php" class="tryloom-admin__form">
 				<?php
 				settings_fields('tryloom-settings-group');
@@ -1648,7 +1609,6 @@ class Tryloom_Admin
 					</p>
 				</blockquote>
 			</div>
-		</div>
 		</div> <!-- End #tryloom-admin-wrap -->
 		<?php
 	}

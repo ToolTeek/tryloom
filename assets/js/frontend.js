@@ -127,23 +127,6 @@
 				TryloomUI.handleRetry();
 			});
 
-			// Download button.
-			$(document).on('click', '.tryloom-popup__download-icon', function (e) {
-				e.preventDefault();
-				var downloadLink = $(this).attr('href');
-				var filename = $(this).attr('download') || 'try-on.png';
-
-				if (downloadLink) {
-					// Create a temporary link and trigger download
-					var link = document.createElement('a');
-					link.href = downloadLink;
-					link.download = filename;
-					link.style.display = 'none';
-					document.body.appendChild(link);
-					link.click();
-					document.body.removeChild(link);
-				}
-			});
 
 			// Download icon button.
 			$(document).on('click', '.tryloom-popup__download-icon', function (e) {
@@ -505,7 +488,7 @@
 			this.originalUploadedFileURL = defaultPhotoUrl;
 			this.uploadedFilePreviewDataURL = defaultPhotoUrl;
 			this.originalUploadedFilePreviewDataURL = defaultPhotoUrl;
-			$('.tryloom-generate').prop('disabled', false);
+			$('.tryloom-popup__generate-btn').prop('disabled', false);
 		},
 
 		/**
@@ -770,7 +753,7 @@
 			var savedState = TryloomUI.getGenerationState();
 			if (savedState && savedState.productId == productId) {
 				// Show popup with animation.
-				popup.addClass('open');
+				popup.addClass('open').attr('aria-hidden', 'false');
 
 				// Load variations.
 				this.loadVariations(productId);
@@ -837,7 +820,7 @@
 			}
 
 			// Show popup with animation.
-			popup.addClass('open');
+			popup.addClass('open').attr('aria-hidden', 'false');
 
 			// Load variations.
 			this.loadVariations(productId);
@@ -848,7 +831,7 @@
 		 */
 		closePopup: function () {
 			var popup = $('#tryloom-popup');
-			popup.removeClass('open');
+			popup.removeClass('open').attr('aria-hidden', 'true');
 
 			// Re-enable page scrolling
 			$('body').removeClass('tryloom-scroll-lock');
@@ -975,9 +958,11 @@
 						// Add variations.
 						$.each(variations, function (index, variation) {
 							var variationId = variation.variation_id;
-							var variationName = variation.variation_description;
-							var variationImage = variation.image.thumb_src;
-							var variationTitle = variation.image.title;
+							var variationName = variation.variation_description || '';
+							var variationImage = (variation.image && variation.image.thumb_src) ? variation.image.thumb_src :
+								((variation.image && variation.image.src) ? variation.image.src :
+									((variation.image && variation.image.url) ? variation.image.url : ''));
+							var variationTitle = (variation.image && variation.image.title) ? variation.image.title : variationName;
 							var variationAttributes = variation.attributes ? JSON.stringify(variation.attributes).replace(/"/g, '&quot;') : '{}';
 
 							var variationHtml = '<div class="tryloom-popup__variation" data-variation-id="' + variationId + '" data-product-id="' + productId + '" data-attributes="' + variationAttributes + '">' +
@@ -1180,6 +1165,11 @@
 		 * Generate try-on image.
 		 */
 		generateTryOn: function () {
+			// Prevent double-execution of generation.
+			if ($('.tryloom-popup__body').hasClass('is-generating')) {
+				return;
+			}
+
 			// Check if file is uploaded or using default photo.
 			var hasUploadedFile = TryloomUI.uploadedFileURL !== null;
 			var hasDefaultPhoto = $('.tryloom-popup__preview-container img').length > 0 && !hasUploadedFile;
