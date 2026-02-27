@@ -637,12 +637,12 @@ class Tryloom
 		// ---------------------------------------------------------
 		if ($needs_reschedule) {
 			// Clear any existing scheduled event to avoid duplicates
-			$timestamp = wp_next_scheduled('tryloom_cleanup_cron');
+			$timestamp = wp_next_scheduled('tryloom_cleanup_inactive_users');
 			if ($timestamp) {
-				wp_unschedule_event($timestamp, 'tryloom_cleanup_cron');
+				wp_unschedule_event($timestamp, 'tryloom_cleanup_inactive_users');
 			}
 			// Schedule to run again in 5 minutes
-			wp_schedule_single_event(time() + (5 * MINUTE_IN_SECONDS), 'tryloom_cleanup_cron');
+			wp_schedule_single_event(time() + (5 * MINUTE_IN_SECONDS), 'tryloom_cleanup_inactive_users');
 		}
 	}
 

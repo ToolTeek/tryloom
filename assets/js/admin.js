@@ -70,6 +70,25 @@
 		// Initialize select2 for enhanced select fields.
 		$('.wc-enhanced-select').select2();
 
+		// Bug 4 Fix: Async subscription status check.
+		// Fires in background so admin page renders instantly even if API is slow.
+		if (typeof tryloom_admin_params !== 'undefined' && tryloom_admin_params.check_subscription === '1') {
+			$.ajax({
+				url: tryloom_admin_params.ajax_url,
+				type: 'POST',
+				data: {
+					action: 'tryloom_check_subscription',
+					nonce: tryloom_admin_params.nonce
+				},
+				success: function (response) {
+					if (response.success && response.data.subscription_ended === 'no') {
+						// Subscription restored — reload to update UI
+						location.reload();
+					}
+				}
+			});
+		}
+
 	});
 
 })(jQuery);

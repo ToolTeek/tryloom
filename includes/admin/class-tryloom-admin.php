@@ -44,6 +44,9 @@ class Tryloom_Admin
 
 		// Add admin notices.
 		add_action('admin_notices', array($this, 'admin_notices'));
+
+		// AJAX handler for async subscription status check (Bug 4: prevents admin freeze).
+		add_action('wp_ajax_tryloom_check_subscription', array($this, 'ajax_check_subscription'));
 	}
 
 	/**
@@ -1303,6 +1306,13 @@ class Tryloom_Admin
 			true
 		);
 
+		// Localize admin script with AJAX data for async subscription check.
+		wp_localize_script('tryloom-admin', 'tryloom_admin_params', array(
+			'ajax_url' => admin_url('admin-ajax.php'),
+			'nonce' => wp_create_nonce('tryloom_admin_nonce'),
+			'check_subscription' => ('yes' === get_option('tryloom_subscription_ended', 'no')) ? '1' : '0',
+		));
+
 		// Enqueue admin style.
 		wp_enqueue_style(
 			'tryloom-admin',
@@ -1445,19 +1455,16 @@ class Tryloom_Admin
 	 */
 	public function settings_page()
 	{
-		// Force check status if subscription ended (user visiting settings page)
-		if ('yes' === get_option('tryloom_subscription_ended', 'no')) {
-			if (function_exists('tryloom') && tryloom()->api) {
-				tryloom()->api->check_usage_status();
-			}
-		}
+		// Note: Subscription status check is now handled asynchronously via AJAX
+		// to prevent the admin panel from freezing if the API server is slow (Bug 4).
 
 		// Get statistics.
 		global $wpdb;
 		// Use datetime strings for index-friendly range queries (avoids DATE() function which disables indexes)
-		$today_start = gmdate('Y-m-d 00:00:00');
-		$today_end = gmdate('Y-m-d 00:00:00', strtotime('+1 day'));
-		$thirty_days_ago_start = gmdate('Y-m-d 00:00:00', strtotime('-30 days'));
+		// Bug 3: Use wp_date() instead of gmdate() so dashboard stats match the local timezone used by the limit engine.
+		$today_start = wp_date('Y-m-d 00:00:00');
+		$today_end = wp_date('Y-m-d 00:00:00', strtotime('+1 day'));
+		$thirty_days_ago_start = wp_date('Y-m-d 00:00:00', strtotime('-30 days'));
 		$history_table = $wpdb->prefix . 'tryloom_history';
 
 		// Today's Active Users - Count distinct users who used try-on today.
@@ -1611,5 +1618,27 @@ class Tryloom_Admin
 			</div>
 		</div> <!-- End #tryloom-admin-wrap -->
 		<?php
+	}
+
+	/**
+	 * AJAX handler to check subscription status asynchronously.
+	 * Prevents admin page freeze when API server is slow or unresponsive (Bug 4).
+	 */
+	public function ajax_check_subscription()
+	{
+		check_ajax_referer('tryloom_admin_nonce', 'nonce');
+
+		if (!current_user_can('manage_woocommerce')) {
+			wp_send_json_error('Unauthorized');
+		}
+
+		if (function_exists('tryloom') && tryloom()->api) {
+			tryloom()->api->check_usage_status();
+			wp_send_json_success(array(
+				'subscription_ended' => get_option('tryloom_subscription_ended', 'no'),
+			));
+		}
+
+		wp_send_json_error('API not available');
 	}
 }
